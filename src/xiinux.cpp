@@ -87,7 +87,7 @@ public:
 fle*homepage;
 class widget{
 public:
-	virtual ~widget()=0;
+//	virtual ~widget()=0;
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
 };
