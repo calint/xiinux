@@ -1,0 +1,6 @@
+#!/bin/sh
+ab -n 1 http://localhost:8088/
+ab -n 10 http://localhost:8088/
+ab -n 100 http://localhost:8088/
+ab -n 1000 http://localhost:8088/
+ab -n 10000 http://localhost:8088/
