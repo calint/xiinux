@@ -13,7 +13,7 @@
 #include<ctype.h>
 #include<sys/types.h>
 #include<sys/stat.h>
-#include<pthread.h>
+//#include<thread>
 #include<netinet/tcp.h>
 static const char*app="xiinux web server";
 static int const K=1024;
@@ -394,7 +394,48 @@ public:
 	}
 };
 static sock server;
-void*thdwatchrun(void*arg){
+//void thdwatchrun(void*arg){
+//	if(arg)
+//		puts((const char*)arg);
+//	stats.printhdr(stdout);
+//	while(1){
+//		int n=10;
+//		while(n--){
+//			const int sleep=100000;
+//			usleep(sleep);
+//			stats.ms+=sleep/1000;
+//			stats.print(stdout);
+//		}
+//		fprintf(stdout,"\n");
+//	}
+//}
+static void sigexit(int i){
+	puts("exiting");
+	if(server.fd>0)
+		close(server.fd);
+	if(homepage)
+		delete homepage;
+	signal(SIGINT,SIG_DFL);
+	kill(getpid(),SIGINT);
+	exit(i);
+}
+//#include<iostream>
+//using namespace std;
+//static void thdwatchrun(string arg){
+//	cout<<arg<<endl;
+//	stats.printhdr(stdout);
+//	while(1){
+//		int n=10;
+//		while(n--){
+//			const int sleep=100000;
+//			usleep(sleep);
+//			stats.ms+=sleep/1000;
+//			stats.print(stdout);
+//		}
+//		fprintf(stdout,"\n");
+//	}
+//}
+static void*thdwatchrun(void*arg){
 	if(arg)
 		puts((const char*)arg);
 	stats.printhdr(stdout);
@@ -408,17 +449,7 @@ void*thdwatchrun(void*arg){
 		}
 		fprintf(stdout,"\n");
 	}
-	return 0;
-}
-static void sigexit(int i){
-	puts("exiting");
-	if(server.fd>0)
-		close(server.fd);
-	if(homepage)
-		delete homepage;
-	signal(SIGINT,SIG_DFL);
-	kill(getpid(),SIGINT);
-	exit(i);
+	return nullptr;
 }
 int main(){
 	signal(SIGINT,sigexit);
@@ -426,7 +457,7 @@ int main(){
 	printf("  port %d\n",port);
 
 	char buf[4*K];
-	sprintf(buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n%s",strlen(app),app);
+	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n%s",strlen(app),app);
 	homepage=new doc(buf);
 
 	struct sockaddr_in srv;
@@ -450,11 +481,13 @@ int main(){
 	if(epoll_ctl(epfd,EPOLL_CTL_ADD,server.fd,&ev)<0)
 		{perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
+	const bool watch_thread=true;
+//	thread t1(thd_watch,"hello");
 	pthread_t thdwatch;
-	const bool watch_thread=false;
-	if(watch_thread)
-		if(pthread_create(&thdwatch,0,&thdwatchrun,0))
+	if(watch_thread){
+		if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr))
 			{perror("threadcreate");exit(6);}
+	}
 	while(1){
 		const int nn=epoll_wait(epfd,events,nclients,-1);
 		if(nn==-1)

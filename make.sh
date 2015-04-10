@@ -1,9 +1,9 @@
+CC="clang++ -std=c++11"
 BIN=xiinux
 SRC=src/xiinux.cpp
-#OPTS=-Os
+OPTS="-pthread -Os"
 #WARNINGS="-Wall -Wextra"
 LIBS=-lX11
-CC="clang++ -std=c++11"
 
 echo &&
 $CC  -o $BIN $SRC $LIBS $OPTS $WARNINGS && 
