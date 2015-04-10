@@ -289,6 +289,11 @@ public:
 						state=method;
 						break;
 					}
+					if(strstr(path,"..")){
+						x.reply_http(403,"path contains ..");
+						state=method;
+						break;
+					}
 					stats.files++;
 					struct stat fdstat;
 					if(stat(path,&fdstat)){

@@ -26,6 +26,11 @@ echo " * cached document"&&
 curl -si $HOST/>cmp&&
 diff -q cmp t06.cmp&&
 rm cmp&&
+#-- - - -- -- - ------- - - - - -- - - - --- -- 
+echo " * illegal path"&&
+curl -si $HOST/../../frameless/about>cmp&&
+diff -q cmp t08.cmp&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * page not found"&&
 curl -si $HOST/asdf.html>cmp&&
