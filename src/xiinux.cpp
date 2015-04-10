@@ -57,8 +57,10 @@ public:
 	xwriter&pk(const char*s,const size_t nn){
 		const ssize_t n=send(fd,s,nn,0);
 		if(n==-1){
-			if(errno==32)
+			if(errno==32){
+				stats.brkp++;
 				throw"broken pipe";
+			}
 			perror("send");
 			printf("\n\n%s  %d   errorno=%d\n\n",__FILE__,__LINE__,errno);
 			throw"unknown error while sending";
@@ -521,8 +523,9 @@ int main(){
 					delete&c;
 					continue;
 				}
-			}else
+			}else{
 				stats.writes++;
+			}
 			try{
 				switch(c.run()){
 				case 0:delete&c;break;
