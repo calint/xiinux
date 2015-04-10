@@ -14,28 +14,24 @@
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<pthread.h>
-static const char*app="xiinux web server 2015";
+static const char*app="xiinux web server";
 static int const K=1024;
 static size_t const conbufnn=K;
 static int const nclients=K;
 static int const port=8088;
 class stats{
 public:
-	unsigned long long int ms;
-	unsigned long long int input;
-	unsigned long long int output;
-	unsigned long long int accepts;
-	unsigned long long int reads;
-	unsigned long long int writes;
-	unsigned long long int files;
-	unsigned long long int widgets;
-	unsigned long long int cache;
-	unsigned long long int errors;
-	unsigned long long int brkp;
-	stats(){
-		const int thsz=sizeof(stats);
-		bzero(this,thsz);
-	}
+	unsigned long long int ms{0};
+	unsigned long long int input{0};
+	unsigned long long int output{0};
+	unsigned long long int accepts{0};
+	unsigned long long int reads{0};
+	unsigned long long int writes{0};
+	unsigned long long int files{0};
+	unsigned long long int widgets{0};
+	unsigned long long int cache{0};
+	unsigned long long int errors{0};
+	unsigned long long int brkp{0};
 	void printhdr(FILE*f){
 		fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","accepts","reads","writes","files","widgets","cache","errors","brkp");
 		fflush(f);
@@ -53,7 +49,7 @@ public:
 	xwriter&reply_http(const int code,const char*content){
 		const size_t nn=strlen(content);
 		char bb[K];
-		sprintf(bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n",code,nn);
+		sprintf(bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n",code,nn);
 		pk(bb).pk(content,nn);
 		return*this;
 	}
@@ -63,31 +59,29 @@ public:
 			stats.output+=n;
 		if(n!=ssize_t(nn)){
 			stats.errors++;
-			printf("\n\n%s  %d    sent %d of %d\n\n",__FILE__,__LINE__,n,nn);
+			printf("\n\n%s  %d    sent %lu of %lu\n\n",__FILE__,__LINE__,n,nn);
 		}
 		return*this;
 	}
 	inline xwriter&pk(const char*s){const size_t snn=strlen(s);return pk(s,snn);}
 };
-class fle{
-	char*buf;
+class doc{
 	ssize_t size;
+	char*buf;
 	const char*lastmod;
 public:
-	fle(const char*data,const char*lastmod=NULL):lastmod(lastmod){
-		size=strlen(data);
-		buf=(char*)malloc(size);
+	doc(const char*data,const char*lastmod=NULL):size(strlen(data)),buf(new char[size]),lastmod(lastmod){
 		memcpy(buf,data,size);
 	}
-	~fle(){delete buf;}
+	~doc(){delete buf;}
 	inline const char*getbuf()const{return buf;}
 	inline ssize_t getsize()const{return size;}
 	inline void to(xwriter&x)const{x.pk(buf,size);}
 };
-fle*homepage;
+doc*homepage;
 class widget{
 public:
-//	virtual ~widget()=0;
+	virtual ~widget(){};
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
 };
@@ -101,7 +95,7 @@ static char*strtrm(char*p,char*e){
 }
 static void strlwr(char*p){
 	while(*p){
-		*p=tolower(*p);
+		*p=(char)tolower(*p);
 		p++;
 	}
 }
@@ -184,22 +178,22 @@ public:
 };
 class sock{
 private:
-	int state;
-	int fdfile;
-	off_t fdfileoffset;
-	long long fdfilecount;
-	char*pth;
-	char*qs;
+	int state{0};
+	int fdfile{0};
+	off_t fdfileoffset{0};
+	long long fdfilecount{0};
+	char*pth{nullptr};
+	char*qs{nullptr};
 	lut<const char*>hdrs;
-	char*hdrp;
-	char*hdrvp;
+	char*hdrp{nullptr};
+	char*hdrvp{nullptr};
 public:
 	int fd;
 	char buf[conbufnn];
-	char*bufp;
-	size_t bufi;
-	size_t bufnn;
-	sock(const int fd=0):state(0),fd(fd),bufp(buf),bufi(0),bufnn(0){}
+	char*bufp{buf};
+	size_t bufi{0};
+	size_t bufnn{0};
+	sock(const int fd=0):fd(fd){}
 	~sock(){close(fd);}
 	int run(){
 		if(state==6){
@@ -404,9 +398,9 @@ static void sigexit(int i){
 		close(server.fd);
 	if(homepage)
 		delete homepage;
-    signal(SIGINT,SIG_DFL);
-    kill(getpid(),SIGINT);
-    exit(i);
+	signal(SIGINT,SIG_DFL);
+	kill(getpid(),SIGINT);
+	exit(i);
 }
 int main(){
 	signal(SIGINT,sigexit);
@@ -414,8 +408,8 @@ int main(){
 	printf("  port %d\n",port);
 
 	char buf[4*K];
-	sprintf(buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n%s",strlen(app),app);
-	homepage=new fle(buf);
+	sprintf(buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n%s",strlen(app),app);
+	homepage=new doc(buf);
 
 	struct sockaddr_in srv;
 	const ssize_t srvsz=sizeof(srv);
@@ -428,40 +422,40 @@ int main(){
 	if(bind(server.fd,(struct sockaddr*)&srv,srvsz))
 		{perror("bind");exit(2);}
 	if(listen(server.fd,nclients)==-1)
-		{perror("listen");exit(21);}
+		{perror("listen");exit(3);}
 	const int epfd=epoll_create(nclients);
 	if(!epfd)
-		{perror("epollcreate");exit(3);}
+		{perror("epollcreate");exit(4);}
 	struct epoll_event ev;
 	ev.events=EPOLLIN;
 	ev.data.ptr=&server;
 	if(epoll_ctl(epfd,EPOLL_CTL_ADD,server.fd,&ev)<0)
-		{perror("epolladd");exit(4);}
+		{perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
 	pthread_t thdwatch;
 	if(pthread_create(&thdwatch,0,&thdwatchrun,0))
-		{perror("threadcreate");exit(5);}
+		{perror("threadcreate");exit(6);}
 	while(1){
 		const int nn=epoll_wait(epfd,events,nclients,-1);
 		if(nn==-1)
-			{perror("epollwait");exit(6);}
+			{perror("epollwait");exit(7);}
 		for(int i=0;i<nn;i++){
 			sock&c=*(sock*)events[i].data.ptr;
 			if(c.fd==server.fd){
 				stats.accepts++;
 				const int fda=accept(server.fd,0,0);
 				if(fda==-1)
-					{perror("accept");exit(7);}
+					{perror("accept");exit(8);}
 				int opts=fcntl(fda,F_GETFL);
 				if(opts<0)
-					{perror("getopts");exit(8);}
+					{perror("getopts");exit(9);}
 				opts|=O_NONBLOCK;
 				if(fcntl(fda,F_SETFL,opts))
-					{perror("setopts");exit(9);}
+					{perror("setopts");exit(10);}
 				ev.data.ptr=new sock(fda);
 				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 				if(epoll_ctl(epfd,EPOLL_CTL_ADD,fda,&ev))
-					{perror("epolladd");exit(10);}
+					{perror("epolladd");exit(11);}
 				continue;
 			}
 			if(events[i].events&EPOLLIN){
