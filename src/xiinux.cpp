@@ -186,7 +186,7 @@ public:
 		}
 	}
 };
-enum sock_request{request_close,request_read,request_write};
+enum io_request{request_close,request_read,request_write};
 class sock{
 private:
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file};
@@ -213,7 +213,7 @@ public:
 		stats.errors++;
 		perror("delete sock");printf(" %s  %d\n\n",__FILE__,__LINE__);
 	}
-	sock_request run(){
+	io_request run(){
 		if(state==resume_send_file){
 			const ssize_t sf=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 			if(sf<0){
