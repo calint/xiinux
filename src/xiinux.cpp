@@ -204,7 +204,7 @@ public:
 	~sock(){
 		if(!close(fd))return;
 		stats.errors++;
-		perror("delete sock");printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+		perror("delete sock");printf(" %s  %d\n\n",__FILE__,__LINE__);
 	}
 	int run(){
 		if(state==6){
@@ -412,10 +412,8 @@ static sock server;
 static void sigexit(int i){
 	puts("exiting");
 	delete homepage;
-	if(server.fd>0){
-		if(shutdown(server.fd,SHUT_RDWR))perror("shutdown");
-		close(server.fd);
-	}
+	if(shutdown(server.fd,SHUT_RDWR))perror("shutdown");
+	close(server.fd);
 	signal(SIGINT,SIG_DFL);
 	kill(getpid(),SIGINT);
 	exit(i);
