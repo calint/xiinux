@@ -77,7 +77,7 @@ class doc{
 	char*buf;
 	const char*lastmod;
 public:
-	doc(const char*data,const char*lastmod=NULL):size(strlen(data)),buf(new char[size]),lastmod(lastmod){
+	doc(const char*data,const char*lastmod=nullptr):size(strlen(data)),buf(new char[size]),lastmod(lastmod){
 		memcpy(buf,data,size);
 	}
 	~doc(){delete buf;}
@@ -114,7 +114,7 @@ private:
 		const char*key;
 		T data;
 		el*nxt;
-		el(const char*key,T data):key(key),data(data),nxt(NULL){}
+		el(const char*key,T data):key(key),data(data),nxt(nullptr){}
 		~el(){
 			if(nxt)
 				delete nxt;
@@ -139,18 +139,18 @@ public:
 	}
 	T operator[](const char*key){
 		const int h=hash(key,size);
-		el*l=array[h];
-		if(!l)
-			return NULL;
-		while(1){
-			if(!strcmp(l->key,key)){
-				return l->data;
+		el*e=array[h];
+		if(!e)
+			return nullptr;
+		while(true){
+			if(!strcmp(e->key,key)){
+				return e->data;
 			}
-			if(l->nxt){
-				l=l->nxt;
+			if(e->nxt){
+				e=e->nxt;
 				continue;
 			}
-			return NULL;
+			return nullptr;
 		}
 	}
 	void put(const char*key,T data){
@@ -179,7 +179,7 @@ public:
 			if(!e)
 				continue;
 			delete e;
-			array[i]=NULL;
+			array[i]=nullptr;
 		}
 	}
 };
@@ -487,7 +487,7 @@ int main(){
 		if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr))
 			{perror("threadcreate");exit(6);}
 	}
-	while(1){
+	while(true){
 		const int nn=epoll_wait(epfd,events,nclients,-1);
 		if(nn==-1)
 			{perror("epollwait");exit(7);}
