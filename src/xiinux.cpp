@@ -236,14 +236,14 @@ public:
 			const char c=*bufp++;
 			switch(state){
 			case resume_send_file:throw"illegalstate";
-			case method://method
+			case method:
 				if(c==' '){
 					state=uri;
 					pth=bufp;
 					qs=0;
 				}
 				break;
-			case uri://uri
+			case uri:
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
@@ -253,20 +253,20 @@ public:
 					*(bufp-1)=0;
 				}
 				break;
-			case query://querystr
+			case query:
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
 				}
 				break;
-			case protocol://protocol
+			case protocol:
 				if(c=='\n'){
 					hdrs.clear();
 					hdrp=bufp;
 					state=header_key;
 				}
 				break;
-			case header_key://header key
+			case header_key:
 				if(c=='\n'){
 					const char*path=pth+1;
 					xwriter x=xwriter(fd);
@@ -372,7 +372,7 @@ public:
 					state=header_value;
 				}
 				break;
-			case header_value://header value
+			case header_value:
 				if(c=='\n'){
 					*(bufp-1)=0;
 					hdrp=strtrm(hdrp,hdrvp-2);
@@ -398,7 +398,7 @@ public:
 			return request_read;
 		}
 	}
-	int read(){
+	bool read(){
 		const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
 		if(nn==0){//closed
 //			printf("\n%s:%d closed by client\n\n",__FILE__,__LINE__);
@@ -525,19 +525,17 @@ int main(){
 					{perror("accept");exit(8);}
 				int opts=fcntl(fda,F_GETFL);
 				if(opts<0)
-					{perror("getopts");exit(9);}
+					{perror("optget");exit(9);}
 				opts|=O_NONBLOCK;
 				if(fcntl(fda,F_SETFL,opts))
-					{perror("setopts");exit(10);}
+					{perror("optsetNONBLOCK");exit(10);}
 				ev.data.ptr=new sock(fda);
 				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 				if(epoll_ctl(epfd,EPOLL_CTL_ADD,fda,&ev))
 					{perror("epolladd");exit(11);}
 				int flag=1;
-				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){
-					perror("setsockopt TCP_NODELAY");
-					exit(12);
-				}
+				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0)
+					{perror("optsetTCP_NODELAY");exit(12);}
 				continue;
 			}
 			if(events[i].events&EPOLLIN){
