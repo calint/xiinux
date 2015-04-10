@@ -411,10 +411,11 @@ static sock server;
 //}
 static void sigexit(int i){
 	puts("exiting");
-	if(server.fd>0)
+	delete homepage;
+	if(server.fd>0){
+		if(shutdown(server.fd,SHUT_RDWR))perror("shutdown");
 		close(server.fd);
-	if(homepage)
-		delete homepage;
+	}
 	signal(SIGINT,SIG_DFL);
 	kill(getpid(),SIGINT);
 	exit(i);
