@@ -14,6 +14,7 @@
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<pthread.h>
+#include<netinet/tcp.h>
 static const char*app="xiinux web server";
 static int const K=1024;
 static size_t const conbufnn=K;
@@ -194,7 +195,11 @@ public:
 	size_t bufi{0};
 	size_t bufnn{0};
 	sock(const int fd=0):fd(fd){}
-	~sock(){close(fd);}
+	~sock(){
+		if(!close(fd))return;
+		stats.errors++;
+		perror("delete sock");printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+	}
 	int run(){
 		if(state==6){
 			const ssize_t sf=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
@@ -360,8 +365,7 @@ public:
 	int read(){
 		const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
 		if(nn==0){//closed
-			perror("recv");
-			printf("\n%s:%d closed by client\n\n",__FILE__,__LINE__);
+//			printf("\n%s:%d closed by client\n\n",__FILE__,__LINE__);
 			return 1;
 		}
 		if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
@@ -433,8 +437,10 @@ int main(){
 		{perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
 	pthread_t thdwatch;
-	if(pthread_create(&thdwatch,0,&thdwatchrun,0))
-		{perror("threadcreate");exit(6);}
+	const bool watch_thread=false;
+	if(watch_thread)
+		if(pthread_create(&thdwatch,0,&thdwatchrun,0))
+			{perror("threadcreate");exit(6);}
 	while(1){
 		const int nn=epoll_wait(epfd,events,nclients,-1);
 		if(nn==-1)
@@ -456,6 +462,11 @@ int main(){
 				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 				if(epoll_ctl(epfd,EPOLL_CTL_ADD,fda,&ev))
 					{perror("epolladd");exit(11);}
+				int flag=1;
+				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){
+					perror("setsockopt TCP_NODELAY");
+					exit(12);
+				}
 				continue;
 			}
 			if(events[i].events&EPOLLIN){
