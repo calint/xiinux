@@ -186,9 +186,11 @@ public:
 		}
 	}
 };
+enum sock_request{request_close,request_read,request_write};
 class sock{
 private:
-	int state{0};
+	enum http_state{method,uri,query,protocol,header_key,header_value,resume_send_file};
+	http_state state{method};
 	int fdfile{0};
 	off_t fdfileoffset{0};
 	long long fdfilecount{0};
@@ -205,59 +207,66 @@ public:
 	size_t bufnn{0};
 	sock(const int fd=0):fd(fd){}
 	~sock(){
-		if(!close(fd))return;
+		if(!close(fd)){
+			return;
+		}
 		stats.errors++;
 		perror("delete sock");printf(" %s  %d\n\n",__FILE__,__LINE__);
 	}
-	int run(){
-		if(state==6){
+	sock_request run(){
+		if(state==resume_send_file){
 			const ssize_t sf=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
-			if(sf<0)
-				{stats.errors++;perror("resume sendfile");printf("\n\n%s  %d\n\n",__FILE__,__LINE__);return 0;}
+			if(sf<0){
+				stats.errors++;
+				perror("resume sendfile");
+				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+				return request_close;
+			}
 			fdfilecount-=sf;
 			stats.output+=sf;
 			if(fdfilecount!=0){
-				state=6;
-				return 2;
+				state=resume_send_file;
+				return request_write;
 			}
 			close(fdfile);
-			state=0;
+			state=method;
 		}
 		while(bufi<bufnn){
 			bufi++;
 			const char c=*bufp++;
 			switch(state){
-			case 0://method
+			case resume_send_file:throw"illegalstate";
+			case method://method
 				if(c==' '){
-					state=1;
+					state=uri;
 					pth=bufp;
 					qs=0;
 				}
 				break;
-			case 1://uri
+			case uri://uri
 				if(c==' '){
-					state=2;
+					state=protocol;
 					*(bufp-1)=0;
 				}else if(c=='?'){
-					state=7;
+					state=query;
 					qs=bufp;
 					*(bufp-1)=0;
 				}
 				break;
-			case 7://querystr
+			case query://querystr
 				if(c==' '){
-					state=2;
+					state=protocol;
 					*(bufp-1)=0;
 				}
 				break;
-			case 2://protocol
+			case protocol://protocol
 				if(c=='\n'){
 					hdrs.clear();
 					hdrp=bufp;
-					state=3;
+					state=header_key;
 				}
 				break;
-			case 3://header key
+			case header_key://header key
 				if(c=='\n'){
 					const char*path=pth+1;
 					xwriter x=xwriter(fd);
@@ -271,19 +280,22 @@ public:
 							throw e;
 						}
 						delete o;
-						state=0;
+						state=method;
 						break;
 					}
 					if(!*path){
 						stats.cache++;
 						homepage->to(x);
-						state=0;
+						state=method;
 						break;
 					}
 					stats.files++;
 					struct stat fdstat;
-					if(stat(path,&fdstat))
-						{x.reply_http(404,"not found");return state=0;}
+					if(stat(path,&fdstat)){
+						x.reply_http(404,"not found");
+						state=method;
+						return request_close;//? method
+					}
 					const struct tm*tm=gmtime(&fdstat.st_mtime);
 					char lastmod[64];
 					//"Fri, 31 Dec 1999 23:59:59 GMT"
@@ -293,15 +305,20 @@ public:
 						const char*hdr="HTTP/1.1 304\r\nConnection: Keep-Alive\r\n\r\n";
 						const ssize_t hdrnn=strlen(hdr);
 						const ssize_t hdrsn=send(fd,hdr,hdrnn,0);
-						if(hdrsn!=hdrnn)
-							{stats.errors++;printf("\n\n%s  %d\n\n",__FILE__,__LINE__);return 0;}
+						if(hdrsn!=hdrnn){
+							stats.errors++;
+							printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+							return request_close;
+						}
 						stats.output+=hdrsn;
-						state=0;
+						state=method;
 						break;
 					}
 					fdfile=open(path,O_RDONLY);
-					if(fdfile==-1)
-						{x.reply_http(404,"cannot open");return 0;}
+					if(fdfile==-1){
+						x.reply_http(404,"cannot open");
+						return request_close;
+					}
 					fdfileoffset=0;
 					fdfilecount=fdstat.st_size;
 					const char*range=hdrs["range"];
@@ -311,7 +328,7 @@ public:
 						if(EOF==sscanf(range,"bytes=%llu",&rs)){
 							stats.errors++;
 							printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
-							return 0;
+							return request_close;
 						}
 						fdfileoffset=rs;
 						const unsigned long long int s=rs;
@@ -323,36 +340,39 @@ public:
 					}
 					const ssize_t bbnn=strlen(bb);
 					const ssize_t bbsn=send(fd,bb,bbnn,0);
-					if(bbsn!=bbnn)
-						{stats.errors++;printf("\n%s:%d sending header\n",__FILE__,__LINE__);return 0;}
+					if(bbsn!=bbnn){
+						stats.errors++;
+						printf("\n%s:%d sending header\n",__FILE__,__LINE__);
+						return request_close;
+					}
 					stats.output+=bbsn;//? -1
 					const ssize_t nn=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 					if(nn<0){
 						if(errno==32){//broken pipe
 							stats.brkp++;
-							return 0;
+							return request_close;
 						}
 						stats.errors++;
 						perror("sending file");
 						printf("\n%s:%d errno=%d\n",__FILE__,__LINE__,errno);
-						return 0;
+						return request_close;
 					}
 					stats.output+=nn;
 					fdfilecount-=nn;
 					if(fdfilecount!=0){
-						state=6;
-						return 2;
+						state=resume_send_file;
+						return request_write;
 					}
 					close(fdfile);
-					state=0;
+					state=method;
 					break;
 				}else if(c==':'){
 					*(bufp-1)=0;
 					hdrvp=bufp;
-					state=4;
+					state=header_value;
 				}
 				break;
-			case 4://header value
+			case header_value://header value
 				if(c=='\n'){
 					*(bufp-1)=0;
 					hdrp=strtrm(hdrp,hdrvp-2);
@@ -360,40 +380,42 @@ public:
 					hdrvp=strtrm(hdrvp,bufp-2);
 					hdrs.put(hdrp,hdrvp);
 					hdrp=bufp;
-					state=3;
+					state=header_key;
 				}
 				break;
 			}
 		}
-		if(state==0){
+		if(state==method){
 			const char*str=hdrs["connection"];
 			if(str&&!strcmp("Keep-Alive",str)){
 				bufi=bufnn=0;
 				bufp=buf;
-				return 1;
-			}else
-				return 0;
-		}else
-			return 1;
+				return request_read;
+			}else{
+				return request_close;
+			}
+		}else{
+			return request_read;
+		}
 	}
 	int read(){
 		const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
 		if(nn==0){//closed
 //			printf("\n%s:%d closed by client\n\n",__FILE__,__LINE__);
-			return 1;
+			return false;
 		}
 		if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
 			if(errno==104){// connection reset by peer
-				return 1;
+				return false;
 			}
 			perror("recv");
 			printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
 			stats.errors++;
-			return 1;
+			return false;
 		}
 		bufnn+=nn;
 		stats.input+=nn;
-		return 0;
+		return true;
 	}
 };
 static sock server;
@@ -520,7 +542,7 @@ int main(){
 			}
 			if(events[i].events&EPOLLIN){
 				stats.reads++;
-				if(c.read()){
+				if(!c.read()){
 					delete&c;
 					continue;
 				}
@@ -529,13 +551,13 @@ int main(){
 			}
 			try{
 				switch(c.run()){
-				case 0:delete&c;break;
-				case 1://read
+				case request_close:delete&c;break;
+				case request_read:
 					events[i].events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 					if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
 						{perror("epollmodread");delete&c;}
 					break;
-				case 2://write
+				case request_write:
 					events[i].events=EPOLLOUT|EPOLLRDHUP|EPOLLET;
 					if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
 						{perror("epollmodwrite");delete&c;}
