@@ -189,8 +189,8 @@ public:
 enum sock_request{request_close,request_read,request_write};
 class sock{
 private:
-	enum http_state{method,uri,query,protocol,header_key,header_value,resume_send_file};
-	http_state state{method};
+	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file};
+	parser_state state{method};
 	int fdfile{0};
 	off_t fdfileoffset{0};
 	long long fdfilecount{0};
@@ -299,7 +299,13 @@ public:
 					if(stat(path,&fdstat)){
 						x.reply_http(404,"not found");
 						state=method;
-						return request_close;//? method
+						break;
+//						return request_close;//? method
+					}
+					if(S_ISDIR(fdstat.st_mode)){
+						x.reply_http(403,"path is directory");
+						state=method;
+						break;
 					}
 					const struct tm*tm=gmtime(&fdstat.st_mtime);
 					char lastmod[64];
