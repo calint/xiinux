@@ -56,8 +56,14 @@ public:
 	}
 	xwriter&pk(const char*s,const size_t nn){
 		const ssize_t n=send(fd,s,nn,0);
-		if(n!=-1)
-			stats.output+=n;
+		if(n==-1){
+			if(errno==32)
+				throw"broken pipe";
+			perror("send");
+			printf("\n\n%s  %d   errorno=%d\n\n",__FILE__,__LINE__,errno);
+			throw"unknown error while sending";
+		}
+		stats.output+=n;
 		if(n!=ssize_t(nn)){
 			stats.errors++;
 			printf("\n\n%s  %d    sent %lu of %lu\n\n",__FILE__,__LINE__,n,nn);
@@ -255,7 +261,12 @@ public:
 					if(!*path&&qs){
 						stats.widgets++;
 						widget*o=widgetget(qs);
-						o->to(x);
+						try{
+							o->to(x);
+						}catch(const char*e){
+							delete o;
+							throw e;
+						}
 						delete o;
 						state=0;
 						break;
@@ -369,6 +380,9 @@ public:
 			return 1;
 		}
 		if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
+			if(errno==104){// connection reset by peer
+				return 1;
+			}
 			perror("recv");
 			printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
 			stats.errors++;
@@ -477,18 +491,22 @@ int main(){
 				}
 			}else
 				stats.writes++;
-			switch(c.run()){
-			case 0:delete&c;break;
-			case 1://read
-				events[i].events=EPOLLIN|EPOLLRDHUP|EPOLLET;
-				if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
-					{perror("epollmodread");delete&c;}
-				break;
-			case 2://write
-				events[i].events=EPOLLOUT|EPOLLRDHUP|EPOLLET;
-				if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
-					{perror("epollmodwrite");delete&c;}
-				break;
+			try{
+				switch(c.run()){
+				case 0:delete&c;break;
+				case 1://read
+					events[i].events=EPOLLIN|EPOLLRDHUP|EPOLLET;
+					if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
+						{perror("epollmodread");delete&c;}
+					break;
+				case 2://write
+					events[i].events=EPOLLOUT|EPOLLRDHUP|EPOLLET;
+					if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
+						{perror("epollmodwrite");delete&c;}
+					break;
+				}
+			}catch(const char*e){
+				delete&c;
 			}
 		}
 	}
