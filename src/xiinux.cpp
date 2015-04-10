@@ -50,7 +50,7 @@ public:
 	xwriter&reply_http(const int code,const char*content){
 		const size_t nn=strlen(content);
 		char bb[K];
-		sprintf(bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n",code,nn);
+		snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n",code,nn);
 		pk(bb).pk(content,nn);
 		return*this;
 	}
@@ -88,6 +88,7 @@ public:
 	inline void to(xwriter&x)const{x.pk(buf,size);}
 };
 doc*homepage;
+
 class widget{
 public:
 	virtual ~widget(){};
@@ -283,7 +284,7 @@ public:
 					struct stat fdstat;
 					if(stat(path,&fdstat))
 						{x.reply_http(404,"not found");return state=0;}
-					const struct tm*tm=localtime(&fdstat.st_mtime);
+					const struct tm*tm=gmtime(&fdstat.st_mtime);
 					char lastmod[64];
 					//"Fri, 31 Dec 1999 23:59:59 GMT"
 					strftime(lastmod,size_t(64),"%a, %d %b %y %H:%M:%S %Z",tm);
@@ -316,9 +317,9 @@ public:
 						const unsigned long long int s=rs;
 						const unsigned long long int e=fdfilecount;
 						fdfilecount-=rs;
-						sprintf(bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\nContent-Range: %lld-%lld/%lld\r\n\r\n",lastmod,fdfilecount,s,e,e);
+						snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\nContent-Range: %lld-%lld/%lld\r\n\r\n",lastmod,fdfilecount,s,e,e);
 					}else{
-						sprintf(bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\n\r\n",lastmod,fdfilecount);
+						snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\n\r\n",lastmod,fdfilecount);
 					}
 					const ssize_t bbnn=strlen(bb);
 					const ssize_t bbsn=send(fd,bb,bbnn,0);
@@ -560,7 +561,7 @@ class bye:public widget{
 };
 class notfound:public widget{
 	virtual void to(xwriter&x){
-		x.reply_http(200,"path not found");
+		x.reply_http(404,"path not found");
 	}
 };}
 //-- generated

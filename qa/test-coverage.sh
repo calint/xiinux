@@ -4,33 +4,38 @@ echo&&date&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * static document"&&
 curl -si $HOST/qa/q01.txt>cmp&&
-diff cmp t01.cmp&&
+diff -q cmp t01.cmp&&
+rm cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- -
+echo " * if-modified-since"&&
+curl -siH "if-modified-since: Fri, 10 Apr 15 07:58:44 GMT" $HOST/qa/q01.txt>cmp&&
+diff -q cmp t07.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * dynamic document"&&
 curl -si $HOST/?hello>cmp&&
-diff cmp t02.cmp&&
+diff -q cmp t02.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * resumable download"&&
 curl -sir 1- $HOST/qa/q01.txt>cmp&&
-diff cmp t05.cmp&&
+diff -q cmp t05.cmp&&
 rm cmp&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * cached document"&&
 curl -si $HOST/>cmp&&
-diff cmp t06.cmp&&
+diff -q cmp t06.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * page not found"&&
 curl -si $HOST/asdf.html>cmp&&
-diff cmp t03.cmp&&
+diff -q cmp t03.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * widget not found"&&
 curl -si $HOST/?asdf>cmp&&
-diff cmp t04.cmp&&
+diff -q cmp t04.cmp&&
 rm cmp&&
-#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+#--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 
