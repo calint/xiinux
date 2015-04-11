@@ -3,7 +3,7 @@ BIN=xiinux
 SRC=src/xiinux.cpp
 OPTS="-pthread -Os"
 #WARNINGS="-Wall -Wextra"
-LIBS=-lX11
+LIBS=
 
 echo&&
 $CC  -o $BIN $SRC $LIBS $OPTS $WARNINGS&& 

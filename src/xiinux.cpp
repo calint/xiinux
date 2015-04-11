@@ -571,7 +571,7 @@ int main(){
 	if(epoll_ctl(epfd,EPOLL_CTL_ADD,server.fd,&ev)<0)
 		{perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
-	const bool watch_thread=true;
+	const bool watch_thread=false;
 //	thread t1(thd_watch,"hello");
 	pthread_t thdwatch;
 	if(watch_thread){
