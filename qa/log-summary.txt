@@ -1,0 +1,80 @@
+Fri Apr 10 20:22:12 CDT 2015
+uri: /
+concurrency: 1
+Failed requests:        0
+Requests per second:    4140.88 [#/sec] (mean)
+concurrency: 10
+Failed requests:        0
+Requests per second:    5906.44 [#/sec] (mean)
+concurrency: 100
+Failed requests:        0
+Requests per second:    5680.88 [#/sec] (mean)
+concurrency: 1000
+Failed requests:        0
+Requests per second:    5694.53 [#/sec] (mean)
+uri keep-alive: /
+concurrency: 1
+Failed requests:        0
+Requests per second:    13895.41 [#/sec] (mean)
+concurrency: 10
+Failed requests:        0
+Requests per second:    32777.97 [#/sec] (mean)
+concurrency: 100
+Failed requests:        0
+Requests per second:    32014.03 [#/sec] (mean)
+concurrency: 1000
+Failed requests:        0
+Requests per second:    23538.05 [#/sec] (mean)
+uri: /qa/q01.txt
+concurrency: 1
+Failed requests:        0
+Requests per second:    3316.97 [#/sec] (mean)
+concurrency: 10
+Failed requests:        0
+Requests per second:    5745.21 [#/sec] (mean)
+concurrency: 100
+Failed requests:        0
+Requests per second:    5685.42 [#/sec] (mean)
+concurrency: 1000
+Failed requests:        0
+Requests per second:    5320.53 [#/sec] (mean)
+uri keep-alive: /qa/q01.txt
+concurrency: 1
+Failed requests:        0
+Requests per second:    8266.11 [#/sec] (mean)
+concurrency: 10
+Failed requests:        0
+Requests per second:    14132.96 [#/sec] (mean)
+concurrency: 100
+Failed requests:        0
+Requests per second:    13452.60 [#/sec] (mean)
+concurrency: 1000
+Failed requests:        0
+Requests per second:    12265.38 [#/sec] (mean)
+uri: /?hello
+concurrency: 1
+Failed requests:        0
+Requests per second:    3614.70 [#/sec] (mean)
+concurrency: 10
+Failed requests:        0
+Requests per second:    5793.59 [#/sec] (mean)
+concurrency: 100
+Failed requests:        0
+Requests per second:    5728.36 [#/sec] (mean)
+concurrency: 1000
+Failed requests:        0
+Requests per second:    5505.62 [#/sec] (mean)
+uri keep-alive: /?hello
+concurrency: 1
+Failed requests:        0
+Requests per second:    9251.34 [#/sec] (mean)
+concurrency: 10
+Failed requests:        0
+Requests per second:    21498.63 [#/sec] (mean)
+concurrency: 100
+Failed requests:        0
+Requests per second:    18793.88 [#/sec] (mean)
+concurrency: 1000
+Failed requests:        0
+Requests per second:    15570.07 [#/sec] (mean)
+Fri Apr 10 20:22:45 CDT 2015

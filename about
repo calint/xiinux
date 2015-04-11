@@ -1,3 +1,1 @@
 # xiinux web application server for linux
-g++ -std=c++1y -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/xiinux.d" -MT"src/xiinux.d" -o "src/xiinux.o" "../src/xiinux.cpp"
-g++ -pthread -o "xiinux"  ./src/xiinux.o   
