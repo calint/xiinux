@@ -11,7 +11,7 @@ function ajax_post(uri,data){
 		switch(this.readyState){
 		case 1:// Open
 			console.log("open");
-			this.setRequestHeader('Content-Type','text/plain; charset=utf-8');
+			this.setRequestHeader('Content-Type','text/plain;charset=utf-8');
 			this.send(data);
 			break;
 		case 2:// Sent
