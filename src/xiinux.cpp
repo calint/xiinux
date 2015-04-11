@@ -186,7 +186,7 @@ public:
 		}
 	}
 };
-enum io_request{request_close,request_read,request_write,request_parse};
+enum io_request{request_close,request_read,request_write,request_next};
 class sock{
 private:
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content};
@@ -330,7 +330,7 @@ public:
 						content=nullptr;
 					}
 					const io_request ioreq=process();
-					if(ioreq==request_parse)
+					if(ioreq==request_next)
 						break;
 					return ioreq;
 //					const char*path=pth+1;
@@ -491,31 +491,31 @@ public:
 			}
 			delete o;
 			state=method;
-			return request_parse;
+			return request_next;
 		}
 		if(!*path){
 			stats.cache++;
 			homepage->to(x);
 			state=method;
-			return request_parse;
+			return request_next;
 		}
 		if(strstr(path,"..")){
 			x.reply_http(403,"path contains ..");
 			state=method;
-			return request_parse;
+			return request_next;
 		}
 		stats.files++;
 		struct stat fdstat;
 		if(stat(path,&fdstat)){
 			x.reply_http(404,"not found");
 			state=method;
-			return request_parse;
+			return request_next;
 //						return request_close;//? method
 		}
 		if(S_ISDIR(fdstat.st_mode)){
 			x.reply_http(403,"path is directory");
 			state=method;
-			return request_parse;
+			return request_next;
 		}
 		const struct tm*tm=gmtime(&fdstat.st_mtime);
 		char lastmod[64];
@@ -534,13 +534,13 @@ public:
 			}
 			stats.output+=hdrsn;
 			state=method;
-			return request_parse;
+			return request_next;
 		}
 		fdfile=open(path,O_RDONLY);
 		if(fdfile==-1){
 			x.reply_http(404,"cannot open");
 			state=method;
-			return request_parse;
+			return request_next;
 //			return request_close;
 		}
 		fdfileoffset=0;
@@ -593,7 +593,7 @@ public:
 		}
 		close(fdfile);
 		state=method;
-		return request_parse;
+		return request_next;
 	}
 //	bool read(){
 //		if(state==read_content){//reading content
@@ -768,7 +768,7 @@ int main(){
 					if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
 						{perror("epollmodwrite");delete&c;}
 					break;
-				case request_parse:throw;
+				case request_next:throw;
 				}
 			}catch(const char*e){
 				delete&c;
