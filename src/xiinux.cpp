@@ -236,8 +236,12 @@ public:
 				content_pos+=nn;
 				stats.input+=nn;
 				if(content_pos==content_len){
-					(void)process();
-					return request_read;
+					switch(process()){
+					case request_close:return request_close;
+					case request_write:return request_write;
+					case request_next:return request_read;
+					case request_read:return request_read;
+					}
 				}
 			}else{
 				const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
@@ -477,6 +481,7 @@ public:
 			return request_read;
 		}
 	}
+private:
 	io_request process(){
 		const char*path=pth+1;
 		xwriter x=xwriter(fd);
@@ -576,14 +581,12 @@ public:
 		if(nn<0){
 			if(errno==32){//broken pipe
 				stats.brkp++;
-				throw;
-//				return request_close;
+				return request_close;
 			}
 			stats.errors++;
 			perror("sending file");
 			printf("\n%s:%d errno=%d\n",__FILE__,__LINE__,errno);
-			throw;
-//			return request_close;
+			return request_close;
 		}
 		stats.output+=nn;
 		fdfilecount-=nn;
