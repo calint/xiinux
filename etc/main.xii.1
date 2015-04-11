@@ -1,0 +1,50 @@
+use session,file,text,number;
+
+typealine{
+	line="";
+	size="";
+	typealine(){
+		size=session.file("typealine.log").size;
+	}
+	render(xwriter){
+		x.css("html","background:blue");
+		x.css(line,"width:30em");
+		x.html5().title("typealine)
+			.p(glyph).p(log.length).p("typealine:").input(line).button(clk,"send");
+	}
+	x_clk(xwriter){
+		var log=session.file("typealine.log");
+		log.append(line).append("\n");
+		log_size=log.size;
+		line="";
+		glyph=random_glyph();
+	}
+private:
+	glyph=random_glyph();
+	random_glyph():text{
+		var glyphs=".oO";
+		return glyphs.substring(rnd(0,glyph.length),1);
+	}
+}
+
+selector:string{}
+style:string{}
+label:string{}
+xwriter{
+	html5():{}
+	title(string):{}
+	css(selector,style):{}
+	p(string):{}
+	input(field):{}
+	button(field,label):{}
+}
+from:int{}
+length:int{}
+string{
+	substring:string(from,length){}
+}
+
+file{
+	append(string):{}
+	length():{}
+}
