@@ -28,7 +28,7 @@ diff -q cmp t06.cmp&&
 rm cmp&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * illegal path"&&
-curl -si $HOST/../../frameless/about>cmp&&
+echo $'GET ../../etc HTTP/1.1\r\n\r\n'|nc localhost 8088>cmp&&
 diff -q cmp t08.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 

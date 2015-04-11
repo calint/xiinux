@@ -1,5 +1,5 @@
-HTTP/1.1 404
+HTTP/1.1 403
 Connection: Keep-Alive
-Content-Length: 9
+Content-Length: 16
 
-not found
+path contains ..
