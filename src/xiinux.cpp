@@ -210,6 +210,7 @@ public:
 	size_t bufnn{0};
 	sock(const int fd=0):fd(fd){}
 	~sock(){
+		delete content;
 		if(!close(fd)){
 			return;
 		}
@@ -236,6 +237,7 @@ public:
 				content_pos+=nn;
 				stats.input+=nn;
 				if(content_pos==content_len){
+					*(content+content_len)=0;
 					switch(process()){
 					case request_close:return request_close;
 					case request_write:return request_write;
@@ -244,6 +246,8 @@ public:
 					}
 				}
 			}else{
+				if(bufi>conbufnn)
+					throw"bufferoverrun";
 				const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
 				if(nn==0){//closed
 					return request_close;
@@ -319,10 +323,14 @@ public:
 					const char*content_length_str=hdrs["content-length"];
 					if(content_length_str){
 						content_len=atoll(content_length_str);
-						content=new char[content_len];
+						if(content)delete content;
+						content=new char[content_len+1];// extra char for end-of-string
 						const size_t chars_left_in_buffer=bufnn-bufi;
 						if(chars_left_in_buffer>=content_len){
 							memcpy(content,bufp,(size_t)content_len);
+							*(content+content_len)=0;
+							bufp+=content_len;
+							bufi+=content_len;
 						}else{
 							memcpy(content,bufp,chars_left_in_buffer);
 							content_pos=chars_left_in_buffer;
@@ -337,115 +345,6 @@ public:
 					if(ioreq==request_next)
 						break;
 					return ioreq;
-//					const char*path=pth+1;
-//					xwriter x=xwriter(fd);
-//					if(!*path&&qs){
-//						stats.widgets++;
-//						widget*o=widgetget(qs);
-//						try{
-//							o->to(x);
-//						}catch(const char*e){
-//							delete o;
-//							throw e;
-//						}
-//						delete o;
-//						state=method;
-//						break;
-//					}
-//					if(!*path){
-//						stats.cache++;
-//						homepage->to(x);
-//						state=method;
-//						break;
-//					}
-//					if(strstr(path,"..")){
-//						x.reply_http(403,"path contains ..");
-//						state=method;
-//						break;
-//					}
-//					stats.files++;
-//					struct stat fdstat;
-//					if(stat(path,&fdstat)){
-//						x.reply_http(404,"not found");
-//						state=method;
-//						break;
-////						return request_close;//? method
-//					}
-//					if(S_ISDIR(fdstat.st_mode)){
-//						x.reply_http(403,"path is directory");
-//						state=method;
-//						break;
-//					}
-//					const struct tm*tm=gmtime(&fdstat.st_mtime);
-//					char lastmod[64];
-//					//"Fri, 31 Dec 1999 23:59:59 GMT"
-//					strftime(lastmod,size_t(64),"%a, %d %b %y %H:%M:%S %Z",tm);
-//					const char*lastmodstr=hdrs["if-modified-since"];
-//					if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
-//						const char*hdr="HTTP/1.1 304\r\nConnection: Keep-Alive\r\n\r\n";
-//						const ssize_t hdrnn=strlen(hdr);
-//						const ssize_t hdrsn=send(fd,hdr,hdrnn,0);
-//						if(hdrsn!=hdrnn){
-//							stats.errors++;
-//							printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
-//							return request_close;
-//						}
-//						stats.output+=hdrsn;
-//						state=method;
-//						break;
-//					}
-//					fdfile=open(path,O_RDONLY);
-//					if(fdfile==-1){
-//						x.reply_http(404,"cannot open");
-//						return request_close;
-//					}
-//					fdfileoffset=0;
-//					fdfilecount=fdstat.st_size;
-//					const char*range=hdrs["range"];
-//					char bb[K];
-//					if(range&&*range){
-//						unsigned long long rs=0;
-//						if(EOF==sscanf(range,"bytes=%llu",&rs)){
-//							stats.errors++;
-//							printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
-//							return request_close;
-//						}
-//						fdfileoffset=rs;
-//						const unsigned long long int s=rs;
-//						const unsigned long long int e=fdfilecount;
-//						fdfilecount-=rs;
-//						snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\nContent-Range: %lld-%lld/%lld\r\n\r\n",lastmod,fdfilecount,s,e,e);
-//					}else{
-//						snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\n\r\n",lastmod,fdfilecount);
-//					}
-//					const ssize_t bbnn=strlen(bb);
-//					const ssize_t bbsn=send(fd,bb,bbnn,0);
-//					if(bbsn!=bbnn){
-//						stats.errors++;
-//						printf("\n%s:%d sending header\n",__FILE__,__LINE__);
-//						return request_close;
-//					}
-//					stats.output+=bbsn;//? -1
-//					const ssize_t nn=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
-//					if(nn<0){
-//						if(errno==32){//broken pipe
-//							stats.brkp++;
-//							return request_close;
-//						}
-//						stats.errors++;
-//						perror("sending file");
-//						printf("\n%s:%d errno=%d\n",__FILE__,__LINE__,errno);
-//						return request_close;
-//					}
-//					stats.output+=nn;
-//					fdfilecount-=nn;
-//					if(fdfilecount!=0){
-//						state=resume_send_file;
-//						return request_write;
-//					}
-//					close(fdfile);
-//					state=method;
-//					break;
 				}else if(c==':'){
 					*(bufp-1)=0;
 					hdrvp=bufp;
@@ -483,6 +382,7 @@ public:
 	}
 private:
 	io_request process(){
+		if(content)puts(content);
 		const char*path=pth+1;
 		xwriter x=xwriter(fd);
 		if(!*path&&qs){
@@ -598,62 +498,8 @@ private:
 		state=method;
 		return request_next;
 	}
-//	bool read(){
-//		if(state==read_content){//reading content
-//			const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
-//			if(nn==0){//closed by client
-//				return false;
-//			}
-//			if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
-//				if(errno==104){// connection reset by peer
-//					return false;
-//				}
-//				perror("recv");
-//				printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
-//				stats.errors++;
-//				return false;
-//			}
-//			content_pos+=nn;
-//			if(content_pos==content_len){
-//				puts(content);
-//				return true;
-//			}
-//		}
-//		const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
-//		if(nn==0){//closed
-////			printf("\n%s:%d closed by client\n\n",__FILE__,__LINE__);
-//			return false;
-//		}
-//		if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
-//			if(errno==104){// connection reset by peer
-//				return false;
-//			}
-//			perror("recv");
-//			printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
-//			stats.errors++;
-//			return false;
-//		}
-//		bufnn+=nn;
-//		stats.input+=nn;
-//		return true;
-//	}
 };
 static sock server;
-//void thdwatchrun(void*arg){
-//	if(arg)
-//		puts((const char*)arg);
-//	stats.printhdr(stdout);
-//	while(1){
-//		int n=10;
-//		while(n--){
-//			const int sleep=100000;
-//			usleep(sleep);
-//			stats.ms+=sleep/1000;
-//			stats.print(stdout);
-//		}
-//		fprintf(stdout,"\n");
-//	}
-//}
 static void sigexit(int i){
 	puts("exiting");
 	delete homepage;
