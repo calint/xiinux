@@ -14,7 +14,7 @@ typealine{
 	}
 	x_clk(xwriter){
 		var log=session.file("typealine.log");
-		log.append(line).append("\n");
+		log.p(line).p("\n");
 		log_size=log.size;
 		line="";
 		glyph=random_glyph();
