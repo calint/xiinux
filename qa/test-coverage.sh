@@ -16,7 +16,7 @@ diff -q cmp t07.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * dynamic document"&&
-curl -si $HTTP/?hello>cmp&&
+curl -s $HTTP/?hello>cmp&&
 diff -q cmp t02.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -41,7 +41,7 @@ diff -q cmp t03.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * widget not found"&&
-curl -si $HTTP/?asdf>cmp&&
+curl -s $HTTP/?asdf>cmp&&
 diff -q cmp t04.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 

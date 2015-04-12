@@ -53,10 +53,10 @@ public:
 	xwriter&reply_http(const int code,const char*content,const size_t len){
 		char bb[K];
 		if(set_session_id){
-			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
 			set_session_id=nullptr;
 		}else{
-			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n",code,len);
+			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
 		pk(bb).pk(content,len);
 		return*this;
@@ -210,7 +210,7 @@ public:
 };
 class session{
 	const char*_id;
-	lut<void*>kvp;
+	lut<char*>kvp;
 	lut<widget*>widgets;
 public:
 	session(const char*session_id):_id(session_id){}
@@ -221,7 +221,7 @@ public:
 	}
 	inline const char*id()const{return _id;}
 	inline void*operator[](const char*key){return kvp[key];}
-	inline void put(const char*key,void*data){kvp.put(key,data);}
+	inline void put(const char*key,/*takes*/char*data){kvp.put(key,data);}
 	inline widget*get_widget(const char*key){return widgets[key];}
 	inline void put_widget(const char*key,widget*o){widgets.put(key,o);}
 };
@@ -240,14 +240,14 @@ private:
 	parser_state state{method};
 	int fdfile{0};
 	off_t fdfileoffset{0};
-	long long fdfilecount{0};
+	size_t fdfilecount{0};
 	char*pth{nullptr};
 	char*qs{nullptr};
 	lut<const char*>hdrs;
 	char*hdrp{nullptr};
 	char*hdrvp{nullptr};
 	char*content{nullptr};
-	unsigned long long content_len{0};
+	size_t content_len{0};
 	unsigned long long content_pos{0};
 public:
 	int fd;
@@ -323,8 +323,8 @@ public:
 				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
 				return request_close;
 			}
-			fdfilecount-=sf;
-			stats.output+=sf;
+			fdfilecount-=size_t(sf);
+			stats.output+=size_t(sf);
 			if(fdfilecount!=0){
 				state=resume_send_file;
 				return request_write;
@@ -370,7 +370,7 @@ public:
 				if(c=='\n'){
 					const char*content_length_str=hdrs["content-length"];
 					if(content_length_str){
-						content_len=atoll(content_length_str);
+						content_len=(size_t)atoll(content_length_str);
 						if(content)delete content;
 						content=new char[content_len+1];// extra char for end-of-string
 						const size_t chars_left_in_buffer=bufnn-bufi;
@@ -506,15 +506,20 @@ private:
 		const char*lastmodstr=hdrs["if-modified-since"];
 		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
 			const char*hdr="HTTP/1.1 304\r\nConnection: Keep-Alive\r\n\r\n";
-			const ssize_t hdrnn=strlen(hdr);
+			const size_t hdrnn=strlen(hdr);
 			const ssize_t hdrsn=send(fd,hdr,hdrnn,0);
-			if(hdrsn!=hdrnn){
+			if(hdrsn<0){
+				stats.errors++;
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				throw;
+			}
+			if((unsigned)hdrsn!=hdrnn){
 				stats.errors++;
 				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
 				throw;
 //				return request_close;
 			}
-			stats.output+=hdrsn;
+			stats.output+=(size_t)hdrsn;
 			state=method;
 			return request_next;
 		}
@@ -526,34 +531,38 @@ private:
 //			return request_close;
 		}
 		fdfileoffset=0;
-		fdfilecount=fdstat.st_size;
+		fdfilecount=size_t(fdstat.st_size);
 		const char*range=hdrs["range"];
 		char bb[K];
 		if(range&&*range){
-			unsigned long long rs=0;
-			if(EOF==sscanf(range,"bytes=%llu",&rs)){
+			off_t rs=0;
+			if(EOF==sscanf(range,"bytes=%lu",&rs)){
 				stats.errors++;
 				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
 				throw;
 //				return request_close;
 			}
 			fdfileoffset=rs;
-			const unsigned long long int s=rs;
-			const unsigned long long int e=fdfilecount;
-			fdfilecount-=rs;
-			snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\nContent-Range: %lld-%lld/%lld\r\n\r\n",lastmod,fdfilecount,s,e,e);
+			const off_t s=rs;
+			const size_t e=fdfilecount;
+			fdfilecount-=(size_t)rs;
+			snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,fdfilecount,s,e,e);
 		}else{
-			snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %lld\r\n\r\n",lastmod,fdfilecount);
+			snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,fdfilecount);
 		}
-		const ssize_t bbnn=strlen(bb);
+		const size_t bbnn=strlen(bb);
 		const ssize_t bbsn=send(fd,bb,bbnn,0);
-		if(bbsn!=bbnn){
+		if(bbsn<0){
 			stats.errors++;
-			printf("\n%s:%d sending header\n",__FILE__,__LINE__);
+			printf("%s:%d",__FILE__,__LINE__);perror("");
 			throw;
-//			return request_close;
 		}
-		stats.output+=bbsn;//? -1
+		if(size_t(bbsn)!=bbnn){
+			stats.errors++;
+			printf("%s:%d",__FILE__,__LINE__);perror("");
+			throw;
+		}
+		stats.output+=size_t(bbsn);
 		const ssize_t nn=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 		if(nn<0){
 			if(errno==32){//broken pipe
@@ -561,12 +570,11 @@ private:
 				return request_close;
 			}
 			stats.errors++;
-			perror("sending file");
-			printf("\n%s:%d errno=%d\n",__FILE__,__LINE__,errno);
+			printf("%s:%d",__FILE__,__LINE__);perror("");
 			return request_close;
 		}
-		stats.output+=nn;
-		fdfilecount-=nn;
+		stats.output+=size_t(nn);
+		fdfilecount-=size_t(nn);
 		if(fdfilecount!=0){
 			state=resume_send_file;
 			return request_write;
