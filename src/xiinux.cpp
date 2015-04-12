@@ -15,6 +15,7 @@
 #include<sys/stat.h>
 //#include<thread>
 #include<netinet/tcp.h>
+#include<typeinfo>
 static const char*app="xiinux web server";
 static int const K=1024;
 static size_t const conbufnn=K;
@@ -45,17 +46,27 @@ public:
 static stats stats;
 class xwriter{
 	int fd;
+	const char*set_session_id{nullptr};
 public:
 	xwriter(const int fd=0):fd(fd){}
-	xwriter&reply_http(const int code,const char*content){
-		const size_t nn=strlen(content);
+	inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
+	xwriter&reply_http(const int code,const char*content,const size_t len){
 		char bb[K];
-		snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n",code,nn);
-		pk(bb).pk(content,nn);
+		if(set_session_id){
+			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			set_session_id=nullptr;
+		}else{
+			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n",code,len);
+		}
+		pk(bb).pk(content,len);
 		return*this;
 	}
+	xwriter&reply_http(const int code,const char*content){
+		const size_t nn=strlen(content);
+		return reply_http(code,content,nn);
+	}
 	xwriter&pk(const char*s,const size_t nn){
-		const ssize_t n=send(fd,s,nn,0);
+		const ssize_t n=send(fd,s,size_t(nn),0);
 		if(n==-1){
 			if(errno==32){
 				stats.brkp++;
@@ -65,7 +76,7 @@ public:
 			printf("\n\n%s  %d   errorno=%d\n\n",__FILE__,__LINE__,errno);
 			throw"unknown error while sending";
 		}
-		stats.output+=n;
+		stats.output+=(unsigned)n;
 		if(n!=ssize_t(nn)){
 			stats.errors++;
 			printf("\n\n%s  %d    sent %lu of %lu\n\n",__FILE__,__LINE__,n,nn);
@@ -75,7 +86,7 @@ public:
 	inline xwriter&pk(const char*s){const size_t snn=strlen(s);return pk(s,snn);}
 };
 class doc{
-	ssize_t size;
+	size_t size;
 	char*buf;
 	const char*lastmod;
 public:
@@ -84,7 +95,7 @@ public:
 	}
 	~doc(){delete buf;}
 	inline const char*getbuf()const{return buf;}
-	inline ssize_t getsize()const{return size;}
+	inline size_t getsize()const{return size;}
 	inline void to(xwriter&x)const{x.pk(buf,size);}
 };
 doc*homepage;
@@ -94,7 +105,7 @@ public:
 	virtual ~widget(){};
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
-	virtual void on_content(xwriter&x,const char*content){}
+	virtual void on_content(xwriter&x,const char*content){};
 };
 static widget*widgetget(const char*qs);
 static char*strtrm(char*p,char*e){
@@ -112,7 +123,7 @@ static void strlwr(char*p){
 }
 template<class T>class lut{
 private:
-	int size;
+	unsigned int size;
 	class el{
 	public:
 		const char*key;
@@ -130,19 +141,19 @@ public:
 		unsigned int i=0;
 		const char*p=key;
 		while(*p)
-			i+=*p++;
+			i+=(unsigned int)*p++;
 		i%=roll;
 		return i;
 	}
-	lut(const int size=8):size(size){
-		array=(el**)calloc(size,sizeof(el*));
+	lut(const unsigned int size=8):size(size){
+		array=(el**)calloc(size_t(size),sizeof(el*));
 	}
 	~lut(){
 		clear();
 		delete array;
 	}
 	T operator[](const char*key){
-		const int h=hash(key,size);
+		const unsigned int h=hash(key,size);
 		el*e=array[h];
 		if(!e)
 			return nullptr;
@@ -158,7 +169,7 @@ public:
 		}
 	}
 	void put(const char*key,T data){
-		const int h=hash(key,size);
+		const unsigned int h=hash(key,size);
 		el*l=array[h];
 		if(!l){
 			array[h]=new el(key,data);
@@ -178,7 +189,7 @@ public:
 		}
 	}
 	void clear(){
-		for(int i=0;i<size;i++){
+		for(unsigned int i=0;i<size;i++){
 			el*e=array[i];
 			if(!e)
 				continue;
@@ -186,7 +197,42 @@ public:
 			array[i]=nullptr;
 		}
 	}
+	void delete_content(){
+		for(unsigned int i=0;i<size;i++){
+			el*e=array[i];
+			if(!e)
+				continue;
+			delete e->data;
+			delete e;
+			array[i]=nullptr;
+		}
+	}
 };
+class session{
+	const char*_id;
+	lut<void*>kvp;
+	lut<widget*>widgets;
+public:
+	session(const char*session_id):_id(session_id){}
+	~session(){
+		printf(" * delete session %s\n",_id);
+		kvp.delete_content();
+		widgets.delete_content();
+	}
+	inline const char*id()const{return _id;}
+	inline void*operator[](const char*key){return kvp[key];}
+	inline void put(const char*key,void*data){kvp.put(key,data);}
+	inline widget*get_widget(const char*key){return widgets[key];}
+	inline void put_widget(const char*key,widget*o){widgets.put(key,o);}
+};
+class sessions{
+public:
+	~sessions(){
+		all.delete_content();
+	}
+	lut<session*>all;
+};
+static sessions sessions;
 enum io_request{request_close,request_read,request_write,request_next};
 class sock{
 private:
@@ -226,17 +272,18 @@ public:
 				if(nn==0){//closed by client
 					return request_close;
 				}
-				if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
-					if(errno==104){// connection reset by peer
+				if(nn<0){
+					if(errno==EAGAIN||errno==EWOULDBLOCK||errno==104){// connection reset by peer
 						return request_close;
 					}
 					perror("recv");
 					printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
 					stats.errors++;
 					return request_close;
+					throw;
 				}
-				content_pos+=nn;
-				stats.input+=nn;
+				content_pos+=(unsigned)nn;
+				stats.input+=(unsigned)nn;
 				if(content_pos==content_len){
 					*(content+content_len)=0;
 					switch(process()){
@@ -253,8 +300,8 @@ public:
 				if(nn==0){//closed
 					return request_close;
 				}
-				if(nn<0&&errno!=EAGAIN&&errno!=EWOULDBLOCK){//error
-					if(errno==104){// connection reset by peer
+				if(nn<0){
+					if(errno==EAGAIN || errno==EWOULDBLOCK || errno==104){// connection reset by peer
 						return request_close;
 					}
 					perror("recv");
@@ -262,8 +309,8 @@ public:
 					stats.errors++;
 					return request_close;
 				}
-				bufnn+=nn;
-				stats.input+=nn;
+				bufnn+=(unsigned)nn;
+				stats.input+=(unsigned)nn;
 			}
 		}else{
 			stats.writes++;
@@ -388,20 +435,43 @@ private:
 		xwriter x=xwriter(fd);
 		if(!*path&&qs){
 			stats.widgets++;
-			widget*o=widgetget(qs);
-			try{
-				if(content){
-					o->on_content(x,content);
-					delete content;
-					content=nullptr;
-				}else{
-					o->to(x);
-				}
-			}catch(const char*e){
-				delete o;
-				throw e;
+			const char*cookie=hdrs["cookie"];
+			printf(" * received cookie %s\n",cookie);
+			const char*session_id;
+			if(cookie&&strstr(cookie,"i=")){//? parse cookie
+				session_id=cookie+sizeof "i="-1;
+			}else{
+				session_id=nullptr;
 			}
-			delete o;
+			session*ses;
+			if(!session_id){
+				// create session
+				session_id="dsaofijh33234";
+				printf(" * creating session %s\n",session_id);
+				ses=new session(session_id);
+				sessions.all.put(ses->id(),ses);
+				x.send_session_id_at_next_opportunity(session_id);
+			}else{
+				ses=sessions.all[session_id];
+				if(!ses){// session not found, reload
+					printf(" * session not found, recreating: %s\n",session_id);
+					ses=new session(session_id);
+					sessions.all.put(ses->id(),ses);
+				}
+			}
+			widget*o=ses->get_widget(qs);
+			if(!o){
+				printf(" * widget not found in session, creating  %s\n",qs);
+				o=widgetget(qs);
+				ses->put_widget(qs,o);
+			}
+			if(content){
+				o->on_content(x,content);
+				delete content;
+				content=nullptr;
+			}else{
+				o->to(x);
+			}
 			state=method;
 			return request_next;
 		}
@@ -655,7 +725,9 @@ class typealine:public widget{
 	}
 	virtual void on_content(xwriter&x,const char*content){
 		printf(" typealine received content: %s\n",content);
-		x.reply_http(200,"on_content");
+		char bb[64];
+		const size_t len=(size_t)snprintf(bb,sizeof bb,"on_content to %p",(void*)this);
+		x.reply_http(200,bb,len);
 	}
 };
 }
