@@ -23,23 +23,23 @@ static int const nclients=K;
 static int const port=8088;
 class stats{
 public:
-	unsigned long long int ms{0};
-	unsigned long long int input{0};
-	unsigned long long int output{0};
-	unsigned long long int accepts{0};
-	unsigned long long int reads{0};
-	unsigned long long int writes{0};
-	unsigned long long int files{0};
-	unsigned long long int widgets{0};
-	unsigned long long int cache{0};
-	unsigned long long int errors{0};
-	unsigned long long int brkp{0};
+	size_t ms{0};
+	size_t input{0};
+	size_t output{0};
+	size_t accepts{0};
+	size_t reads{0};
+	size_t writes{0};
+	size_t files{0};
+	size_t widgets{0};
+	size_t cache{0};
+	size_t errors{0};
+	size_t brkp{0};
 	void printhdr(FILE*f){
 		fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","accepts","reads","writes","files","widgets","cache","errors","brkp");
 		fflush(f);
 	}
 	void print(FILE*f){
-		fprintf(f,"\r%12llu%12llu%12llu%8llu%8llu%8llu%8llu%8llu%8llu%8llu%8llu",ms,input,output,accepts,reads,writes,files,widgets,cache,errors,brkp);
+		fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,accepts,reads,writes,files,widgets,cache,errors,brkp);
 		fflush(f);
 	}
 };
@@ -102,10 +102,12 @@ doc*homepage;
 
 class widget{
 public:
-	virtual ~widget(){};
+	virtual ~widget(){
+		printf(" * delete widget %p\n",(void*)this);
+	};
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
-	virtual void on_content(xwriter&x,const char*content){};
+	virtual void on_content(xwriter&x,/*scan*/const char*content,const size_t content_len){};
 };
 static widget*widgetget(const char*qs);
 static char*strtrm(char*p,char*e){
@@ -213,9 +215,10 @@ class session{
 	lut<char*>kvp;
 	lut<widget*>widgets;
 public:
-	session(const char*session_id):_id(session_id){}
+	session(/*takes*/const char*session_id):_id(session_id){}
 	~session(){
 		printf(" * delete session %s\n",_id);
+		delete _id;
 		kvp.delete_content();
 		widgets.delete_content();
 	}
@@ -223,7 +226,7 @@ public:
 	inline void*operator[](const char*key){return kvp[key];}
 	inline void put(const char*key,/*takes*/char*data){kvp.put(key,data);}
 	inline widget*get_widget(const char*key){return widgets[key];}
-	inline void put_widget(const char*key,widget*o){widgets.put(key,o);}
+	inline void put_widget(const char*key,/*takes*/widget*o){widgets.put(key,o);}
 };
 class sessions{
 public:
@@ -262,7 +265,7 @@ public:
 			return;
 		}
 		stats.errors++;
-		perror("delete sock");printf(" %s  %d\n\n",__FILE__,__LINE__);
+		printf("%s:%d ",__FILE__,__LINE__);perror("");
 	}
 	io_request run(const bool read){
 		if(read){
@@ -273,11 +276,12 @@ public:
 					return request_close;
 				}
 				if(nn<0){
-					if(errno==EAGAIN||errno==EWOULDBLOCK||errno==104){// connection reset by peer
+					if(errno==EAGAIN||errno==EWOULDBLOCK){
+						return request_read;
+					}else if(errno==104){// connection reset by peer
 						return request_close;
 					}
-					perror("recv");
-					printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
+					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 					stats.errors++;
 					return request_close;
 					throw;
@@ -294,18 +298,19 @@ public:
 					}
 				}
 			}else{
-				if(bufi>conbufnn)
+				if(bufi>=conbufnn)
 					throw"bufferoverrun";
 				const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
 				if(nn==0){//closed
 					return request_close;
 				}
-				if(nn<0){
-					if(errno==EAGAIN || errno==EWOULDBLOCK || errno==104){// connection reset by peer
+				if(nn<0){//error
+					if(errno==EAGAIN||errno==EWOULDBLOCK){
+						return request_read;
+					}else if(errno==104){// connection reset by peer
 						return request_close;
 					}
-					perror("recv");
-					printf("\n%s:%d errno=%d client error\n\n",__FILE__,__LINE__,errno);
+					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 					stats.errors++;
 					return request_close;
 				}
@@ -317,10 +322,12 @@ public:
 		}
 		if(state==resume_send_file){
 			const ssize_t sf=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
-			if(sf<0){
+			if(sf<0){//error
+				if(errno==EAGAIN){
+					return request_write;
+				}
 				stats.errors++;
-				perror("resume sendfile");
-				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 				return request_close;
 			}
 			fdfilecount-=size_t(sf);
@@ -371,6 +378,7 @@ public:
 					const char*content_length_str=hdrs["content-length"];
 					if(content_length_str){
 						content_len=(size_t)atoll(content_length_str);
+						//? assert constraints for content_len
 						if(content)delete content;
 						content=new char[content_len+1];// extra char for end-of-string
 						const size_t chars_left_in_buffer=bufnn-bufi;
@@ -430,13 +438,12 @@ public:
 	}
 private:
 	io_request process(){
-//		if(content)puts(content);
 		const char*path=pth+1;
 		xwriter x=xwriter(fd);
 		if(!*path&&qs){
 			stats.widgets++;
 			const char*cookie=hdrs["cookie"];
-			printf(" * received cookie %s\n",cookie);
+//			printf(" * received cookie %s\n",cookie);
 			const char*session_id;
 			if(cookie&&strstr(cookie,"i=")){//? parse cookie
 				session_id=cookie+sizeof "i="-1;
@@ -446,27 +453,34 @@ private:
 			session*ses;
 			if(!session_id){
 				// create session
-				session_id="dsaofijh33234";
-				printf(" * creating session %s\n",session_id);
-				ses=new session(session_id);
-				sessions.all.put(ses->id(),ses);
-				x.send_session_id_at_next_opportunity(session_id);
+				//"Fri, 31 Dec 1999 23:59:59 GMT"
+//				strftime(lastmod,size_t(64),"%Y%mm%dd--%H:%M:%S--",tm);
+				char*sid=new char[24];
+				strncpy(sid,"20150411-2255190-ieu44d",24);
+//				printf(" * creating session %s\n",session_id);
+				ses=new session(sid);
+				sessions.all.put(sid,ses);
+				x.send_session_id_at_next_opportunity(sid);
 			}else{
 				ses=sessions.all[session_id];
 				if(!ses){// session not found, reload
-					printf(" * session not found, recreating: %s\n",session_id);
-					ses=new session(session_id);
-					sessions.all.put(ses->id(),ses);
+//					printf(" * session not found, recreating: %s\n",session_id);
+					char*sid=new char[24];
+//					if(strlen(session_id)>23)throw"cookielen";
+					strncpy(sid,session_id,24);
+	//				printf(" * creating session %s\n",session_id);
+					ses=new session(sid);
+					sessions.all.put(sid,ses);
 				}
 			}
 			widget*o=ses->get_widget(qs);
 			if(!o){
-				printf(" * widget not found in session, creating  %s\n",qs);
+//				printf(" * widget not found in session, creating  %s\n",qs);
 				o=widgetget(qs);
 				ses->put_widget(qs,o);
 			}
 			if(content){
-				o->on_content(x,content);
+				o->on_content(x,content,content_len);
 				delete content;
 				content=nullptr;
 			}else{
@@ -492,7 +506,6 @@ private:
 			x.reply_http(404,"not found");
 			state=method;
 			return request_next;
-//						return request_close;//? method
 		}
 		if(S_ISDIR(fdstat.st_mode)){
 			x.reply_http(403,"path is directory");
@@ -502,7 +515,7 @@ private:
 		const struct tm*tm=gmtime(&fdstat.st_mtime);
 		char lastmod[64];
 		//"Fri, 31 Dec 1999 23:59:59 GMT"
-		strftime(lastmod,size_t(64),"%a, %d %b %y %H:%M:%S %Z",tm);
+		strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
 		const char*lastmodstr=hdrs["if-modified-since"];
 		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
 			const char*hdr="HTTP/1.1 304\r\nConnection: Keep-Alive\r\n\r\n";
@@ -515,9 +528,8 @@ private:
 			}
 			if((unsigned)hdrsn!=hdrnn){
 				stats.errors++;
-				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 				throw;
-//				return request_close;
 			}
 			stats.output+=(size_t)hdrsn;
 			state=method;
@@ -528,7 +540,6 @@ private:
 			x.reply_http(404,"cannot open");
 			state=method;
 			return request_next;
-//			return request_close;
 		}
 		fdfileoffset=0;
 		fdfilecount=size_t(fdstat.st_size);
@@ -536,11 +547,10 @@ private:
 		char bb[K];
 		if(range&&*range){
 			off_t rs=0;
-			if(EOF==sscanf(range,"bytes=%lu",&rs)){
+			if(EOF==sscanf(range,"bytes=%zu",&rs)){
 				stats.errors++;
-				printf("\n\n%s  %d\n\n",__FILE__,__LINE__);
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 				throw;
-//				return request_close;
 			}
 			fdfileoffset=rs;
 			const off_t s=rs;
@@ -554,12 +564,12 @@ private:
 		const ssize_t bbsn=send(fd,bb,bbnn,0);
 		if(bbsn<0){
 			stats.errors++;
-			printf("%s:%d",__FILE__,__LINE__);perror("");
+			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 			throw;
 		}
 		if(size_t(bbsn)!=bbnn){
 			stats.errors++;
-			printf("%s:%d",__FILE__,__LINE__);perror("");
+			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 			throw;
 		}
 		stats.output+=size_t(bbsn);
@@ -570,7 +580,7 @@ private:
 				return request_close;
 			}
 			stats.errors++;
-			printf("%s:%d",__FILE__,__LINE__);perror("");
+			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
 			return request_close;
 		}
 		stats.output+=size_t(nn);
@@ -594,22 +604,6 @@ static void sigexit(int i){
 	kill(getpid(),SIGINT);
 	exit(i);
 }
-//#include<iostream>
-//using namespace std;
-//static void thdwatchrun(string arg){
-//	cout<<arg<<endl;
-//	stats.printhdr(stdout);
-//	while(1){
-//		int n=10;
-//		while(n--){
-//			const int sleep=100000;
-//			usleep(sleep);
-//			stats.ms+=sleep/1000;
-//			stats.print(stdout);
-//		}
-//		fprintf(stdout,"\n");
-//	}
-//}
 static void*thdwatchrun(void*arg){
 	if(arg)
 		puts((const char*)arg);
@@ -619,7 +613,7 @@ static void*thdwatchrun(void*arg){
 		while(n--){
 			const int sleep=100000;
 			usleep(sleep);
-			stats.ms+=sleep/1000;
+			stats.ms+=sleep/1000;//? not really
 			stats.print(stdout);
 		}
 		fprintf(stdout,"\n");
@@ -632,7 +626,7 @@ int main(){
 	printf("  port %d\n",port);
 
 	char buf[4*K];
-	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %lu\r\n\r\n%s",strlen(app),app);
+	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(app),app);
 	homepage=new doc(buf);
 
 	struct sockaddr_in srv;
@@ -713,29 +707,27 @@ int main(){
 //-- application
 namespace web{
 class hello:public widget{
-	virtual void to(xwriter&x){
+	virtual void to(xwriter&x)override{
 		x.reply_http(200,"hello world");
 	}
 };
 class bye:public widget{
-	virtual void to(xwriter&x){
+	virtual void to(xwriter&x)override{
 		x.reply_http(200,"b y e");
 	}
 };
 class notfound:public widget{
-	virtual void to(xwriter&x){
+	virtual void to(xwriter&x)override{
 		x.reply_http(404,"path not found");
 	}
 };
 class typealine:public widget{
-	virtual void to(xwriter&x){
+	virtual void to(xwriter&x)override{
 		x.reply_http(200,"typealine");
 	}
-	virtual void on_content(xwriter&x,const char*content){
-		printf(" typealine received content: %s\n",content);
-		char bb[64];
-		const size_t len=(size_t)snprintf(bb,sizeof bb,"on_content to %p",(void*)this);
-		x.reply_http(200,bb,len);
+	virtual void on_content(xwriter&x,const char*content,const size_t content_len)override{
+//		printf(" typealine received content: %s\n",content);
+		x.reply_http(200,content,content_len);
 	}
 };
 }
