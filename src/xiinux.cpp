@@ -1,3 +1,4 @@
+#define APP "xiinux web server"
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
@@ -16,7 +17,6 @@
 //#include<thread>
 #include<netinet/tcp.h>
 #include<typeinfo>
-static const char*app="xiinux web server";
 static int const K=1024;
 static size_t const conbufnn=K;
 static int const nclients=K;
@@ -480,6 +480,7 @@ private:
 				ses->put_widget(qs,o);
 			}
 			if(content){
+				printf(" * content:\n%s\n",content);
 				o->on_content(x,content,content_len);
 				delete content;
 				content=nullptr;
@@ -622,12 +623,13 @@ static void*thdwatchrun(void*arg){
 }
 int main(){
 	signal(SIGINT,sigexit);
-	puts(app);
+	puts(APP);
 	printf("  port %d\n",port);
 
 	char buf[4*K];
-	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(app),app);
+	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
 	homepage=new doc(buf);
+//	homepage=new doc(app,time());
 
 	struct sockaddr_in srv;
 	const ssize_t srvsz=sizeof(srv);
@@ -685,7 +687,9 @@ int main(){
 			}
 			try{
 				switch(c.run((events[i].events&EPOLLIN)==EPOLLIN)){
-				case request_close:delete&c;break;
+				case request_close:
+					delete&c;
+					break;
 				case request_read:
 					events[i].events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 					if(epoll_ctl(epfd,EPOLL_CTL_MOD,c.fd,&events[i]))
@@ -725,7 +729,7 @@ class typealine:public widget{
 	virtual void to(xwriter&x)override{
 		x.reply_http(200,"typealine");
 	}
-	virtual void on_content(xwriter&x,const char*content,const size_t content_len)override{
+	virtual void on_content(xwriter&x,/*scan*/const char*content,const size_t content_len)override{
 //		printf(" typealine received content: %s\n",content);
 		x.reply_http(200,content,content_len);
 	}

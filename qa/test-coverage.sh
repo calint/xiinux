@@ -1,5 +1,5 @@
 HOST=localhost
-PORT=8080
+PORT=8088
 HTTP=http://localhost:8088
 
 
@@ -31,7 +31,7 @@ diff -q cmp t06.cmp&&
 rm cmp&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * illegal path"&&
-echo $'GET ../../etc HTTP/1.1\r\n\r\n'|nc localhost 8088>cmp&&
+echo $'GET ../../etc HTTP/1.1\r\n\r\n'|nc $HOST $PORT>cmp&&
 diff -q cmp t08.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -46,9 +46,13 @@ diff -q cmp t04.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chained requests"&&
-echo $'GET / HTTP/1.1\r\n\r\nGET / HTTP/1.1\r\n\r\n'|nc localhost 8088>cmp&&
+echo $'GET / HTTP/1.1\r\n\r\nGET / HTTP/1.1\r\n\r\n'|nc $HOST $PORT>cmp&&
 diff -q cmp t09.cmp&&
 rm cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * post"&&
+curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ" $HTTP/?typealine>cmp&&
+diff -q cmp t10.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 
