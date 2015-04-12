@@ -94,7 +94,7 @@ public:
 	virtual ~widget(){};
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
-	virtual void on_content(const char*content){}
+	virtual void on_content(xwriter&x,const char*content){}
 };
 static widget*widgetget(const char*qs);
 static char*strtrm(char*p,char*e){
@@ -391,7 +391,7 @@ private:
 			widget*o=widgetget(qs);
 			try{
 				if(content){
-					o->on_content(content);
+					o->on_content(x,content);
 					delete content;
 					content=nullptr;
 				}else{
@@ -653,8 +653,9 @@ class typealine:public widget{
 	virtual void to(xwriter&x){
 		x.reply_http(200,"typealine");
 	}
-	virtual void on_content(const char*content){
+	virtual void on_content(xwriter&x,const char*content){
 		printf(" typealine received content: %s\n",content);
+		x.reply_http(200,"on_content");
 	}
 };
 }
