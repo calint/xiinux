@@ -7,10 +7,10 @@ typealine{
 		size=session.file("typealine.log").size;
 	}
 	render(xwriter){
-		x.css("html","background:blue");
-		x.css(line,"width:30em");
 		x.html5().title("typealine)
-			.p(glyph).p(log.length).p("typealine:").input(line).button(clk,"send");
+		 .css("html","background:blue");
+		 .css(line,"width:30em");
+		 .p(glyph).p(log.length).p("typealine:").input(line).button(clk,"send");
 	}
 	x_clk(xwriter){
 		var log=session.file("typealine.log");
