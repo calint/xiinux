@@ -94,6 +94,7 @@ public:
 	virtual ~widget(){};
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
+	virtual void on_content(const char*content){}
 };
 static widget*widgetget(const char*qs);
 static char*strtrm(char*p,char*e){
@@ -382,14 +383,20 @@ public:
 	}
 private:
 	io_request process(){
-		if(content)puts(content);
+//		if(content)puts(content);
 		const char*path=pth+1;
 		xwriter x=xwriter(fd);
 		if(!*path&&qs){
 			stats.widgets++;
 			widget*o=widgetget(qs);
 			try{
-				o->to(x);
+				if(content){
+					o->on_content(content);
+					delete content;
+					content=nullptr;
+				}else{
+					o->to(x);
+				}
 			}catch(const char*e){
 				delete o;
 				throw e;
@@ -641,11 +648,22 @@ class notfound:public widget{
 	virtual void to(xwriter&x){
 		x.reply_http(404,"path not found");
 	}
-};}
+};
+class typealine:public widget{
+	virtual void to(xwriter&x){
+		x.reply_http(200,"typealine");
+	}
+	virtual void on_content(const char*content){
+		printf(" typealine received content: %s\n",content);
+	}
+};
+}
 //-- generated
 static widget*widgetget(const char*qs){
 	if(!strcmp("hello",qs))
 		return new web::hello();
+	if(!strcmp("typealine",qs))
+		return new web::typealine();
 	if(!strcmp("bye",qs))
 		return new web::bye();
 	return new web::notfound();

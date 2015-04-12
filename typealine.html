@@ -1,9 +1,10 @@
 <!doctype html>
 <title>post</title>
-<input id=line type=text> <input id=btn type=button value="send" onclick="this.disabled=true;ajax_post('/?hello',$('line').value)">
+<input id=line type=text> <input id=btn type=button value="send" onclick="this.disabled=true;ajax_post('/?typealine',$('line').value,function(){$('btn').disabled=false;$('line').focus();})">
 <script>
 $=function(eid){return document.getElementById(eid);}
-function ajax_post(uri,data){
+$("line").focus();
+function ajax_post(uri,data,on_done){
 	console.log("ajax post to "+uri+"\n"+data);
 	var req=new XMLHttpRequest();
 	req.onreadystatechange=function(){
@@ -26,7 +27,7 @@ function ajax_post(uri,data){
 			console.log("      status:"+this.status);
 			console.log("resonse type:"+this.responseType);
 			console.log("    response:\n"+this.response);
-			$("btn").disabled=false;
+			if(on_done)on_done();
 			break;		
 		}
 	};
