@@ -90,10 +90,17 @@ class doc{
 	char*buf;
 	const char*lastmod;
 public:
-	doc(const char*data,const char*lastmod=nullptr):size(strlen(data)),buf(new char[size]),lastmod(lastmod){
+	doc(const char*data,const char*lastmod=nullptr):lastmod(lastmod){
+//		printf("new doc %p\n",(void*)this);
+		size=strlen(data);
+		buf=(char*)malloc(size);
 		memcpy(buf,data,size);
 	}
-	~doc(){delete buf;}
+	~doc(){
+//		printf(" * delete doc %p\n",(void*)this);
+		free(buf);
+//		delete buf;
+	}
 	inline const char*getbuf()const{return buf;}
 	inline size_t getsize()const{return size;}
 	inline void to(xwriter&x)const{x.pk(buf,size);}
@@ -103,7 +110,7 @@ doc*homepage;
 class widget{
 public:
 	virtual ~widget(){
-		printf(" * delete widget %p\n",(void*)this);
+//		printf(" * delete widget %s  @  %p\n",typeid(*this).name(),(void*)this);
 	};
 	virtual void to(xwriter&x)=0;
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
@@ -128,13 +135,28 @@ private:
 	unsigned int size;
 	class el{
 	public:
-		const char*key;
-		T data;
-		el*nxt;
-		el(const char*key,T data):key(key),data(data),nxt(nullptr){}
+		char*key{nullptr};
+		T data{nullptr};
+		el*nxt{nullptr};
+		el(char*key,T data):key(key),data(data){
+//			printf(" * new lut element %s @ %p\n",key,(void*)this);		
+		}
 		~el(){
+//			printf("delete lut element %s  %s @ %p\n",key,typeid(*this).name(),(void*)this);
+//			printf("delete lut element %s  @ %p\n",key,(void*)this);
+//			printf("delete lut element @ %p\n",(void*)this);
 			if(nxt)
 				delete nxt;
+		}
+		void delete_content_recurse(bool delete_key){
+//			printf("delete lut data %s @ %p\n",typeid(*data).name(),(void*)this);
+			if(data)
+				delete data;
+			if(delete_key)
+				free(key);
+			if(!nxt)
+				return;
+			nxt->delete_content_recurse(delete_key);
 		}
 	};
 	el**array;
@@ -148,11 +170,13 @@ public:
 		return i;
 	}
 	lut(const unsigned int size=8):size(size){
+//		printf("new lut %p\n",(void*)this);
 		array=(el**)calloc(size_t(size),sizeof(el*));
 	}
 	~lut(){
+//		printf("delete lut %p\n",(void*)this);
 		clear();
-		delete array;
+		free(array);
 	}
 	T operator[](const char*key){
 		const unsigned int h=hash(key,size);
@@ -170,7 +194,7 @@ public:
 			return nullptr;
 		}
 	}
-	void put(const char*key,T data){
+	void put(char*key,T data,bool allow_overwrite=true){
 		const unsigned int h=hash(key,size);
 		el*l=array[h];
 		if(!l){
@@ -179,6 +203,8 @@ public:
 		}
 		while(1){
 			if(!strcmp(l->key,key)){
+				if(!allow_overwrite)
+					throw;
 				l->data=data;
 				return;
 			}
@@ -191,6 +217,7 @@ public:
 		}
 	}
 	void clear(){
+//		printf("clear lut %p\n",(void*)this);
 		for(unsigned int i=0;i<size;i++){
 			el*e=array[i];
 			if(!e)
@@ -199,39 +226,43 @@ public:
 			array[i]=nullptr;
 		}
 	}
-	void delete_content(){
+	void delete_content(const bool delete_keys){
+//		printf("delete lut content %p\n",(void*)this);
 		for(unsigned int i=0;i<size;i++){
 			el*e=array[i];
 			if(!e)
 				continue;
-			delete e->data;
+			e->delete_content_recurse(delete_keys);
 			delete e;
 			array[i]=nullptr;
 		}
 	}
 };
 class session{
-	const char*_id;
+	char*_id;
 	lut<char*>kvp;
 	lut<widget*>widgets;
 public:
-	session(/*takes*/const char*session_id):_id(session_id){}
+	session(/*takes*/char*session_id):_id(session_id){
+//		printf(" * new session @ %p\n",(void*)this);
+	}
 	~session(){
-		printf(" * delete session %s\n",_id);
-		delete _id;
-		kvp.delete_content();
-		widgets.delete_content();
+//		printf(" * delete session %s\n",_id);
+		free(_id);
+		kvp.delete_content(true);
+		widgets.delete_content(true);
 	}
 	inline const char*id()const{return _id;}
 	inline void*operator[](const char*key){return kvp[key];}
-	inline void put(const char*key,/*takes*/char*data){kvp.put(key,data);}
+	inline void put(char*key,/*takes*/char*data){kvp.put(key,data);}
 	inline widget*get_widget(const char*key){return widgets[key];}
-	inline void put_widget(const char*key,/*takes*/widget*o){widgets.put(key,o);}
+	inline void put_widget(char*key,/*takes*/widget*o){widgets.put(key,o);}
 };
 class sessions{
 public:
 	~sessions(){
-		all.delete_content();
+//		printf(" * delete sessions %p\n",(void*)this);
+		all.delete_content(false);
 	}
 	lut<session*>all;
 };
@@ -260,6 +291,7 @@ public:
 	size_t bufnn{0};
 	sock(const int fd=0):fd(fd){}
 	~sock(){
+//		printf(" * delete sock %p\n",(void*)this);
 		delete content;
 		if(!close(fd)){
 			return;
@@ -455,34 +487,42 @@ private:
 				// create session
 				//"Fri, 31 Dec 1999 23:59:59 GMT"
 //				strftime(lastmod,size_t(64),"%Y%mm%dd--%H:%M:%S--",tm);
-				char*sid=new char[24];
+				char*sid=(char*)malloc(24);
 				strncpy(sid,"20150411-2255190-ieu44d",24);
+				char*sid_ptr=sid+17;
+				for(int i=0;i<6;i++){
+					*sid_ptr++='a'+random()%26;
+				}
+				*sid_ptr=0;
 //				printf(" * creating session %s\n",session_id);
 				ses=new session(sid);
-				sessions.all.put(sid,ses);
+				sessions.all.put(sid,ses,false);
 				x.send_session_id_at_next_opportunity(sid);
 			}else{
 				ses=sessions.all[session_id];
 				if(!ses){// session not found, reload
 //					printf(" * session not found, recreating: %s\n",session_id);
-					char*sid=new char[24];
+					char*sid=(char*)malloc(24);
 //					if(strlen(session_id)>23)throw"cookielen";
 					strncpy(sid,session_id,24);
 	//				printf(" * creating session %s\n",session_id);
 					ses=new session(sid);
-					sessions.all.put(sid,ses);
+					sessions.all.put(sid,ses,false);
 				}
 			}
 			widget*o=ses->get_widget(qs);
 			if(!o){
 //				printf(" * widget not found in session, creating  %s\n",qs);
 				o=widgetget(qs);
-				ses->put_widget(qs,o);
+				const size_t key_len=strlen(qs);
+				char*key=(char*)malloc(key_len+1);
+				memcpy(key,qs,key_len+1);
+				ses->put_widget(key,o);
 			}
 			if(content){
-				printf(" * content:\n%s\n",content);
+//				printf(" * content:\n%s\n",content);
 				o->on_content(x,content,content_len);
-				delete content;
+				delete[]content;
 				content=nullptr;
 			}else{
 				o->to(x);
@@ -703,6 +743,7 @@ int main(){
 				case request_next:throw;
 				}
 			}catch(const char*e){
+				printf(" *** exception %s\n",e);
 				delete&c;
 			}
 		}

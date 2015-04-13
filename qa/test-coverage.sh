@@ -6,12 +6,15 @@ HTTP=http://localhost:8088
 echo&&date&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * static document"&&
-curl -si $HTTP/qa/q01.txt>cmp&&
+#curl -si $HTTP/qa/q01.txt>cmp&&
+curl -s $HTTP/qa/q01.txt>cmp&&
 diff -q cmp t01.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 echo " * if-modified-since"&&
-curl -siH "if-modified-since: Fri, 10 Apr 15 07:58:44 GMT" $HTTP/qa/q01.txt>cmp&&
+HEADER=$(printf "If-modified-since:";curl -si $HTTP/qa/q01.txt|grep ^Last-Modified:|awk '{printf $1="";print $0}')
+#echo $HEADER
+curl -siH"$HEADER" $HTTP/qa/q01.txt>cmp&&
 diff -q cmp t07.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -21,7 +24,8 @@ diff -q cmp t02.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * resumable download"&&
-curl -sir 1- $HTTP/qa/q01.txt>cmp&&
+#curl -sir 1- $HTTP/qa/q01.txt>cmp&&
+curl -sr 1- $HTTP/qa/q01.txt>cmp&&
 diff -q cmp t05.cmp&&
 rm cmp&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
