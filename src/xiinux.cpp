@@ -709,57 +709,41 @@ int main(){
 	srv.sin_family=AF_INET;
 	srv.sin_addr.s_addr=INADDR_ANY;
 	srv.sin_port=htons(port);
-	if((server_socket.fd=socket(AF_INET,SOCK_STREAM,0))==-1)
-		{perror("socket");exit(1);}
-	if(bind(server_socket.fd,(struct sockaddr*)&srv,srvsz))
-		{perror("bind");exit(2);}
-	if(listen(server_socket.fd,nclients)==-1)
-		{perror("listen");exit(3);}
+	if((server_socket.fd=socket(AF_INET,SOCK_STREAM,0))==-1){perror("socket");exit(1);}
+	if(bind(server_socket.fd,(struct sockaddr*)&srv,srvsz)){perror("bind");exit(2);}
+	if(listen(server_socket.fd,nclients)==-1){perror("listen");exit(3);}
 	epollfd=epoll_create(nclients);
-	if(!epollfd)
-		{perror("epollcreate");exit(4);}
+	if(!epollfd){perror("epollcreate");exit(4);}
 	struct epoll_event ev;
 	ev.events=EPOLLIN;
 	ev.data.ptr=&server_socket;
-	if(epoll_ctl(epollfd,EPOLL_CTL_ADD,server_socket.fd,&ev)<0)
-		{perror("epolladd");exit(5);}
+	if(epoll_ctl(epollfd,EPOLL_CTL_ADD,server_socket.fd,&ev)<0){perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
 	const bool watch_thread=false;
 //	thread t1(thd_watch,"hello");
 	pthread_t thdwatch;
-	if(watch_thread){
-		if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr))
-			{perror("threadcreate");exit(6);}
-	}
+	if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 	while(true){
 		const int nn=epoll_wait(epollfd,events,nclients,-1);
-		if(nn==-1)
-			{perror("epollwait");exit(7);}
+		if(nn==-1){perror("epollwait");exit(7);}
 		for(int i=0;i<nn;i++){
 			sock&c=*(sock*)events[i].data.ptr;
-			if(c.fd==server_socket.fd){
+			if(c.fd==server_socket.fd){// new connection
 				stats.accepts++;
 				const int fda=accept(server_socket.fd,0,0);
-				if(fda==-1)
-					{perror("accept");exit(8);}
+				if(fda==-1){perror("accept");exit(8);}
 				int opts=fcntl(fda,F_GETFL);
-				if(opts<0)
-					{perror("optget");exit(9);}
+				if(opts<0){perror("optget");exit(9);}
 				opts|=O_NONBLOCK;
-				if(fcntl(fda,F_SETFL,opts))
-					{perror("optsetNONBLOCK");exit(10);}
+				if(fcntl(fda,F_SETFL,opts)){perror("optsetNONBLOCK");exit(10);}
 				ev.data.ptr=new sock(fda);
 				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
-				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev))
-					{perror("epolladd");exit(11);}
+				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev)){perror("epolladd");exit(11);}
 				int flag=1;
-				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0)
-					{perror("optsetTCP_NODELAY");exit(12);}
+				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){perror("optsetTCP_NODELAY");exit(12);}
 				continue;
 			}
-			try{
-				c.run();
-			}catch(const char*e){
+			try{c.run();}catch(const char*e){
 				printf(" *** exception %s\n",e);
 				delete&c;
 			}
