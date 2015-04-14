@@ -346,7 +346,7 @@ public:
 				const char*str=hdrs["connection"];
 				if(!str||strcmp("Keep-Alive",str)){
 					delete this;
-				return;
+					return;
 				}
 				io_request_read();
 				return;
