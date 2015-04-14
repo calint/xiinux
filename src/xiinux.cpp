@@ -24,6 +24,7 @@ static int const port=8088;
 class stats{
 public:
 	size_t ms{0};
+	size_t socks{0};
 	size_t input{0};
 	size_t output{0};
 	size_t accepts{0};
@@ -35,11 +36,11 @@ public:
 	size_t errors{0};
 	size_t brkp{0};
 	void printhdr(FILE*f){
-		fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","accepts","reads","writes","files","widgets","cache","errors","brkp");
+		fprintf(f,"%12s%6s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","socks","input","output","accepts","reads","writes","files","widgets","cache","errors","brkp");
 		fflush(f);
 	}
 	void print(FILE*f){
-		fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,accepts,reads,writes,files,widgets,cache,errors,brkp);
+		fprintf(f,"\r%12zu%6zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,socks,input,output,accepts,reads,writes,files,widgets,cache,errors,brkp);
 		fflush(f);
 	}
 };
@@ -307,8 +308,11 @@ private:
 	}
 public:
 	int fd;
-	sock(const int fd=0):fd(fd){}
+	sock(const int fd=0):fd(fd){
+		stats.socks++;
+	}
 	~sock(){
+		stats.socks--;
 		//printf(" * delete sock %p\n",(void*)this);
 		delete[]content;
 		if(!close(fd)){
@@ -715,7 +719,7 @@ static void sigexit(int i){
 	kill(getpid(),SIGINT);
 	exit(i);
 }
-int main(){
+int main(int argc,char**argv){
 	signal(SIGINT,sigexit);
 	puts(APP);
 	printf("  port %d\n",port);
@@ -740,8 +744,7 @@ int main(){
 	ev.data.ptr=&server_socket;
 	if(epoll_ctl(epollfd,EPOLL_CTL_ADD,server_socket.fd,&ev)<0){perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
-	const bool watch_thread=false;
-//	thread t1(thd_watch,"hello");
+	const bool watch_thread=argc>0;
 	pthread_t thdwatch;
 	if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 	while(true){
