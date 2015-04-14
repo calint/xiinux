@@ -270,7 +270,7 @@ static sessions sessions;
 static int epollfd;
 class sock{
 private:
-	enum parser_state{waiting_for_read,method,uri,query,protocol,header_key,header_value,resume_send_file,read_content};
+	enum parser_state{waiting_for_read_new_request,method,uri,query,protocol,header_key,header_value,resume_send_file,read_content};
 	parser_state state{method};
 	int fdfile{0};
 	off_t fdfileoffset{0};
@@ -343,7 +343,7 @@ public:
 			if(content_pos==content_len){
 				*(content+content_len)=0;
 				process();
-				if(state==waiting_for_read)
+				if(state==waiting_for_read_new_request)
 					return;
 			}
 		}else if(state==resume_send_file){
@@ -395,6 +395,8 @@ public:
 			}
 			bufnn+=(unsigned)nn;
 			stats.input+=(unsigned)nn;
+			if(state==waiting_for_read_new_request)
+				state=method;
 		}
 		while(bufi<bufnn){
 			bufi++;
@@ -455,7 +457,7 @@ public:
 						content=nullptr;
 					}
 					process();
-					if(state==waiting_for_read)
+					if(state==waiting_for_read_new_request)
 						return;
 					break;
 				}else if(c==':'){
@@ -477,7 +479,7 @@ public:
 				break;
 			case resume_send_file:
 			case read_content:
-			case waiting_for_read:
+			case waiting_for_read_new_request:
 				throw"illegalstate";
 			}
 		}
@@ -548,7 +550,7 @@ private:
 				o->on_content(x,content,content_len);
 				delete[]content;
 				content=nullptr;
-				state=waiting_for_read;
+				state=waiting_for_read_new_request;
 				io_request_read();
 				return;
 			}else{

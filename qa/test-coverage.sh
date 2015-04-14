@@ -57,6 +57,7 @@ rm cmp&&
 echo " * post"&&
 curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ" $HTTP/?typealine>cmp&&
 diff -q cmp t10.cmp&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 
