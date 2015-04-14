@@ -12,15 +12,17 @@ for URI in $URIS;do
 	echo uri: $URI>>$OUT
 #	ab    -v2 -c1    -n1      $HOST$URI>>$OUT
 	for C in $NCLIENTS;do
-		echo concurrency: $C>>$OUT
+		echo concurrency: $C  $HOST$URI
+		echo concurrency: $C  $HOST$URI>>$OUT
 		ab    -v0 -c$C   -n10000  $HOST$URI>>$OUT
 	done
-	
+
 	echo
 	echo uri keep-alive: $URI>>$OUT
 #	ab -k -v2 -c1    -n1      $HOST$URI>>$OUT
 	for C in $NCLIENTS;do
-		echo concurrency: $C>>$OUT
+		echo concurrency: $C  $HOST$URI
+		echo concurrency: $C  $HOST$URI>>$OUT
 		ab -k -v0 -c$C   -n10000  $HOST$URI>>$OUT
 	done
 done

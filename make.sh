@@ -15,5 +15,6 @@ echo -n "   zipped:" &&
 cat $SRC|gzip|wc &&
 echo && ls -o --color $BIN &&
 echo &&
-valgrind --leak-check=yes --leak-check=full --show-leak-kinds=all ./$BIN
+#valgrind --leak-check=yes --leak-check=full --show-leak-kinds=all ./$BIN
+valgrind --leak-check=yes ./$BIN
 
