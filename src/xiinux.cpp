@@ -319,6 +319,7 @@ public:
 	}
 	void run(){	while(true){
 		if(state==read_content){
+			stats.reads++;
 			const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
 			if(nn==0){//closed by client
 				delete this;
@@ -346,6 +347,7 @@ public:
 					return;
 			}
 		}else if(state==resume_send_file){
+			stats.writes++;
 			const ssize_t sf=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 			if(sf<0){//error
 				if(errno==EAGAIN){
@@ -372,6 +374,7 @@ public:
 		if(bufi==bufnn){
 			bufi=bufnn=0;
 			bufp=buf;
+			stats.reads++;
 			const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
 			if(nn==0){//closed
 				delete this;
@@ -428,7 +431,7 @@ public:
 				}
 				break;
 			case header_key:
-				if(c=='\n'){
+				if(c=='\n'){// content or done parsing
 					const char*content_length_str=hdrs["content-length"];
 					if(content_length_str){
 						content_len=(size_t)atoll(content_length_str);
@@ -751,11 +754,6 @@ int main(){
 				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0)
 					{perror("optsetTCP_NODELAY");exit(12);}
 				continue;
-			}
-			if((events[i].events&EPOLLIN)==EPOLLIN){
-				stats.reads++;
-			}else{
-				stats.writes++;
 			}
 			try{
 				c.run();
