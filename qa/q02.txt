@@ -343,13 +343,8 @@ public:
 			if(content_pos==content_len){
 				*(content+content_len)=0;
 				process();
-				const char*str=hdrs["connection"];
-				if(!str||strcmp("Keep-Alive",str)){
-					delete this;
-				return;
-				}
-				io_request_read();
-				return;
+				if(state==waiting_for_read_new_request)
+					return;
 			}
 		}else if(state==resume_send_file){
 			stats.writes++;
@@ -555,9 +550,8 @@ private:
 				o->on_content(x,content,content_len);
 				delete[]content;
 				content=nullptr;
-				state=method;
-//				state=waiting_for_read_new_request;
-//				io_request_read();
+				state=waiting_for_read_new_request;
+				io_request_read();
 				return;
 			}else{
 				o->to(x);
