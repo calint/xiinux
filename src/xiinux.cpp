@@ -309,16 +309,18 @@ public:
 	int fd;
 	sock(const int fd=0):fd(fd){}
 	~sock(){
-//		printf(" * delete sock %p\n",(void*)this);
-		delete content;
+		printf(" * delete sock %p\n",(void*)this);
+		delete[]content;
 		if(!close(fd)){
 			return;
 		}
 		stats.errors++;
 		printf("%s:%d ",__FILE__,__LINE__);perror("");
 	}
-	void run(){	while(true){
+	void run(){while(true){
+		printf(" state %d\n",state);
 		if(state==read_content){
+			printf(" read content\n");
 			stats.reads++;
 			const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
 			if(nn==0){//closed by client
@@ -327,6 +329,7 @@ public:
 			}
 			if(nn<0){
 				if(errno==EAGAIN||errno==EWOULDBLOCK){
+					printf("eagain || wouldblock\n");
 					io_request_read();
 					return;
 				}else if(errno==104){// connection reset by peer
@@ -345,12 +348,14 @@ public:
 				process();
 				const char*str=hdrs["connection"];
 				if(!str||strcmp("Keep-Alive",str)){
+					printf(" not ka connection\n");
 					delete this;
 					return;
 				}
 				io_request_read();
-				return;
+				printf(" read next req\n");
 			}
+			return;
 		}else if(state==resume_send_file){
 			stats.writes++;
 			const ssize_t sf=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
@@ -380,7 +385,9 @@ public:
 			bufi=bufnn=0;
 			bufp=buf;
 			stats.reads++;
+			printf(" read %d\n",bufi);
 			const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
+			printf(" read %d\n",nn);
 			if(nn==0){//closed
 				delete this;
 				return;
@@ -403,7 +410,9 @@ public:
 			if(state==waiting_for_read_new_request)
 				state=method;
 		}
+		printf("parse  %zu of %zu\n",bufi,bufnn);
 		while(bufi<bufnn){
+			printf("%d",state);fflush(stdout);
 			bufi++;
 			const char c=*bufp++;
 			switch(state){
@@ -441,9 +450,10 @@ public:
 				if(c=='\n'){// content or done parsing
 					const char*content_length_str=hdrs["content-length"];
 					if(content_length_str){
+						printf(" content len %s\n",content_length_str);
 						content_len=(size_t)atoll(content_length_str);
 						//? assert constraints for content_len
-						if(content)delete content;
+						delete[]content;
 						content=new char[content_len+1];// extra char for end-of-string
 						const size_t chars_left_in_buffer=bufnn-bufi;
 						if(chars_left_in_buffer>=content_len){
@@ -455,7 +465,19 @@ public:
 							memcpy(content,bufp,chars_left_in_buffer);
 							content_pos=chars_left_in_buffer;
 							state=read_content;
+							printf(" io request read after copy %zu\n",content_pos);
+							const char*expect_continue=hdrs["expect"];
+							if(expect_continue&&!strcmp(expect_continue,"100-continue")){
+								printf("client expects 100 continue before sending post\n");
+								const ssize_t n=send(fd,"HTTP/1.1 100\r\n\r\n",16,0);
+								if(n<0)throw;
+								//io_request_read();
+								//state=method;
+								//return;
+							}
 							io_request_read();
+							state=read_content;
+							printf(" return for read  state=%d   %zu/%zu\n",state,content_pos,content_len);
 							return;
 						}
 					}else{
@@ -556,8 +578,6 @@ private:
 				delete[]content;
 				content=nullptr;
 				state=method;
-//				state=waiting_for_read_new_request;
-//				io_request_read();
 				return;
 			}else{
 				o->to(x);
@@ -728,7 +748,9 @@ int main(){
 	pthread_t thdwatch;
 	if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 	while(true){
+		printf(" epoll_wait\n");
 		const int nn=epoll_wait(epollfd,events,nclients,-1);
+		printf(" epoll_wait returned %d\n",nn);
 		if(nn==-1){perror("epollwait");exit(7);}
 		for(int i=0;i<nn;i++){
 			sock&c=*(sock*)events[i].data.ptr;
