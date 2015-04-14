@@ -8,7 +8,7 @@ LIBS=-pthread
 
 echo &&
 $CC  -o $BIN $SRC $DBG $LIBS $OPTS $WARNINGS && 
-echo    "             lines   words   chars" &&
+echo    "             lines  words   chars" &&
 echo -n "   source:" &&
 cat $SRC|wc &&
 echo -n "   zipped:" &&

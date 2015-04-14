@@ -25,6 +25,7 @@ class stats{
 public:
 	size_t ms{0};
 	size_t socks{0};
+	size_t sessions{0};
 	size_t input{0};
 	size_t output{0};
 	size_t accepts{0};
@@ -36,11 +37,11 @@ public:
 	size_t errors{0};
 	size_t brkp{0};
 	void printhdr(FILE*f){
-		fprintf(f,"%12s%6s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","socks","input","output","accepts","reads","writes","files","widgets","cache","errors","brkp");
+		fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","socks","sess","accepts","reads","writes","files","widgets","cache","errors","brkp");
 		fflush(f);
 	}
 	void print(FILE*f){
-		fprintf(f,"\r%12zu%6zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,socks,input,output,accepts,reads,writes,files,widgets,cache,errors,brkp);
+		fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,socks,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
 		fflush(f);
 	}
 };
@@ -89,9 +90,9 @@ public:
 class doc{
 	size_t size;
 	char*buf;
-	const char*lastmod;
+//	const char*lastmod;
 public:
-	doc(const char*data,const char*lastmod=nullptr):lastmod(lastmod){
+	doc(const char*data,const char*lastmod=nullptr){//:lastmod(lastmod){
 //		printf("new doc %p\n",(void*)this);
 		size=strlen(data);
 		buf=(char*)malloc(size);
@@ -245,9 +246,11 @@ class session{
 	lut<widget*>widgets;
 public:
 	session(/*takes*/char*session_id):_id(session_id){
+		stats.sessions++;
 //		printf(" * new session @ %p\n",(void*)this);
 	}
 	~session(){
+		stats.sessions--;
 //		printf(" * delete session %s\n",_id);
 		free(_id);
 		kvp.delete_content(true);
