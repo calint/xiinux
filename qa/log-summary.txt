@@ -1,48 +1,60 @@
-Tue Apr 14 00:46:05 CDT 2015
+Tue Apr 14 17:38:44 CDT 2015
 uri: /
 concurrency: 1 localhost:8088/
 Failed requests:        0
-Requests per second:    2246.82 [#/sec] (mean)
+Requests per second:    4017.16 [#/sec] (mean)
 concurrency: 10 localhost:8088/
 Failed requests:        0
-Requests per second:    3036.35 [#/sec] (mean)
+Requests per second:    5856.17 [#/sec] (mean)
 concurrency: 100 localhost:8088/
 Failed requests:        0
-Requests per second:    3043.80 [#/sec] (mean)
+Requests per second:    6074.68 [#/sec] (mean)
 concurrency: 1000 localhost:8088/
 Failed requests:        0
-Requests per second:    1510.80 [#/sec] (mean)
+Requests per second:    5350.07 [#/sec] (mean)
 uri keep-alive: /
 concurrency: 1 localhost:8088/
 Failed requests:        0
-Requests per second:    3907.56 [#/sec] (mean)
+Requests per second:    14847.79 [#/sec] (mean)
 concurrency: 10 localhost:8088/
 Failed requests:        0
-Requests per second:    4967.37 [#/sec] (mean)
+Requests per second:    37133.31 [#/sec] (mean)
 concurrency: 100 localhost:8088/
 Failed requests:        0
-Requests per second:    4955.66 [#/sec] (mean)
+Requests per second:    30391.07 [#/sec] (mean)
 concurrency: 1000 localhost:8088/
 Failed requests:        0
-Requests per second:    4753.65 [#/sec] (mean)
+Requests per second:    24075.62 [#/sec] (mean)
 uri: /qa/q01.txt
 concurrency: 1 localhost:8088/qa/q01.txt
 Failed requests:        0
-Requests per second:    1530.52 [#/sec] (mean)
+Requests per second:    3449.99 [#/sec] (mean)
 concurrency: 10 localhost:8088/qa/q01.txt
 Failed requests:        0
-Requests per second:    1853.09 [#/sec] (mean)
+Requests per second:    5984.40 [#/sec] (mean)
 concurrency: 100 localhost:8088/qa/q01.txt
 Failed requests:        0
-Requests per second:    1714.12 [#/sec] (mean)
+Requests per second:    5643.59 [#/sec] (mean)
 concurrency: 1000 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    5567.38 [#/sec] (mean)
 uri keep-alive: /qa/q01.txt
 concurrency: 1 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    8826.58 [#/sec] (mean)
 concurrency: 10 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    14837.54 [#/sec] (mean)
 concurrency: 100 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    13959.70 [#/sec] (mean)
 concurrency: 1000 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    12383.52 [#/sec] (mean)
 uri: /?hello
 concurrency: 1 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    3271.73 [#/sec] (mean)
 concurrency: 10 localhost:8088/?hello
 concurrency: 100 localhost:8088/?hello
 concurrency: 1000 localhost:8088/?hello
@@ -51,4 +63,4 @@ concurrency: 1 localhost:8088/?hello
 concurrency: 10 localhost:8088/?hello
 concurrency: 100 localhost:8088/?hello
 concurrency: 1000 localhost:8088/?hello
-Tue Apr 14 00:47:00 CDT 2015
+Tue Apr 14 17:39:09 CDT 2015

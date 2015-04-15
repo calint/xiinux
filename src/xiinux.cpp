@@ -206,7 +206,7 @@ public:
 		while(1){
 			if(!strcmp(l->key,key)){
 				if(!allow_overwrite)
-					throw;
+					throw"lutoverwrite";
 				l->data=data;
 				return;
 			}
@@ -247,7 +247,7 @@ class session{
 public:
 	session(/*takes*/char*session_id):_id(session_id){
 		stats.sessions++;
-//		printf(" * new session @ %p\n",(void*)this);
+//		printf(" * new session %s @ %p\n",session_id,(void*)this);
 	}
 	~session(){
 		stats.sessions--;
@@ -296,7 +296,7 @@ private:
 		ev.data.ptr=this;
 		ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
-			perror("");
+			perror("ioreqread");
 			throw"epollmodread";
 		}
 	}
@@ -305,7 +305,7 @@ private:
 		ev.data.ptr=this;
 		ev.events=EPOLLOUT|EPOLLRDHUP|EPOLLET;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
-			perror("");
+			perror("ioreqwrite");
 			throw"epollmodwrite";
 		}
 	}
@@ -322,7 +322,7 @@ public:
 			return;
 		}
 		stats.errors++;
-		printf("%s:%d ",__FILE__,__LINE__);perror("");
+		printf("%s:%d ",__FILE__,__LINE__);perror("sockdel");
 	}
 	void run(){while(true){
 		//printf(" state %d\n",state);
@@ -343,10 +343,10 @@ public:
 					delete this;
 					return;
 				}
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readcontent");
 				stats.errors++;
 				delete this;
-				throw;
+				throw"readingcontent";
 			}
 			content_pos+=(unsigned)nn;
 			stats.input+=(unsigned)nn;
@@ -372,7 +372,7 @@ public:
 					return;
 				}
 				stats.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("resumesendfile");
 				delete this;
 				return;
 			}
@@ -407,7 +407,7 @@ public:
 					delete this;
 					return;
 				}
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readbuf");
 				stats.errors++;
 				delete this;
 				return;
@@ -477,7 +477,7 @@ public:
 							if(expect_continue&&!strcmp(expect_continue,"100-continue")){
 //								printf("client expects 100 continue before sending post\n");
 								const ssize_t n=send(fd,"HTTP/1.1 100\r\n\r\n",16,0);
-								if(n<0)throw;
+								if(n<0)throw"sendingcontinue";
 							}
 							io_request_read();
 							state=read_content;
@@ -543,11 +543,14 @@ private:
 			if(!session_id){
 				// create session
 				//"Fri, 31 Dec 1999 23:59:59 GMT"
-//				strftime(lastmod,size_t(64),"%Y%mm%dd--%H:%M:%S--",tm);
+				time_t timer=time(NULL);
+				struct tm*tm_info=gmtime(&timer);
 				char*sid=(char*)malloc(24);
-				strncpy(sid,"20150411-2255190-ieu44d",24);
-				char*sid_ptr=sid+17;
-				for(int i=0;i<6;i++){
+				//						 20150411--225519-ieu44d
+				strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
+//				free(tm_info);
+				char*sid_ptr=sid+16;
+				for(int i=0;i<7;i++){
 					*sid_ptr++='a'+random()%26;
 				}
 				*sid_ptr=0;
@@ -623,12 +626,12 @@ private:
 			const ssize_t hdrsn=send(fd,hdr,hdrnn,0);
 			if(hdrsn<0){
 				stats.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("notmod");
 				throw"errorsending";
 			}
 			if((unsigned)hdrsn!=hdrnn){
 				stats.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("notmod2");
 				throw"errorsending";
 			}
 			stats.output+=(size_t)hdrsn;
@@ -649,7 +652,7 @@ private:
 			off_t rs=0;
 			if(EOF==sscanf(range,"bytes=%zu",&rs)){
 				stats.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
 				throw"errrorscanning";
 			}
 			fdfileoffset=rs;
@@ -664,12 +667,12 @@ private:
 		const ssize_t bbsn=send(fd,bb,bbnn,0);
 		if(bbsn<0){
 			stats.errors++;
-			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendheaders");
 			throw"errorsending1";
 		}
 		if(size_t(bbsn)!=bbnn){
 			stats.errors++;
-			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendheaders2");
 			throw"errorsending2";
 		}
 		stats.output+=size_t(bbsn);
@@ -681,7 +684,7 @@ private:
 				throw"brokenpipe";
 			}
 			stats.errors++;
-			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("");
+			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
 			delete this;
 			throw"errorreading";
 		}
@@ -747,29 +750,58 @@ int main(int argc,char**argv){
 	ev.data.ptr=&server_socket;
 	if(epoll_ctl(epollfd,EPOLL_CTL_ADD,server_socket.fd,&ev)<0){perror("epolladd");exit(5);}
 	struct epoll_event events[nclients];
-	const bool watch_thread=argc>0;
+	const bool watch_thread=argc>1;
 	pthread_t thdwatch;
 	if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 	while(true){
 		//printf(" epoll_wait\n");
 		const int nn=epoll_wait(epollfd,events,nclients,-1);
 		//printf(" epoll_wait returned %d\n",nn);
-		if(nn==-1){perror("epollwait");exit(7);}
+		if(nn==-1){
+			perror("epollwait");
+			puts("epoll_wait error");
+			continue;
+			exit(7);
+		}
 		for(int i=0;i<nn;i++){
 			sock&c=*(sock*)events[i].data.ptr;
 			if(c.fd==server_socket.fd){// new connection
 				stats.accepts++;
 				const int fda=accept(server_socket.fd,0,0);
-				if(fda==-1){perror("accept");exit(8);}
+				if(fda==-1){
+					perror("accept");
+					puts("accept");
+					continue;
+					exit(8);
+				}
 				int opts=fcntl(fda,F_GETFL);
-				if(opts<0){perror("optget");exit(9);}
+				if(opts<0){
+					perror("optget");
+					puts("optget");
+					continue;
+					exit(9);
+				}
 				opts|=O_NONBLOCK;
-				if(fcntl(fda,F_SETFL,opts)){perror("optsetNONBLOCK");exit(10);}
+				if(fcntl(fda,F_SETFL,opts)){
+					perror("optsetNONBLOCK");
+					puts("optsetNONBLOCK");
+					continue;
+					exit(10);
+				}
 				ev.data.ptr=new sock(fda);
 				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
-				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev)){perror("epolladd");exit(11);}
+				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev)){
+					perror("epolladd");
+					perror("puts");
+					continue;
+					exit(11);
+				}
 				int flag=1;
-				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){perror("optsetTCP_NODELAY");exit(12);}
+				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){
+					perror("optsetTCP_NODELAY");
+					puts("optsetTCP_NODELAY");
+					exit(12);
+				}
 				continue;
 			}
 			try{c.run();}catch(const char*e){
