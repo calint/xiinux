@@ -46,12 +46,14 @@ public:
 	}
 };
 static stats stats;
+const char*exception_connection_reset_by_client="brk";
 size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 	const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 	if(n<0){
 		if(errno==EPIPE||errno==ECONNRESET){
 			stats.brkp++;
-			throw;
+//			throw"brk";
+			throw exception_connection_reset_by_client;
 		}
 		stats.errors++;
 		throw"iosend";
@@ -78,7 +80,7 @@ public:
 		}else{
 			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
-		if(n<0)throw;
+		if(n<0)throw"send";
 		pk(bb,(size_t)n).pk(content,len);
 		return*this;
 	}
@@ -657,17 +659,17 @@ private:
 		}else{
 			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,fdfilecount);
 		}
-		if(bb_len<0)throw;
+		if(bb_len<0)throw"err";
 		io_send(fd,bb,(size_t)bb_len,true);
 		const ssize_t nn=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 		if(nn<0){
 			if(errno==EPIPE||errno==ECONNRESET){
 				stats.brkp++;
-				throw;
+				throw"brk";
 			}
 			stats.errors++;
 			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
-			throw;
+			throw"err";
 		}
 		stats.output+=size_t(nn);
 		fdfilecount-=size_t(nn);
@@ -700,11 +702,11 @@ static void*thdwatchrun(void*arg){
 static void sigexit(int i){
 	puts("exiting");
 	delete homepage;
-	if(shutdown(server_socket.fd,SHUT_RDWR))perror("shutdown");
+//	if(shutdown(server_socket.fd,SHUT_RDWR))perror("shutdown");
 	close(server_socket.fd);
 	signal(SIGINT,SIG_DFL);
 	kill(getpid(),SIGINT);
-	exit(i);
+//	exit(i);
 }
 int main(int argc,char**argv){
 	signal(SIGINT,sigexit);
@@ -742,7 +744,7 @@ int main(int argc,char**argv){
 			perror("epollwait");
 			puts("epoll_wait error");
 			continue;
-			exit(7);
+//			exit(7);
 		}
 		for(int i=0;i<nn;i++){
 			sock*c=(sock*)events[i].data.ptr;
@@ -753,29 +755,29 @@ int main(int argc,char**argv){
 					perror("accept");
 					puts("accept");
 					continue;
-					exit(8);
+//					exit(8);
 				}
 				int opts=fcntl(fda,F_GETFL);
 				if(opts<0){
 					perror("optget");
 					puts("optget");
 					continue;
-					exit(9);
+//					exit(9);
 				}
 				opts|=O_NONBLOCK;
 				if(fcntl(fda,F_SETFL,opts)){
 					perror("optsetNONBLOCK");
 					puts("optsetNONBLOCK");
 					continue;
-					exit(10);
+//					exit(10);
 				}
 				ev.data.ptr=new sock(fda);
 				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev)){
 					perror("epolladd");
-					perror("puts");
+					puts("epolladd");
 					continue;
-					exit(11);
+//					exit(11);
 				}
 				int flag=1;
 				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){
@@ -788,7 +790,9 @@ int main(int argc,char**argv){
 			try{
 				c->run();
 			}catch(const char*msg){
-				printf(" *** exception from %p : %s\n",(void*)c,msg);
+				if(msg!=exception_connection_reset_by_client){
+					printf(" *** exception from %p : %s\n",(void*)c,msg);
+				}
 				delete c;
 			}catch(...){
 				printf(" *** exception from %p\n",(void*)c);
