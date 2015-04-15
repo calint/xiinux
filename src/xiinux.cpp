@@ -46,6 +46,23 @@ public:
 	}
 };
 static stats stats;
+size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
+	const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
+	if(n<0){
+		if(errno==EPIPE||errno==ECONNRESET){
+			stats.brkp++;
+			throw;
+		}
+		stats.errors++;
+		throw"iosend";
+	}
+	stats.output+=n;
+	if(throw_if_send_not_complete&&(size_t)n!=len){
+		stats.errors++;
+		throw"sendnotcomplete";
+	}
+	return(size_t)n;
+}
 class xwriter{
 	int fd;
 	const char*set_session_id{nullptr};
@@ -68,21 +85,7 @@ public:
 		return reply_http(code,content,nn);
 	}
 	xwriter&pk(const char*s,const size_t nn){
-		const ssize_t n=send(fd,s,size_t(nn),0);
-		if(n==-1){
-			if(errno==32){
-				stats.brkp++;
-				throw"broken pipe";
-			}
-			perror("send");
-			printf("\n\n%s  %d   errorno=%d\n\n",__FILE__,__LINE__,errno);
-			throw"unknown error while sending";
-		}
-		stats.output+=(unsigned)n;
-		if(n!=ssize_t(nn)){
-			stats.errors++;
-			printf("\n\n%s  %d    sent %lu of %lu\n\n",__FILE__,__LINE__,n,nn);
-		}
+		io_send(fd,s,nn,true);
 		return*this;
 	}
 	inline xwriter&pk(const char*s){const size_t snn=strlen(s);return pk(s,snn);}
@@ -339,7 +342,7 @@ public:
 					printf("eagain || wouldblock\n");
 					io_request_read();
 					return;
-				}else if(errno==104){// connection reset by peer
+				}else if(errno==ECONNRESET){
 					delete this;
 					return;
 				}
@@ -403,7 +406,7 @@ public:
 				if(errno==EAGAIN||errno==EWOULDBLOCK){
 					io_request_read();
 					return;
-				}else if(errno==104){// connection reset by peer
+				}else if(errno==ECONNRESET){
 					delete this;
 					return;
 				}
@@ -473,11 +476,10 @@ public:
 							content_pos=chars_left_in_buffer;
 							state=read_content;
 //							printf(" io request read after copy %zu\n",content_pos);
-							const char*expect_continue=hdrs["expect"];
-							if(expect_continue&&!strcmp(expect_continue,"100-continue")){
+							const char*s=hdrs["expect"];
+							if(s&&!strcmp(s,"100-continue")){
 //								printf("client expects 100 continue before sending post\n");
-								const ssize_t n=send(fd,"HTTP/1.1 100\r\n\r\n",16,0);
-								if(n<0)throw"sendingcontinue";
+								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							}
 							io_request_read();
 							state=read_content;
@@ -623,18 +625,7 @@ private:
 		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
 			const char*hdr="HTTP/1.1 304\r\nConnection: Keep-Alive\r\n\r\n";
 			const size_t hdrnn=strlen(hdr);
-			const ssize_t hdrsn=send(fd,hdr,hdrnn,0);
-			if(hdrsn<0){
-				stats.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("notmod");
-				throw"errorsending";
-			}
-			if((unsigned)hdrsn!=hdrnn){
-				stats.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("notmod2");
-				throw"errorsending";
-			}
-			stats.output+=(size_t)hdrsn;
+			io_send(fd,hdr,hdrnn,true);
 			state=method;
 			return;
 		}
@@ -648,6 +639,7 @@ private:
 		fdfilecount=size_t(fdstat.st_size);
 		const char*range=hdrs["range"];
 		char bb[K];
+		size_t bb_len;
 		if(range&&*range){
 			off_t rs=0;
 			if(EOF==sscanf(range,"bytes=%zu",&rs)){
@@ -659,34 +651,20 @@ private:
 			const off_t s=rs;
 			const size_t e=fdfilecount;
 			fdfilecount-=(size_t)rs;
-			snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,fdfilecount,s,e,e);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,fdfilecount,s,e,e);
 		}else{
-			snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,fdfilecount);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,fdfilecount);
 		}
-		const size_t bbnn=strlen(bb);
-		const ssize_t bbsn=send(fd,bb,bbnn,0);
-		if(bbsn<0){
-			stats.errors++;
-			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendheaders");
-			throw"errorsending1";
-		}
-		if(size_t(bbsn)!=bbnn){
-			stats.errors++;
-			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendheaders2");
-			throw"errorsending2";
-		}
-		stats.output+=size_t(bbsn);
+		io_send(fd,bb,bb_len,true);
 		const ssize_t nn=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 		if(nn<0){
-			if(errno==32){//broken pipe
+			if(errno==EPIPE||errno==ECONNRESET){
 				stats.brkp++;
-				delete this;
-				throw"brokenpipe";
+				throw;
 			}
 			stats.errors++;
 			printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
-			delete this;
-			throw"errorreading";
+			throw;
 		}
 		stats.output+=size_t(nn);
 		fdfilecount-=size_t(nn);
@@ -764,8 +742,8 @@ int main(int argc,char**argv){
 			exit(7);
 		}
 		for(int i=0;i<nn;i++){
-			sock&c=*(sock*)events[i].data.ptr;
-			if(c.fd==server_socket.fd){// new connection
+			sock*c=(sock*)events[i].data.ptr;
+			if(c->fd==server_socket.fd){// new connection
 				stats.accepts++;
 				const int fda=accept(server_socket.fd,0,0);
 				if(fda==-1){
@@ -804,9 +782,14 @@ int main(int argc,char**argv){
 				}
 				continue;
 			}
-			try{c.run();}catch(const char*e){
-				printf(" *** exception %s\n",e);
-				delete&c;
+			try{
+				c->run();
+			}catch(const char*msg){
+				printf(" *** exception from %p : %s\n",(void*)c,msg);
+				delete c;
+			}catch(...){
+				printf(" *** exception from %p\n",(void*)c);
+				delete c;
 			}
 		}
 	}
