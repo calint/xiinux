@@ -69,18 +69,19 @@ class xwriter{
 public:
 	xwriter(const int fd=0):fd(fd){}
 	inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
-	xwriter&reply_http(const int code,const char*content,const size_t len){
+	xwriter&reply_http(int code,const char*content,size_t len){
 		char bb[K];
+		size_t bb_len;
 		if(set_session_id){
-			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
 			set_session_id=nullptr;
 		}else{
-			snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
-		pk(bb).pk(content,len);
+		pk(bb,bb_len).pk(content,len);
 		return*this;
 	}
-	xwriter&reply_http(const int code,const char*content){
+	xwriter&reply_http(int code,const char*content){
 		const size_t nn=strlen(content);
 		return reply_http(code,content,nn);
 	}
@@ -110,7 +111,7 @@ public:
 	inline size_t getsize()const{return size;}
 	inline void to(xwriter&x)const{x.pk(buf,size);}
 };
-doc*homepage;
+static doc*homepage;
 
 class widget{
 public:
@@ -121,7 +122,6 @@ public:
 	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
 	virtual void on_content(xwriter&x,/*scan*/const char*content,const size_t content_len){};
 };
-static widget*widgetget(const char*qs);
 static char*strtrm(char*p,char*e){
 	while(p!=e&&isspace(*p))
 		p++;
@@ -274,6 +274,7 @@ public:
 	lut<session*>all{K};
 };
 static sessions sessions;
+static widget*widgetget(const char*qs);
 static int epollfd;
 class sock{
 private:
