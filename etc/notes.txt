@@ -1,13 +1,18 @@
 sudo sysctl net.ipv4.ip_local_port_range='1024 65000'
-sudo sysctl net.core.somaxconn=20000
+sudo sysctl net.core.somaxconn=40000
+
+# to allow more concurrent connections
+sudo sysctl fs.file-max=70000
 
 # allow connection flood
 sudo sh -c "echo 0 >/proc/sys/net/ipv4/tcp_syncookies"
-sudo sh -c 'echo 10000>/proc/sys/net/ipv4/tcp_max_syn_backlog'
+sudo sh -c 'echo 30000>/proc/sys/net/ipv4/tcp_max_syn_backlog'
 
 # recycles connections after 5 seconds of wait mode
 sudo sysctl net.ipv4.tcp_tw_reuse=1
 sudo sysctl net.ipv4.tcp_fin_timeout=5
 
-
-
+# increase maximum number of open files (relogin)
+#vi /etc/security/limits.conf
+#c                soft    nofile          20000
+#c                hard    nofile          40000
