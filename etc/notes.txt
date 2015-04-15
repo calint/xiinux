@@ -1,0 +1,13 @@
+sudo sysctl net.ipv4.ip_local_port_range='1024 65000'
+sudo sysctl net.core.somaxconn=20000
+
+# allow connection flood
+sudo sh -c "echo 0 >/proc/sys/net/ipv4/tcp_syncookies"
+sudo sh -c 'echo 10000>/proc/sys/net/ipv4/tcp_max_syn_backlog'
+
+# recycles connections after 5 seconds of wait mode
+sudo sysctl net.ipv4.tcp_tw_reuse=1
+sudo sysctl net.ipv4.tcp_fin_timeout=5
+
+
+
