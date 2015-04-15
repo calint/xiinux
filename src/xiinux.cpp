@@ -56,7 +56,7 @@ size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=
 		stats.errors++;
 		throw"iosend";
 	}
-	stats.output+=n;
+	stats.output+=(size_t)n;
 	if(throw_if_send_not_complete&&(size_t)n!=len){
 		stats.errors++;
 		throw"sendnotcomplete";
@@ -71,14 +71,15 @@ public:
 	inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
 	xwriter&reply_http(int code,const char*content,size_t len){
 		char bb[K];
-		size_t bb_len;
+		int n;
 		if(set_session_id){
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
 			set_session_id=nullptr;
 		}else{
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
-		pk(bb,bb_len).pk(content,len);
+		if(n<0)throw;
+		pk(bb,(size_t)n).pk(content,len);
 		return*this;
 	}
 	xwriter&reply_http(int code,const char*content){
@@ -640,7 +641,7 @@ private:
 		fdfilecount=size_t(fdstat.st_size);
 		const char*range=hdrs["range"];
 		char bb[K];
-		size_t bb_len;
+		int bb_len;
 		if(range&&*range){
 			off_t rs=0;
 			if(EOF==sscanf(range,"bytes=%zu",&rs)){
@@ -656,7 +657,8 @@ private:
 		}else{
 			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,fdfilecount);
 		}
-		io_send(fd,bb,bb_len,true);
+		if(bb_len<0)throw;
+		io_send(fd,bb,(size_t)bb_len,true);
 		const ssize_t nn=sendfile(fd,fdfile,&fdfileoffset,fdfilecount);
 		if(nn<0){
 			if(errno==EPIPE||errno==ECONNRESET){
