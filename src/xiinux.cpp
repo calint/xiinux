@@ -375,7 +375,7 @@ public:
 				perror("while closing file");
 			}
 			printf("      done %s\n",pth+1);
-			io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
+			io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 			const char*str=hdrs["connection"];
 			if(!str||strcmp("Keep-Alive",str)){
 				delete this;
@@ -557,7 +557,7 @@ public:
 								}
 								const char*str=hdrs["connection"];
 								if(!str||strcmp("Keep-Alive",str)){
-									io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
+									io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 									delete this;
 									return;
 								}
