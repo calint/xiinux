@@ -63,6 +63,18 @@ echo " * bigger post >4K"&&
 curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt $HTTP/?typealine>cmp&&
 diff -q cmp t11.cmp&&
 rm cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+#echo " * upload small file"&&
+#curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl>/dev/null&&
+#curl -s $HTTP/upl>cmp&&
+#diff -q cmp q01.txt&&
+#rm cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * upload bigger file"&&
+curl -sq -XPUT --header "Content-Type:file" --data-binary @q02.txt $HTTP/upl>/dev/null&&
+curl -s $HTTP/upl>cmp&&
+diff -q cmp q02.txt&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 
