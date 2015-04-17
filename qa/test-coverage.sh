@@ -75,6 +75,7 @@ curl -sq -XPUT --header "Content-Type:file" --data-binary @q02.txt $HTTP/upl>/de
 curl -s $HTTP/upl>cmp&&
 diff -q cmp q02.txt&&
 rm cmp&&
+rm ../upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 

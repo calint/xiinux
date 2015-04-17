@@ -428,7 +428,6 @@ public:
 			if(content_pos==content_len){
 				*(content+content_len)=0;
 				process();
-				printf(" read next req\n");
 				break;
 			}
 			return;
@@ -536,14 +535,12 @@ public:
 								printf("client expects 100 continue before sending post\n");
 								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 								state=upload;
-								io_request_read();
-								return;
+								break;
 							}
 							const size_t chars_left_in_buffer=bufnn-bufi;
 							if(chars_left_in_buffer==0){
 								state=upload;
-								io_request_read();
-								return;
+								break;
 							}
 							if(chars_left_in_buffer>=content_len){
 								printf(" upload in buffer\n");
@@ -577,8 +574,7 @@ public:
 							}
 							content_pos=chars_left_in_buffer;
 							state=upload;
-							io_request_read();
-							return;
+							break;
 						}
 						// posted content
 						delete[]content;
@@ -647,7 +643,6 @@ private:
 		if(!*path&&qs){
 			stats.widgets++;
 			const char*cookie=hdrs["cookie"];
-//			printf(" * received cookie %s\n",cookie);
 			const char*session_id;
 			if(cookie&&strstr(cookie,"i=")){//? parse cookie
 				session_id=cookie+sizeof "i="-1;
@@ -663,7 +658,6 @@ private:
 				char*sid=(char*)malloc(24);
 				//						 20150411--225519-ieu44d
 				strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
-//				free(tm_info);
 				char*sid_ptr=sid+16;
 				for(int i=0;i<7;i++){
 					*sid_ptr++='a'+random()%26;
@@ -754,7 +748,7 @@ private:
 		char bb[K];
 		int bb_len;
 		if(range&&*range){
-			off_t rs=0;
+			size_t rs=0;
 			if(EOF==sscanf(range,"bytes=%zu",&rs)){
 				stats.errors++;
 				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
