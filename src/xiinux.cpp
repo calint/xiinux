@@ -281,7 +281,8 @@ static widget*widgetget(const char*qs);
 static int epollfd;
 class sock{
 private:
-	enum parser_state{waiting_for_read_new_request,method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
+//	enum parser_state{waiting_for_read_new_request,method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
+	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
 	parser_state state{method};
 	int file_fd{0};
 	off_t file_pos{0};
@@ -485,8 +486,8 @@ public:
 			}
 			bufnn+=(unsigned)nn;
 			stats.input+=(unsigned)nn;
-			if(state==waiting_for_read_new_request)
-				state=method;
+//			if(state==waiting_for_read_new_request)
+//				state=method;
 		}
 //		printf("parse  %zu of %zu\n",bufi,bufnn);
 		while(bufi<bufnn){
@@ -642,7 +643,7 @@ public:
 				break;
 			case resume_send_file:
 			case read_content:
-			case waiting_for_read_new_request:
+//			case waiting_for_read_new_request:
 			case upload:
 				throw"illegalstate";
 			}
