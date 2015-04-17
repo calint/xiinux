@@ -612,7 +612,7 @@ public:
 								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							}
 							printf(" return for read  state=%d   %zu/%zu\n",state,content_pos,content_len);
-//							state=read_content;
+							state=read_content;
 							break;
 //							io_request_read();
 //							return;
