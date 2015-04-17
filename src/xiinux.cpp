@@ -281,7 +281,6 @@ static widget*widgetget(const char*qs);
 static int epollfd;
 class sock{
 private:
-//	enum parser_state{waiting_for_read_new_request,method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
 	parser_state state{method};
 	int file_fd{0};
@@ -321,7 +320,6 @@ private:
 	void io_request_read(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
-//		ev.events=EPOLLIN|EPOLLRDHUP;
 		ev.events=EPOLLIN;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
 			perror("ioreqread");
@@ -331,7 +329,6 @@ private:
 	void io_request_write(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
-//		ev.events=EPOLLOUT|EPOLLRDHUP;
 		ev.events=EPOLLOUT;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
 			perror("ioreqwrite");
@@ -464,9 +461,7 @@ public:
 			bufi=bufnn=0;
 			bufp=buf;
 			stats.reads++;
-			//printf(" read %d\n",bufi);
 			const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
-			//printf(" read %d\n",nn);
 			if(nn==0){//closed
 				delete this;
 				return;
@@ -486,12 +481,8 @@ public:
 			}
 			bufnn+=(unsigned)nn;
 			stats.input+=(unsigned)nn;
-//			if(state==waiting_for_read_new_request)
-//				state=method;
 		}
-//		printf("parse  %zu of %zu\n",bufi,bufnn);
 		while(bufi<bufnn){
-//			printf("%d",state);fflush(stdout);
 			bufi++;
 			const char c=*bufp++;
 			switch(state){
@@ -535,8 +526,6 @@ public:
 						if(content_type&&strstr(content_type,"file")){// file upload
 							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
 							const mode_t mod{0664};
-//							upload_fd=open(pth+1,O_CREAT|O_WRONLY|O_TRUNC,mod);
-//							upload_fd=open(pth+1,O_WRONLY|O_TRUNC,mod);
 							upload_fd=open(pth+1,O_CREAT|O_WRONLY|O_TRUNC,mod);
 							if(upload_fd<0){
 								perror("while creating file for upload");
@@ -592,7 +581,6 @@ public:
 							return;
 						}
 						// posted content
-						//? assert constraints for content_len
 						delete[]content;
 						content=new char[content_len+1];// extra char for end-of-string
 						const size_t chars_left_in_buffer=bufnn-bufi;
@@ -605,24 +593,17 @@ public:
 							memcpy(content,bufp,chars_left_in_buffer);
 							content_pos=chars_left_in_buffer;
 							state=read_content;
-//							printf(" io request read after copy %zu\n",content_pos);
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
-//								printf("client expects 100 continue before sending post\n");
 								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							}
-							printf(" return for read  state=%d   %zu/%zu\n",state,content_pos,content_len);
 							state=read_content;
 							break;
-//							io_request_read();
-//							return;
 						}
 					}else{
 						content=nullptr;
 					}
 					process();
-//					if(state==waiting_for_read_new_request)
-//						return;
 					break;
 				}else if(c==':'){
 					*(bufp-1)=0;
@@ -643,7 +624,6 @@ public:
 				break;
 			case resume_send_file:
 			case read_content:
-//			case waiting_for_read_new_request:
 			case upload:
 				throw"illegalstate";
 			}
@@ -659,7 +639,6 @@ public:
 			io_request_read();
 			return;
 		}
-		// continue parsing
 	}}
 private:
 	void process(){
