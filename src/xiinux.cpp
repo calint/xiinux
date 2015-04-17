@@ -47,25 +47,6 @@ public:
 };
 static stats stats;
 const char*exception_connection_reset_by_client="brk";
-static void urldecode(char *dst){
-	char a,b;
-	const char*src=dst;
-	while(*src){
-		if(*src=='%'&&(a=src[1])&&(b=src[2])&&isxdigit(a)&&isxdigit(b)){
-			if(a>='a')a-='a'-'A';
-			if(a>='A')a-=('A'-10);
-			else a-='0';
-			if(b>='a')b-='a'-'A';
-			if(b>='A')b-=('A'-10);
-			else b-='0';
-			*dst++=16*a+b;
-			src+=3;
-			continue;
-		}
-		*dst++=*src++;
-	}
-	*dst++='\0';
-}
 size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 	const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 	if(n<0){
@@ -298,6 +279,26 @@ public:
 static sessions sessions;
 static widget*widgetget(const char*qs);
 static int epollfd;
+static void urldecode(char*str){
+	char a,b;
+	const char*p=str;
+	while(*p){
+		//? unsage
+		if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
+			if(a>='a')a-='a'-'A';
+			if(a>='A')a-=('A'-10);
+			else a-='0';
+			if(b>='a')b-='a'-'A';
+			if(b>='A')b-=('A'-10);
+			else b-='0';
+			*str++=16*a+b;
+			p+=3;
+			continue;
+		}
+		*str++=*p++;
+	}
+	*str++='\0';
+}
 class sock{
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
 	parser_state state{method};
@@ -517,7 +518,9 @@ public:
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
+//					printf("%s\n",pth);
 					urldecode(pth);
+//					printf("%s\n",pth);
 				}else if(c=='?'){
 					state=query;
 					qs=bufp;
