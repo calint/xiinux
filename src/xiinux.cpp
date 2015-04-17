@@ -610,17 +610,18 @@ public:
 //								printf("client expects 100 continue before sending post\n");
 								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							}
-							state=read_content;
-							io_request_read();
 							printf(" return for read  state=%d   %zu/%zu\n",state,content_pos,content_len);
-							return;
+//							state=read_content;
+							break;
+//							io_request_read();
+//							return;
 						}
 					}else{
 						content=nullptr;
 					}
 					process();
-					if(state==waiting_for_read_new_request)
-						return;
+//					if(state==waiting_for_read_new_request)
+//						return;
 					break;
 				}else if(c==':'){
 					*(bufp-1)=0;
