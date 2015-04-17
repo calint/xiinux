@@ -385,14 +385,14 @@ public:
 			}
 			stats.input+=(size_t)nn;
 			content_pos+=(size_t)nn;
-			printf(" uploading %s   %zu of %zu\n",pth+1,content_pos,content_len);
+//			printf(" uploading %s   %zu of %zu\n",pth+1,content_pos,content_len);
 			if(content_pos<content_len){
 				continue;
 			}
 			if(close(upload_fd)<0){
 				perror("while closing file");
 			}
-			printf("      done %s\n",pth+1);
+//			printf("      done %s\n",pth+1);
 			io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 			const char*str=hdrs["connection"];
 			if(!str||strcmp("Keep-Alive",str)){
@@ -404,7 +404,6 @@ public:
 			return;
 			//?? chained requests
 		}else if(state==read_content){
-			//printf(" read content\n");
 			stats.reads++;
 			const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
 			if(nn==0){//closed by client
@@ -519,11 +518,10 @@ public:
 				if(c=='\n'){// content or done parsing
 					const char*content_length_str=hdrs["content-length"];
 					if(content_length_str){
-						//printf(" content len %s\n",content_length_str);
 						content_len=(size_t)atoll(content_length_str);
 						const char*content_type=hdrs["content-type"];
 						if(content_type&&strstr(content_type,"file")){// file upload
-							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
+//							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
 							const mode_t mod{0664};
 							upload_fd=open(pth+1,O_CREAT|O_WRONLY|O_TRUNC,mod);
 							if(upload_fd<0){
@@ -543,7 +541,7 @@ public:
 								break;
 							}
 							if(chars_left_in_buffer>=content_len){
-								printf(" upload in buffer\n");
+//								printf(" upload in buffer\n");
 								const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
 								if(nn<0){
 									perror("while writing upload to file");
@@ -556,12 +554,13 @@ public:
 								if(close(upload_fd)<0){
 									perror("while closing file");
 								}
-								const char*str=hdrs["connection"];
-								if(!str||strcmp("Keep-Alive",str)){
-									io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
-									delete this;
-									return;
-								}
+								io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
+//								const char*str=hdrs["connection"];
+//								if(!str||strcmp("Keep-Alive",str)){
+//									io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
+//									delete this;
+//									return;
+//								}
 								bufp+=content_len;
 								bufi+=content_len;
 								state=method;
