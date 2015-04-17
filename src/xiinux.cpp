@@ -75,10 +75,10 @@ public:
 		char bb[K];
 		int n;
 		if(set_session_id){
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
 			set_session_id=nullptr;
 		}else{
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
 		if(n<0)throw"send";
 		pk(bb,(size_t)n).pk(content,len);
@@ -280,7 +280,6 @@ static sessions sessions;
 static widget*widgetget(const char*qs);
 static int epollfd;
 class sock{
-private:
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
 	parser_state state{method};
 	int file_fd{0};
@@ -336,19 +335,22 @@ private:
 		}
 	}
 public:
-	int fd;
-	sock(const int fd=0):fd(fd){
+	int fd{0};
+	sock(const int f=0):fd(f){
 		stats.socks++;
 	}
 	~sock(){
 		stats.socks--;
 		//printf(" * delete sock %p\n",(void*)this);
 		delete[]content;
-		if(!close(fd)){
+		if(!::close(fd)){
 			return;
 		}
 		stats.errors++;
 		printf("%s:%d ",__FILE__,__LINE__);perror("sockdel");
+	}
+	void close(){
+		::close(fd);
 	}
 	void run(){while(true){
 		//printf(" state %d\n",state);
@@ -389,7 +391,7 @@ public:
 			if(content_pos<content_len){
 				continue;
 			}
-			if(close(upload_fd)<0){
+			if(::close(upload_fd)<0){
 				perror("while closing file");
 			}
 //			printf("      done %s\n",pth+1);
@@ -450,7 +452,7 @@ public:
 				io_request_write();
 				return;
 			}
-			close(file_fd);
+			::close(file_fd);
 			state=method;
 		}
 		if(bufi>=conbufnn)
@@ -530,7 +532,7 @@ public:
 							}
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
-								printf("client expects 100 continue before sending post\n");
+//								printf("client expects 100 continue before sending post\n");
 								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 								state=upload;
 								break;
@@ -551,7 +553,7 @@ public:
 								if((size_t)nn!=content_len){
 									throw"incomplete upload";
 								}
-								if(close(upload_fd)<0){
+								if(::close(upload_fd)<0){
 									perror("while closing file");
 								}
 								io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
@@ -729,7 +731,7 @@ private:
 		strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
 		const char*lastmodstr=hdrs["if-modified-since"];
 		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
-			const char*hdr="HTTP/1.1 304\r\nConnection: Keep-Alive\r\n\r\n";
+			const char*hdr="HTTP/1.1 304\r\n\r\n";
 			const size_t hdrnn=strlen(hdr);
 			io_send(fd,hdr,hdrnn,true);
 			state=method;
@@ -757,8 +759,9 @@ private:
 			const off_t s=rs;
 			const size_t e=file_len;
 			file_len-=(size_t)rs;
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,s,e,e);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,s,e,e);
 		}else{
+			// Connection: Keep-Alive\r\n for apache-bench
 			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
 		}
 		if(bb_len<0)throw"err";
@@ -780,7 +783,7 @@ private:
 			io_request_write();
 			return;
 		}
-		close(file_fd);
+		::close(file_fd);
 		state=method;
 	}
 };
@@ -805,17 +808,18 @@ static void sigexit(int i){
 	puts("exiting");
 	delete homepage;
 //	if(shutdown(server_socket.fd,SHUT_RDWR))perror("shutdown");
-	close(server_socket.fd);
+	server_socket.close();
+//	close(server_socket.fd);
 	signal(SIGINT,SIG_DFL);
 	kill(getpid(),SIGINT);
 //	exit(i);
 }
 int main(int argc,char**argv){
 	signal(SIGINT,sigexit);
-	puts(APP);
-	printf("  port %d\n",port);
+	printf("%s on port %d\n",APP,port);
 
 	char buf[4*K];
+	// Connection: Keep-Alive for apachebench
 	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
 	homepage=new doc(buf);
 

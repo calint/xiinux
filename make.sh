@@ -1,10 +1,10 @@
-#CC="clang++ -std=c++11"
-CC="g++ -std=c++11"
+CC="clang++ -std=c++11"
+#CC="g++ -std=c++11"
 BIN=xiinux
 SRC=src/*.cpp
 #DBG="-O3"
 DBG="-g -O0"
-DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
+#DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
 #OPTS=-Os
 WARNINGS="-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wfatal-errors"
 LIB="-pthread -lgcov"
