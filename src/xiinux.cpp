@@ -320,7 +320,8 @@ private:
 	void io_request_read(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
-		ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
+//		ev.events=EPOLLIN|EPOLLRDHUP;
+		ev.events=EPOLLIN;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
 			perror("ioreqread");
 			throw"epollmodread";
@@ -329,7 +330,8 @@ private:
 	void io_request_write(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
-		ev.events=EPOLLOUT|EPOLLRDHUP|EPOLLET;
+//		ev.events=EPOLLOUT|EPOLLRDHUP;
+		ev.events=EPOLLOUT;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
 			perror("ioreqwrite");
 			throw"epollmodwrite";
@@ -428,14 +430,8 @@ public:
 			if(content_pos==content_len){
 				*(content+content_len)=0;
 				process();
-				const char*str=hdrs["connection"];
-				if(!str||strcmp("Keep-Alive",str)){
-					//printf(" not ka connection\n");
-					delete this;
-					return;
-				}
-				io_request_read();
 				printf(" read next req\n");
+				break;
 			}
 			return;
 		}else if(state==resume_send_file){
@@ -650,13 +646,15 @@ public:
 				throw"illegalstate";
 			}
 		}
-		if(state!=method){// not finished parsing request
-			io_request_read();
-			return;
+		if(state==method){
+			const char*str=hdrs["connection"];
+			if(!str||strcmp("Keep-Alive",str)){
+				delete this;
+				return;
+			}
 		}
-		const char*str=hdrs["connection"];
-		if(!str||strcmp("Keep-Alive",str)){
-			delete this;
+		if(bufi==bufnn){// not finished parsing request
+			io_request_read();
 			return;
 		}
 		// continue parsing
@@ -902,7 +900,9 @@ int main(int argc,char**argv){
 //					exit(10);
 				}
 				ev.data.ptr=new sock(fda);
-				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
+//				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
+//				ev.events=EPOLLIN|EPOLLRDHUP;
+				ev.events=EPOLLIN;
 				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev)){
 					perror("epolladd");
 					puts("epolladd");

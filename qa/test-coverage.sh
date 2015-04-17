@@ -49,7 +49,7 @@ curl -s $HTTP/?asdf>cmp&&
 diff -q cmp t04.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chained requests"&&
+echo " * chained get"&&
 echo $'GET / HTTP/1.1\r\n\r\nGET / HTTP/1.1\r\n\r\n'|nc $HOST $PORT>cmp&&
 diff -q cmp t09.cmp&&
 rm cmp&&
@@ -64,11 +64,11 @@ curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt 
 diff -q cmp t11.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-#echo " * upload small file"&&
-#curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl>/dev/null&&
-#curl -s $HTTP/upl>cmp&&
-#diff -q cmp q01.txt&&
-#rm cmp&&
+echo " * upload small file"&&
+curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl>/dev/null&&
+curl -s $HTTP/upl>cmp&&
+diff -q cmp q01.txt&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload bigger file"&&
 curl -sq -XPUT --header "Content-Type:file" --data-binary @q02.txt $HTTP/upl>/dev/null&&

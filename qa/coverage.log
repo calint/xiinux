@@ -1,5 +1,5 @@
 
-Wed Apr 15 19:43:22 CDT 2015
+Thu Apr 16 01:47:29 CDT 2015
  * static document
  * if-modified-since
  * dynamic document
@@ -8,9 +8,10 @@ Wed Apr 15 19:43:22 CDT 2015
  * illegal path
  * page not found
  * widget not found
- * chained requests
+ * chained get
  * post
  * bigger post >4K
+ * upload small file
  * upload bigger file
-Wed Apr 15 19:43:22 CDT 2015
+Thu Apr 16 01:47:29 CDT 2015
 
