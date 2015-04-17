@@ -66,28 +66,28 @@ rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload small file"&&
 curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl>/dev/null&&
-curl -s $HTTP/upl>cmp&&
+curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp q01.txt&&
 rm cmp&&
-rm ../upl&&
+rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload bigger file"&&
 curl -sq -XPUT --header "Content-Type:file" --data-binary @q02.txt $HTTP/upl>/dev/null&&
-curl -s $HTTP/upl>cmp&&
+curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp q02.txt&&
 rm cmp&&
-rm ../upl&&
+rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chained upload"&&
-echo $'PUT /upl HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
+echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
 diff -q cmp t12.cmp&&
-curl -s $HTTP/upl>cmp&&
+curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp t13.cmp&&
-curl -s $HTTP/upl2>cmp&&
+curl -s $HTTP/upload/upl2>cmp&&
 diff -q cmp t14.cmp&&
 rm cmp&&
-rm ../upl&&
-rm ../upl2&&
+rm ../upload/upl&&
+rm ../upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 

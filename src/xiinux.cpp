@@ -283,7 +283,7 @@ static void urldecode(char*str){
 	char a,b;
 	const char*p=str;
 	while(*p){
-		//? unsage
+		           //? unsafe access
 		if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
 			if(a>='a')a-='a'-'A';
 			if(a>='A')a-=('A'-10);
@@ -584,12 +584,6 @@ public:
 									perror("while closing file");
 								}
 								io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
-//								const char*str=hdrs["connection"];
-//								if(!str||strcmp("Keep-Alive",str)){
-//									io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
-//									delete this;
-//									return;
-//								}
 								bufp+=content_len;
 								bufi+=content_len;
 								state=next_request;
@@ -652,21 +646,30 @@ public:
 			case next_request:
 				throw"illegalstate";
 			}
-			if(state==upload||state==next_request){
+			if(state==upload){
+				break;
+			}else if(state==next_request){
+				state=method;
 				break;
 			}
 		}
-		if(state==method||state==next_request){
+		if(state==method){
 			const char*str=hdrs["connection"];
+//			if(str&&strcmp("close",str)){
+////				printf("connection close\n");
+//				delete this;
+//				return;
+//			}else
 			if(!str||strcmp("Keep-Alive",str)){
+//				printf("connection close\n");
 				delete this;
 				return;
 			}
 		}
-		if(bufi==bufnn){// not finished parsing request
-			io_request_read();
-			return;
-		}
+//		if(bufi==bufnn){// not finished parsing request
+//			io_request_read();
+//			return;
+//		}
 	}}
 private:
 	void process(){
