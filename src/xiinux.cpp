@@ -75,10 +75,11 @@ public:
 		char bb[K];
 		int n;
 		if(set_session_id){
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			// Connection: Keep-Alive\r\n  for apache bench
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
 			set_session_id=nullptr;
 		}else{
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
 		if(n<0)throw"send";
 		pk(bb,(size_t)n).pk(content,len);
@@ -660,7 +661,7 @@ public:
 //				delete this;
 //				return;
 //			}else
-			if(!str||strcmp("Keep-Alive",str)){
+			if(!str||strcasecmp("keep-alive",str)){
 //				printf("connection close\n");
 				delete this;
 				return;

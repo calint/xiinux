@@ -1,4 +1,5 @@
 HTTP/1.1 404
+Connection: Keep-Alive
 Content-Length: 9
 
 not found
