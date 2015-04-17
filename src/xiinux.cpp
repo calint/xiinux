@@ -47,6 +47,25 @@ public:
 };
 static stats stats;
 const char*exception_connection_reset_by_client="brk";
+static void urldecode(char *dst){
+	char a,b;
+	const char*src=dst;
+	while(*src){
+		if(*src=='%'&&(a=src[1])&&(b=src[2])&&isxdigit(a)&&isxdigit(b)){
+			if(a>='a')a-='a'-'A';
+			if(a>='A')a-=('A'-10);
+			else a-='0';
+			if(b>='a')b-='a'-'A';
+			if(b>='A')b-=('A'-10);
+			else b-='0';
+			*dst++=16*a+b;
+			src+=3;
+			continue;
+		}
+		*dst++=*src++;
+	}
+	*dst++='\0';
+}
 size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 	const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 	if(n<0){
@@ -280,7 +299,7 @@ static sessions sessions;
 static widget*widgetget(const char*qs);
 static int epollfd;
 class sock{
-	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
+	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
 	parser_state state{method};
 	int file_fd{0};
 	off_t file_pos{0};
@@ -364,7 +383,7 @@ public:
 			}
 			if(nn<0){
 				if(errno==EAGAIN||errno==EWOULDBLOCK){
-					printf("eagain || wouldblock\n");
+//					printf("eagain || wouldblock\n");
 					io_request_read();
 					return;
 				}else if(errno==ECONNRESET){
@@ -414,7 +433,7 @@ public:
 			}
 			if(nn<0){
 				if(errno==EAGAIN||errno==EWOULDBLOCK){
-					printf("eagain || wouldblock\n");
+//					printf("eagain || wouldblock\n");
 					io_request_read();
 					return;
 				}else if(errno==ECONNRESET){
@@ -482,6 +501,7 @@ public:
 			bufnn+=(unsigned)nn;
 			stats.input+=(unsigned)nn;
 		}
+//		printf("%s\n",buf);
 		while(bufi<bufnn){
 			bufi++;
 			const char c=*bufp++;
@@ -497,6 +517,7 @@ public:
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
+					urldecode(pth);
 				}else if(c=='?'){
 					state=query;
 					qs=bufp;
@@ -507,6 +528,7 @@ public:
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
+					urldecode(qs);
 				}
 				break;
 			case protocol:
@@ -525,7 +547,9 @@ public:
 						if(content_type&&strstr(content_type,"file")){// file upload
 //							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
 							const mode_t mod{0664};
-							upload_fd=open(pth+1,O_CREAT|O_WRONLY|O_TRUNC,mod);
+							char buf[255];
+							snprintf(buf,sizeof buf,"upload/%s",pth+1);
+							upload_fd=open(buf,O_CREAT|O_WRONLY|O_TRUNC,mod);
 							if(upload_fd<0){
 								perror("while creating file for upload");
 								throw"err";
@@ -565,7 +589,7 @@ public:
 //								}
 								bufp+=content_len;
 								bufi+=content_len;
-								state=method;
+								state=next_request;
 								break;
 							}
 							const ssize_t nn=write(fd,bufp,chars_left_in_buffer);
@@ -573,7 +597,7 @@ public:
 								perror("while writing upload to file2");
 								throw"err";
 							}
-							content_pos=chars_left_in_buffer;
+							content_pos=(size_t)nn;
 							state=upload;
 							break;
 						}
@@ -622,10 +646,14 @@ public:
 			case resume_send_file:
 			case read_content:
 			case upload:
+			case next_request:
 				throw"illegalstate";
 			}
+			if(state==upload||state==next_request){
+				break;
+			}
 		}
-		if(state==method){
+		if(state==method||state==next_request){
 			const char*str=hdrs["connection"];
 			if(!str||strcmp("Keep-Alive",str)){
 				delete this;
@@ -749,17 +777,16 @@ private:
 		char bb[K];
 		int bb_len;
 		if(range&&*range){
-			size_t rs=0;
+			off_t rs=0;
 			if(EOF==sscanf(range,"bytes=%zu",&rs)){
 				stats.errors++;
 				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
 				throw"errrorscanning";
 			}
 			file_pos=rs;
-			const off_t s=rs;
 			const size_t e=file_len;
 			file_len-=(size_t)rs;
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,s,e,e);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,rs,e,e);
 		}else{
 			// Connection: Keep-Alive\r\n for apache-bench
 			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);

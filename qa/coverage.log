@@ -1,5 +1,5 @@
 
-Fri Apr 17 15:06:46 CDT 2015
+Fri Apr 17 16:15:16 CDT 2015
  * static document
  * if-modified-since
  * dynamic document
@@ -12,7 +12,4 @@ Fri Apr 17 15:06:46 CDT 2015
  * post
  * bigger post >4K
  * upload small file
- * upload bigger file
- * chained upload
-Fri Apr 17 15:06:46 CDT 2015
-
+Files cmp and q01.txt differ
