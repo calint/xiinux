@@ -543,7 +543,7 @@ public:
 							}
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
-//								printf("client expects 100 continue before sending post\n");
+								printf("client expects 100 continue before sending post\n");
 								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 								state=upload;
 								io_request_read();
@@ -612,7 +612,7 @@ public:
 							}
 							state=read_content;
 							io_request_read();
-							//printf(" return for read  state=%d   %zu/%zu\n",state,content_pos,content_len);
+							printf(" return for read  state=%d   %zu/%zu\n",state,content_pos,content_len);
 							return;
 						}
 					}else{
