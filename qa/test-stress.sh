@@ -2,8 +2,9 @@ HOST=localhost:8088
 OUT=log.txt
 SUM=log-summary.txt
 URI=
-URIS="/ /qa/q01.txt /?hello"
-NCLIENTS="1 10 100 1000"
+URIS="/ /qa/q01.txt /qa/q02.txt /?hello"
+NCLIENTS="1 10 100 1000 10000 20000"
+NREQUESTS=20000
 
 date>$OUT
 date>$SUM
@@ -14,7 +15,7 @@ for URI in $URIS;do
 	for C in $NCLIENTS;do
 		echo concurrency: $C  $HOST$URI
 		echo concurrency: $C  $HOST$URI>>$OUT
-		ab    -v0 -c$C   -n10000  $HOST$URI>>$OUT
+		ab    -v0 -c$C   -n$NREQUESTS  $HOST$URI>>$OUT
 	done
 
 	echo
@@ -23,7 +24,7 @@ for URI in $URIS;do
 	for C in $NCLIENTS;do
 		echo concurrency: $C  $HOST$URI
 		echo concurrency: $C  $HOST$URI>>$OUT
-		ab -k -v0 -c$C   -n10000  $HOST$URI>>$OUT
+		ab -k -v0 -c$C   -n$NREQUESTS  $HOST$URI>>$OUT
 	done
 done
 cat $OUT|grep '^uri\|^Failed\|^Requests\|^concurrency'>>$SUM

@@ -26,6 +26,7 @@ public:
 	size_t ms{0};
 	size_t socks{0};
 	size_t sessions{0};
+	size_t requests{0};
 	size_t input{0};
 	size_t output{0};
 	size_t accepts{0};
@@ -37,17 +38,18 @@ public:
 	size_t errors{0};
 	size_t brkp{0};
 	void printhdr(FILE*f){
-		fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","socks","sess","accepts","reads","writes","files","widgets","cache","errors","brkp");
+		fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","socks","reqs","sess","accepts","reads","writes","files","widgets","cache","errors","brkp");
 		fflush(f);
 	}
 	void print(FILE*f){
-		fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,socks,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
+		fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,socks,requests,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
 		fflush(f);
 	}
 };
 static stats stats;
 const char*exception_connection_reset_by_client="brk";
 size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
+	stats.writes++;
 	const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 	if(n<0){
 		if(errno==EPIPE||errno==ECONNRESET){
@@ -93,7 +95,10 @@ public:
 		io_send(fd,s,nn,true);
 		return*this;
 	}
-	inline xwriter&pk(const char*s){const size_t snn=strlen(s);return pk(s,snn);}
+	inline xwriter&pk(const char*s){
+		const size_t snn=strlen(s);
+		return pk(s,snn);
+	}
 };
 class doc{
 	size_t size;
@@ -376,9 +381,9 @@ public:
 	void run(){while(true){
 		//printf(" state %d\n",state);
 		if(state==upload){
-			stats.reads++;
 			char upload_buffer[4*K];
 			const size_t upload_remaining=content_len-content_pos;
+			stats.reads++;
 			const ssize_t nn=recv(fd,upload_buffer,upload_remaining>sizeof upload_buffer?sizeof upload_buffer:upload_remaining,0);
 			if(nn==0){//closed by client
 				throw"brk";
@@ -476,7 +481,7 @@ public:
 			::close(file_fd);
 			state=method;
 		}
-		if(bufi>=conbufnn)
+		if(bufi==conbufnn)
 			throw"bufferoverrun";
 		if(bufi==bufnn){
 			bufi=bufnn=0;
@@ -655,6 +660,7 @@ public:
 			}
 		}
 		if(state==method){
+			stats.requests++;
 			const char*str=hdrs["connection"];
 //			if(str&&strcmp("close",str)){
 ////				printf("connection close\n");
