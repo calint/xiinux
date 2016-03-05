@@ -1,0 +1,111 @@
+
+concurrency: 1 localhost:8088/
+concurrency: 10 localhost:8088/
+concurrency: 100 localhost:8088/
+concurrency: 1000 localhost:8088/
+
+concurrency: 1 localhost:8088/
+concurrency: 10 localhost:8088/
+concurrency: 100 localhost:8088/
+concurrency: 1000 localhost:8088/
+
+concurrency: 1 localhost:8088/qa/q01.txt
+concurrency: 10 localhost:8088/qa/q01.txt
+concurrency: 100 localhost:8088/qa/q01.txt
+concurrency: 1000 localhost:8088/qa/q01.txt
+
+concurrency: 1 localhost:8088/qa/q01.txt
+concurrency: 10 localhost:8088/qa/q01.txt
+concurrency: 100 localhost:8088/qa/q01.txt
+concurrency: 1000 localhost:8088/qa/q01.txt
+
+concurrency: 1 localhost:8088/?hello
+concurrency: 10 localhost:8088/?hello
+concurrency: 100 localhost:8088/?hello
+concurrency: 1000 localhost:8088/?hello
+
+concurrency: 1 localhost:8088/?hello
+concurrency: 10 localhost:8088/?hello
+concurrency: 100 localhost:8088/?hello
+concurrency: 1000 localhost:8088/?hello
+Tue Apr 14 22:09:49 CDT 2015
+uri: /
+concurrency: 1 localhost:8088/
+Failed requests:        0
+Requests per second:    4230.36 [#/sec] (mean)
+concurrency: 10 localhost:8088/
+Failed requests:        0
+Requests per second:    6036.93 [#/sec] (mean)
+concurrency: 100 localhost:8088/
+Failed requests:        0
+Requests per second:    5772.68 [#/sec] (mean)
+concurrency: 1000 localhost:8088/
+Failed requests:        0
+Requests per second:    5936.75 [#/sec] (mean)
+uri keep-alive: /
+concurrency: 1 localhost:8088/
+Failed requests:        0
+Requests per second:    14071.96 [#/sec] (mean)
+concurrency: 10 localhost:8088/
+Failed requests:        0
+Requests per second:    34802.58 [#/sec] (mean)
+concurrency: 100 localhost:8088/
+Failed requests:        0
+Requests per second:    28828.41 [#/sec] (mean)
+concurrency: 1000 localhost:8088/
+Failed requests:        0
+Requests per second:    11071.93 [#/sec] (mean)
+uri: /qa/q01.txt
+concurrency: 1 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    3298.95 [#/sec] (mean)
+concurrency: 10 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    5870.72 [#/sec] (mean)
+concurrency: 100 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    5687.67 [#/sec] (mean)
+concurrency: 1000 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    5684.41 [#/sec] (mean)
+uri keep-alive: /qa/q01.txt
+concurrency: 1 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    8498.88 [#/sec] (mean)
+concurrency: 10 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    14444.33 [#/sec] (mean)
+concurrency: 100 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    13771.94 [#/sec] (mean)
+concurrency: 1000 localhost:8088/qa/q01.txt
+Failed requests:        0
+Requests per second:    11403.99 [#/sec] (mean)
+uri: /?hello
+concurrency: 1 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    3301.09 [#/sec] (mean)
+concurrency: 10 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    5653.16 [#/sec] (mean)
+concurrency: 100 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    4599.56 [#/sec] (mean)
+concurrency: 1000 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    3554.96 [#/sec] (mean)
+uri keep-alive: /?hello
+concurrency: 1 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    3425.09 [#/sec] (mean)
+concurrency: 10 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    2382.06 [#/sec] (mean)
+concurrency: 100 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    1719.86 [#/sec] (mean)
+concurrency: 1000 localhost:8088/?hello
+Failed requests:        0
+Requests per second:    1884.50 [#/sec] (mean)
+Tue Apr 14 22:10:39 CDT 2015
+

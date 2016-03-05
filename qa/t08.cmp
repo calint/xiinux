@@ -1,0 +1,5 @@
+HTTP/1.1 403
+Connection: Keep-Alive
+Content-Length: 16
+
+path contains ..
