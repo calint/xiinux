@@ -67,13 +67,21 @@ size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=
 	}
 	return(size_t)n;
 }
-class xwriter{
+class reply{
 	int fd;
 	const char*set_session_id{nullptr};
+//	inline reply&pk(const char*s){
+//		const size_t snn=strlen(s);
+//		return pk(s,snn);
+//	}
 public:
-	xwriter(const int fd=0):fd(fd){}
+	reply(const int fd=0):fd(fd){}
+	inline reply&pk(const char*s,const size_t nn){
+		io_send(fd,s,nn,true);
+		return*this;
+	}
 	inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
-	xwriter&reply_http(int code,const char*content,size_t len){
+	reply&http(const int code,const char*content,const size_t len){
 		char bb[K];
 		int n;
 		if(set_session_id){
@@ -87,17 +95,9 @@ public:
 		pk(bb,(size_t)n).pk(content,len);
 		return*this;
 	}
-	xwriter&reply_http(int code,const char*content){
+	reply&http2(const int code,const char*content){
 		const size_t nn=strlen(content);
-		return reply_http(code,content,nn);
-	}
-	xwriter&pk(const char*s,const size_t nn){
-		io_send(fd,s,nn,true);
-		return*this;
-	}
-	inline xwriter&pk(const char*s){
-		const size_t snn=strlen(s);
-		return pk(s,snn);
+		return http(code,content,nn);
 	}
 };
 class doc{
@@ -107,7 +107,7 @@ class doc{
 public:
 	doc(const char*data,const char*lastmod=nullptr){//:lastmod(lastmod){
 //		printf("new doc %p\n",(void*)this);
-		size=strlen(data);
+		size=strlen(data); //? overrun
 		buf=(char*)malloc(size);
 		memcpy(buf,data,size);
 	}
@@ -117,8 +117,8 @@ public:
 //		delete buf;
 	}
 	inline const char*getbuf()const{return buf;}
-	inline size_t getsize()const{return size;}
-	inline void to(xwriter&x)const{x.pk(buf,size);}
+	inline const size_t getsize()const{return size;}
+	inline void to(reply&x)const{x.pk(buf,size);}
 };
 static doc*homepage;
 
@@ -127,9 +127,9 @@ public:
 	virtual ~widget(){
 //		printf(" * delete widget %s  @  %p\n",typeid(*this).name(),(void*)this);
 	};
-	virtual void to(xwriter&x)=0;
-	virtual void ax(xwriter&x,char*a[]=0){if(a)x.pk(a[0]);}
-	virtual void on_content(xwriter&x,/*local*/const char*content,const size_t content_len){};
+	virtual void to(reply&x)=0;
+//	virtual void ax(reply&x,char*a[]=0){if(a)x.pk(a[0]);}
+	virtual void on_content(reply&x,/*local*/const char*content,const size_t content_len){};
 };
 static char*strtrm(char*p,char*e){
 	while(p!=e&&isspace(*p))
@@ -681,7 +681,7 @@ public:
 private:
 	void process(){
 		const char*path=pth+1;
-		xwriter x=xwriter(fd);
+		reply x=reply(fd);
 		if(!*path&&qs){
 			stats.widgets++;
 			const char*cookie=hdrs["cookie"];
@@ -750,19 +750,19 @@ private:
 			return;
 		}
 		if(strstr(path,"..")){
-			x.reply_http(403,"path contains ..");
+			x.http2(403,"path contains ..");
 			state=method;
 			return;
 		}
 		stats.files++;
 		struct stat fdstat;
 		if(stat(path,&fdstat)){
-			x.reply_http(404,"not found");
+			x.http2(404,"not found");
 			state=method;
 			return;
 		}
 		if(S_ISDIR(fdstat.st_mode)){
-			x.reply_http(403,"path is directory");
+			x.http2(403,"path is directory");
 			state=method;
 			return;
 		}
@@ -780,7 +780,7 @@ private:
 		}
 		file_fd=open(path,O_RDONLY);
 		if(file_fd==-1){
-			x.reply_http(404,"cannot open");
+			x.http2(404,"cannot open");
 			state=method;
 			return;
 		}
@@ -954,27 +954,27 @@ int main(int argc,char**argv){
 //-- application
 namespace web{
 class hello:public widget{
-	virtual void to(xwriter&x)override{
-		x.reply_http(200,"hello world");
+	virtual void to(reply&x)override{
+		x.http2(200,"hello world");
 	}
 };
 class bye:public widget{
-	virtual void to(xwriter&x)override{
-		x.reply_http(200,"b y e");
+	virtual void to(reply&x)override{
+		x.http2(200,"b y e");
 	}
 };
 class notfound:public widget{
-	virtual void to(xwriter&x)override{
-		x.reply_http(404,"path not found");
+	virtual void to(reply&x)override{
+		x.http2(404,"path not found");
 	}
 };
 class typealine:public widget{
-	virtual void to(xwriter&x)override{
-		x.reply_http(200,"typealine");
+	virtual void to(reply&x)override{
+		x.http2(200,"typealine");
 	}
-	virtual void on_content(xwriter&x,/*scan*/const char*content,const size_t content_len)override{
+	virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len)override{
 //		printf(" typealine received content: %s\n",content);
-		x.reply_http(200,content,content_len);
+		x.http(200,content,content_len);
 	}
 };
 }

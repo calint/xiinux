@@ -1,6 +1,5 @@
-<!doctype html>
-<title>post</title>
-<input id=line type=text style=width:40em> <input id=btn type=button value="send" onclick="this.disabled=true;ajax_post('/?typealine',$('line').value,function(){$('btn').disabled=false;$('line').focus();})">
+<!doctype html><title>post</title>
+<input id=line type=text style=width:40em> <input id=btn type=button value="send" onclick="this.disabled=true;ajax_post('/?typealine',$('line').value,function(r){console.log(r);$('btn').disabled=false;$('line').focus();})">
 <script>
 $=function(eid){return document.getElementById(eid);}
 $("line").focus();
@@ -31,7 +30,7 @@ function ajax_post(uri,data,on_done){
 			console.log("   response length:"+this.response.length);
 			console.log("          response:\n"+this.response);
 			console.log("\n-------------------------------------------------");
-			if(on_done)on_done();
+			if(on_done)on_done(this);
 			break;		
 		}
 	};
