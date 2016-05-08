@@ -713,9 +713,9 @@ private:
 				ses=sessions.all[session_id];
 				if(!ses){// session not found, reload
 //					printf(" * session not found, recreating: %s\n",session_id);
-					char*sid=(char*)malloc(24);
+					char*sid=(char*)malloc(64);
 //					if(strlen(session_id)>23)throw"cookielen";
-					strncpy(sid,session_id,24);
+					strncpy(sid,session_id,64);
 	//				printf(" * creating session %s\n",session_id);
 					ses=new session(sid);
 					sessions.all.put(sid,ses,false);
