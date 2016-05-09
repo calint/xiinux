@@ -3,7 +3,7 @@ PORT=8088
 HTTP=http://localhost:8088
 
 
-echo&&date&&
+echo&&date&&echo coverage tests on $HTTP&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * static document"&&
 #curl -si $HTTP/qa/q01.txt>cmp&&
@@ -80,7 +80,9 @@ rm cmp&&
 rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chained upload"&&
-echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
+#echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
+echo -e "PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny"|nc $HOST $PORT>cmp&&
+#echo -e "PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nx"|nc $HOST $PORT>cmp&&
 diff -q cmp t12.cmp&&
 curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp t13.cmp&&

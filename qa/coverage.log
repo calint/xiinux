@@ -16,3 +16,22 @@ Fri Apr 17 19:09:00 CDT 2015
  * chained upload
 Fri Apr 17 19:09:01 CDT 2015
 
+
+Mon May  9 04:05:33 ICT 2016
+coverage tests on http://localhost:8088
+ * static document
+ * if-modified-since
+ * dynamic document
+ * resumable download
+ * cached document
+ * illegal path
+ * page not found
+ * widget not found
+ * chained get
+ * post
+ * bigger post >4K
+ * upload small file
+ * upload bigger file
+ * chained upload
+Mon May  9 04:05:34 ICT 2016
+

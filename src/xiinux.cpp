@@ -47,8 +47,8 @@ public:
 	}
 };
 static stats stats;
-const char*exception_connection_reset_by_client="brk";
-size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
+static const char*exception_connection_reset_by_client="brk";
+static size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 	stats.writes++;
 	const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 	if(n<0){
