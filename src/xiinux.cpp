@@ -286,17 +286,14 @@ static sessions sessions;
 static widget*widgetget(const char*qs);
 static int epollfd;
 static void urldecode(char*str){
-	char a,b;
 	const char*p=str;
 	while(*p){
-		           //? unsafe access
+		char a,b;
 		if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
-			if(a>='a')a-='a'-'A';
-			if(a>='A')a-=('A'-10);
-			else a-='0';
-			if(b>='a')b-='a'-'A';
-			if(b>='A')b-=('A'-10);
-			else b-='0';
+			if(a>='a')a-='a'-'A';//?
+			if(a>='A')a-='A'-10;else a-='0';
+			if(b>='a')b-='a'-'A';//?
+			if(b>='A')b-='A'-10;else b-='0';
 			*str++=16*a+b;
 			p+=3;
 			continue;
@@ -306,7 +303,8 @@ static void urldecode(char*str){
 	*str++='\0';
 }
 class sock{
-	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
+//	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
+	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
 	parser_state state{method};
 	int file_fd{0};
 	off_t file_pos{0};
@@ -324,24 +322,24 @@ class sock{
 	char*bufp{buf};
 	size_t bufi{0};
 	size_t bufnn{0};
-	void reset_for_new_request(){
-		file_fd=0;
-		file_pos=0;
-		file_len=0;
-		upload_fd=0;
-		pth=nullptr;
-		qs=nullptr;
-		hdrs.clear();
-		hdrk=nullptr;
-		hdrv=nullptr;
-		content=nullptr;
-		content_len=0;
-		content_pos=0;
-		//? clear buf
-		bufp=buf;
-		bufi=0;
-		bufnn=0;
-	}
+//	void reset_for_new_request(){
+//		file_fd=0;
+//		file_pos=0;
+//		file_len=0;
+//		upload_fd=0;
+//		pth=nullptr;
+//		qs=nullptr;
+//		hdrs.clear();
+//		hdrk=nullptr;
+//		hdrv=nullptr;
+//		content=nullptr;
+//		content_len=0;
+//		content_pos=0;
+//		//? clear buf
+//		bufp=buf;
+//		bufi=0;
+//		bufnn=0;
+//	}
 	void io_request_read(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
@@ -592,7 +590,7 @@ public:
 								io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
 								bufp+=content_len;
 								bufi+=content_len;
-								state=next_request;
+								state=method;
 								break;
 							}
 							const ssize_t nn=write(fd,bufp,chars_left_in_buffer);
@@ -649,15 +647,17 @@ public:
 			case resume_send_file:
 			case read_content:
 			case upload:
-			case next_request:
+//			case next_request:
 				throw"illegalstate";
 			}
-			if(state==upload){
-				break;
-			}else if(state==next_request){
-				state=method;
-				break;
-			}
+//			if(state==upload)
+//				printf("%s %s",__FILE__,__LINE__);
+//				printf("upp");
+//				break;
+//			else if(state==next_request){
+//				state=method;
+//				break;
+//			}
 		}
 		if(state==method){
 			stats.requests++;
