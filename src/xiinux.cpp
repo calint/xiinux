@@ -119,7 +119,7 @@ public:
 //		delete buf;
 	}
 	inline const char*getbuf()const{return buf;}
-	inline const size_t getsize()const{return size;}
+	inline size_t getsize()const{return size;}
 	inline void to(reply&x)const{x.pk(buf,size);}
 };
 static doc*homepage;
@@ -708,7 +708,7 @@ private:
 				strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
 				char*sid_ptr=sid+16;
 				for(int i=0;i<7;i++){
-					*sid_ptr++='a'+random()%26;
+					*sid_ptr++='a'+(char)(random()%26);
 				}
 				*sid_ptr=0;
 //				printf(" * creating session %s\n",session_id);
@@ -960,6 +960,36 @@ int main(int argc,char**argv){
 		}
 	}
 }
+class strb{
+	size_t size{0};
+	char buf[256];
+//	strb*nxt{nullptr};
+public:
+	inline const char*getbuf()const{return buf;}
+	inline size_t getsize()const{return size;}
+	inline strb&p(/*copies*/const char*str){
+		const size_t len=strnlen(str,sizeof buf+1);//. togetbufferoverrun
+		return p(len,str);
+	}
+	inline strb&p(const size_t len,/*copies*/const char*str){
+		const ssize_t rem=sizeof buf-size-len;
+		if(rem<0)throw"bufferoverrun";
+		strncpy(buf+size,str,len);
+		size+=len;
+		return*this;
+	}
+	inline strb&p(const int i){
+		char bb[32];
+		const int n=snprintf(bb,sizeof bb,"%d",i);
+		if(n<0)throw"snprintf";
+		return p(n,bb);
+	}
+	inline strb&nl(){
+		if(sizeof buf-size<1)throw"bufferoverrun2";
+		*(buf+size++)='\n';
+		return*this;
+	}
+};
 //-- application
 namespace web{
 class hello:public widget{
@@ -986,14 +1016,19 @@ class typealine:public widget{
 		x.http(200,content,content_len);
 	}
 };
+class counter:public widget{
+	int c;
+	virtual void to(reply&x)override{
+		strb sb;sb.p("counter ").p(++c).nl();
+		x.http(200,sb.getbuf(),sb.getsize());
+	}
+};
 }
 //-- generated
 static widget*widgetget(const char*qs){
-	if(!strcmp("hello",qs))
-		return new web::hello();
-	if(!strcmp("typealine",qs))
-		return new web::typealine();
-	if(!strcmp("bye",qs))
-		return new web::bye();
+	if(!strcmp("hello",qs))return new web::hello();
+	if(!strcmp("typealine",qs))return new web::typealine();
+	if(!strcmp("bye",qs))return new web::bye();
+	if(!strcmp("counter",qs))return new web::counter();
 	return new web::notfound();
 }
