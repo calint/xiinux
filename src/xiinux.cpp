@@ -86,10 +86,12 @@ public:
 		int n;
 		if(set_session_id){
 			// Connection: Keep-Alive\r\n  for apache bench
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
 			set_session_id=nullptr;
 		}else{
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
+//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
 		if(n<0)throw"send";
 		pk(bb,(size_t)n).pk(content,len);
@@ -362,16 +364,20 @@ public:
 	int fd{0};
 	sock(const int f=0):fd(f){
 		stats.socks++;
+		printf("%s:%d %s : new %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 	}
 	~sock(){
 		stats.socks--;
+		printf("%s:%d %s : delete %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 		//printf(" * delete sock %p\n",(void*)this);
 		delete[]content;
 		if(!::close(fd)){
 			return;
 		}
 		stats.errors++;
-		printf("%s:%d ",__FILE__,__LINE__);perror("sockdel");
+//		printf("%s:%d ",__FILE__,__LINE__);perror("sockdel");
+		printf("%s:%d %s : sockdel\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		perror("sockdel");
 	}
 	void close(){
 		::close(fd);
@@ -799,10 +805,12 @@ private:
 			file_pos=rs;
 			const size_t e=file_len;
 			file_len-=(size_t)rs;
+//			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,rs,e,e);
 			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,rs,e,e);
 		}else{
 			// Connection: Keep-Alive\r\n for apache-bench
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
+//			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
+			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
 		}
 		if(bb_len<0)throw"err";
 		io_send(fd,bb,(size_t)bb_len,true);
@@ -860,7 +868,8 @@ int main(int argc,char**argv){
 
 	char buf[4*K];
 	// Connection: Keep-Alive for apachebench
-	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
+//	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
+	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
 	homepage=new doc(buf);
 
 	struct sockaddr_in srv;
