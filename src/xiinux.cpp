@@ -962,14 +962,19 @@ int main(int argc,char**argv){
 }
 class strb{
 	size_t size{0};
-	char buf[256];
+	char buf[4096];
 //	strb*nxt{nullptr};
 public:
 	inline const char*getbuf()const{return buf;}
 	inline size_t getsize()const{return size;}
+	inline strb&rst(){size=0;return*this;}
 	inline strb&p(/*copies*/const char*str){
 		const size_t len=strnlen(str,sizeof buf+1);//. togetbufferoverrun
-		return p(len,str);
+		const ssize_t rem=sizeof buf-size-len;
+		if(rem<0)throw"bufferoverrun";
+		strncpy(buf+size,str,len);
+		size+=len;
+		return*this;
 	}
 	inline strb&p(const size_t len,/*copies*/const char*str){
 		const ssize_t rem=sizeof buf-size-len;
@@ -979,16 +984,39 @@ public:
 		return*this;
 	}
 	inline strb&p(const int i){
-		char bb[32];
-		const int n=snprintf(bb,sizeof bb,"%d",i);
-		if(n<0)throw"snprintf";
-		return p(n,bb);
+		char str[32];
+		const int len=snprintf(str,sizeof str,"%d",i);
+		if(len<0)throw"snprintf";
+		const ssize_t rem=sizeof buf-size-len;
+		if(rem<0)throw"bufferoverrun";
+		strncpy(buf+size,str,len);
+		size+=len;
+		return*this;
 	}
 	inline strb&nl(){
 		if(sizeof buf-size<1)throw"bufferoverrun2";
 		*(buf+size++)='\n';
 		return*this;
 	}
+	inline strb&p(const strb&sb){
+		const ssize_t rem=sizeof buf-size-sb.size;
+		if(rem<0)throw"bufferoverrun";
+		strncpy(buf+size,sb.buf,sb.size);
+		size+=sb.size;
+		return*this;
+	}
+
+	// html5
+	inline strb&html5(const char*title=""){
+		const char s[]="<!doctype html><script src=/x.js></script>";
+		return p(sizeof s,s)
+				.p(sizeof "<title>","<title>").p(title).p(sizeof "</title>","</title>");
+	}
+//	inline strb&title(const char*str){return p(sizeof "<title>","<title>").p(sizeof str,str).p(sizeof "</title>","</title>");}
+//	inline strb&textarea(){
+//		return p("<textarea id=_txt style='width:40em height:10em'>").p(s.getsize(),s.getbuf()).p("</textarea>");
+//
+//	}
 };
 //-- application
 namespace web{
@@ -1020,7 +1048,31 @@ class counter:public widget{
 	int c;
 	virtual void to(reply&x)override{
 		strb sb;sb.p("counter ").p(++c).nl();
+//		strb().p("counter ").p(++c).nl();
 		x.http(200,sb.getbuf(),sb.getsize());
+	}
+};
+class notes:public widget{
+	strb txt;
+public:
+	notes(){
+		txt.p("notebook\n");
+	}
+	virtual void to(reply&x)override{
+		strb s;
+		s.html5("notebook")
+				.p("<textarea id=_txt style='width:40em;height:20em'>")
+				.p(txt)
+				.p("</textarea>")
+				.p(" <input id=_btn type=button value=send onclick=\"this.disabled=true;ajax_post('/?notes',$('_txt').value,function(r){console.log(r);$('_btn').disabled=false;eval(r.responseText);})\">")
+				.p("<script>$('_txt').focus();</script>");
+		x.http(200,s.getbuf(),s.getsize());
+	}
+	virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len)override{
+		txt.
+			rst().
+			p(content_len,content);
+		x.http2(200,"location.reload();");
 	}
 };
 }
@@ -1030,5 +1082,6 @@ static widget*widgetget(const char*qs){
 	if(!strcmp("typealine",qs))return new web::typealine();
 	if(!strcmp("bye",qs))return new web::bye();
 	if(!strcmp("counter",qs))return new web::counter();
+	if(!strcmp("notes",qs))return new web::notes();
 	return new web::notfound();
 }
