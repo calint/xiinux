@@ -495,14 +495,14 @@ public:
 			}
 //			printf("      done %s\n",pth+1);
 			io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
-			const char*str=hdrs["connection"];
-			if(!str||strcmp("Keep-Alive",str)){
-				delete this;
-				return;
-			}
+//			const char*str=hdrs["connection"];
+//			if(!str||strcmp("Keep-Alive",str)){
+//				delete this;
+//				return;
+//			}
 			state=method;
-			io_request_read();
-			return;
+//			io_request_read();
+//			return;
 			//?? chained requests
 		}else if(state==read_content){
 			stats.reads++;
@@ -623,83 +623,90 @@ public:
 			case header_key:
 				if(c=='\n'){// content or done parsing
 					const char*content_length_str=hdrs["content-length"];
-					if(content_length_str){
-						content_len=(size_t)atoll(content_length_str);
-						const char*content_type=hdrs["content-type"];
-						if(content_type&&strstr(content_type,"file")){// file upload
+					if(!content_length_str){
+						content=nullptr;
+						content_len=0;
+						process();
+						break;
+					}
+					// request contains content
+//					if(content_length_str){
+					content_len=(size_t)atoll(content_length_str);
+					const char*content_type=hdrs["content-type"];
+					if(content_type&&strstr(content_type,"file")){// file upload
 //							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
-							const mode_t mod{0664};
-							char buf[255];
-							snprintf(buf,sizeof buf,"upload/%s",pth+1);
-							upload_fd=open(buf,O_CREAT|O_WRONLY|O_TRUNC,mod);
-							if(upload_fd<0){
-								perror("while creating file for upload");
-								throw"err";
-							}
-							const char*s=hdrs["expect"];
-							if(s&&!strcmp(s,"100-continue")){
+						const mode_t mod{0664};
+						char buf[255];
+						snprintf(buf,sizeof buf,"upload/%s",pth+1);
+						upload_fd=open(buf,O_CREAT|O_WRONLY|O_TRUNC,mod);
+						if(upload_fd<0){
+							perror("while creating file for upload");
+							throw"err";
+						}
+						const char*s=hdrs["expect"];
+						if(s&&!strcmp(s,"100-continue")){
 //								printf("client expects 100 continue before sending post\n");
-								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
-								state=upload;
-								break;
-							}
-							const size_t chars_left_in_buffer=bufnn-bufi;
-							if(chars_left_in_buffer==0){
-								state=upload;
-								break;
-							}
-							if(chars_left_in_buffer>=content_len){
-//								printf(" upload in buffer\n");
-								const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
-								if(nn<0){
-									perror("while writing upload to file");
-									throw"err";
-								}
-								stats.input+=(size_t)nn;
-								if((size_t)nn!=content_len){
-									throw"incomplete upload";
-								}
-								if(::close(upload_fd)<0){
-									perror("while closing file");
-								}
-								io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
-								bufp+=content_len;
-								bufi+=content_len;
-								state=method;
-								break;
-							}
-							const ssize_t nn=write(fd,bufp,chars_left_in_buffer);
-							if(nn<0){
-								perror("while writing upload to file2");
-								throw"err";
-							}
-							content_pos=(size_t)nn;
+							io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							state=upload;
 							break;
 						}
-						// posted content
-						delete[]content;
-						content=new char[content_len+1];// extra char for end-of-string
 						const size_t chars_left_in_buffer=bufnn-bufi;
-						if(chars_left_in_buffer>=content_len){
-							memcpy(content,bufp,(size_t)content_len);
-							*(content+content_len)=0;
-							bufp+=content_len;
-							bufi+=content_len;
-						}else{
-							memcpy(content,bufp,chars_left_in_buffer);
-							content_pos=chars_left_in_buffer;
-							state=read_content;
-							const char*s=hdrs["expect"];
-							if(s&&!strcmp(s,"100-continue")){
-								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
-							}
-							state=read_content;
+						if(chars_left_in_buffer==0){
+							state=upload;
 							break;
 						}
-					}else{
-						content=nullptr;
+						if(chars_left_in_buffer>=content_len){
+//								printf(" upload in buffer\n");
+							const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
+							if(nn<0){
+								perror("while writing upload to file");
+								throw"err";
+							}
+							stats.input+=(size_t)nn;
+							if((size_t)nn!=content_len){
+								throw"incomplete upload";
+							}
+							if(::close(upload_fd)<0){
+								perror("while closing file");
+							}
+							io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
+							bufp+=content_len;
+							bufi+=content_len;
+							state=method;
+							break;
+						}
+						const ssize_t nn=write(fd,bufp,chars_left_in_buffer);
+						if(nn<0){
+							perror("while writing upload to file2");
+							throw"err";
+						}
+						content_pos=(size_t)nn;
+						state=upload;
+						break;
 					}
+					// posted content
+					delete[]content;
+					content=new char[content_len+1];// extra char for end-of-string
+					const size_t chars_left_in_buffer=bufnn-bufi;
+					if(chars_left_in_buffer>=content_len){
+						memcpy(content,bufp,(size_t)content_len);
+						*(content+content_len)=0;
+						bufp+=content_len;
+						bufi+=content_len;
+					}else{
+						memcpy(content,bufp,chars_left_in_buffer);
+						content_pos=chars_left_in_buffer;
+						state=read_content;
+						const char*s=hdrs["expect"];
+						if(s&&!strcmp(s,"100-continue")){
+							io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+						}
+						state=read_content;
+						break;
+					}
+//					}else{
+//						content=nullptr;
+//					}
 					process();
 					break;
 				}else if(c==':'){
@@ -725,6 +732,7 @@ public:
 //			case next_request:
 				throw"illegalstate";
 			}
+//			printf("%s:%d %s  #  done\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
 //			if(state==upload)
 //				printf("%s %s",__FILE__,__LINE__);
 //				printf("upp");
@@ -734,20 +742,20 @@ public:
 //				break;
 //			}
 		}
-		if(state==method){
-			stats.requests++;
-			const char*str=hdrs["connection"];
-//			if(str&&strcmp("close",str)){
+//		if(state==method){//? nextreq
+//			stats.requests++;
+//			const char*str=hdrs["connection"];
+//	//			if(str&&strcmp("close",str)){
+//	////				printf("connection close\n");
+//	//				delete this;
+//	//				return;
+//	//			}else
+//			if(!str||strcasecmp("keep-alive",str)){
 ////				printf("connection close\n");
 //				delete this;
 //				return;
-//			}else
-			if(!str||strcasecmp("keep-alive",str)){
-//				printf("connection close\n");
-				delete this;
-				return;
-			}
-		}
+//			}
+//		}
 //		if(bufi==bufnn){// not finished parsing request
 //			io_request_read();
 //			return;
@@ -1029,15 +1037,14 @@ int main(int argc,char**argv){
 		}
 	}
 }
-
 class a:public widget{
 	a*pt;
 public:
 	a(a*parent=nullptr):pt(parent){
-		printf("%s:%d %s  #    new  %s  @  %p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
+		printf("%s:%d %s  #    new  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 	}
 	virtual~a(){
-		printf("%s:%d %s  # delete  %s  @  %p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
+		printf("%s:%d %s  # delete  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 	};
 	inline a*getparent()const{return pt;}
 	inline void setparent(a*p){pt=p;}

@@ -4,6 +4,14 @@ HTTP=http://localhost:8088
 
 
 echo&&date&&echo coverage tests on $HTTP&&
+
+#-- - - -- -- - ------- - - - - -- - - - --- -- 
+echo " * illegal path"&&
+echo $'GET ../../etc HTTP/1.1\r\n\r\n'|nc -w 1 $HOST $PORT>cmp&&
+diff -q cmp t08.cmp&&
+rm cmp&&
+exit
+
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chained upload"&&
 echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
