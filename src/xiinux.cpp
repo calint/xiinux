@@ -67,7 +67,17 @@ static size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_co
 	}
 	return(size_t)n;
 }
-class strb{
+class xprinter{
+public:
+	virtual xprinter&p(/*scan*/const char*str)=0;
+	virtual xprinter&p(const size_t len,/*scan*/const char*str)=0;
+	virtual xprinter&p(const int i)=0;
+	virtual xprinter&p_ptr(const void*ptr)=0;
+	virtual xprinter&nl()=0;
+//	virtual xprinter&p(const strb&sb)=0;
+	virtual xprinter&html5(const char*title="")=0;
+};
+class strb:public xprinter{
 	size_t size{0};
 	char buf[4096];
 //	strb*nxt{nullptr};
@@ -323,21 +333,19 @@ public:
 		}
 	}
 };
+#include<functional>
 template<class T>class lst{
 private:
 	class el{
 	public:
 		T ptr{0};
 		el*nxt{nullptr};
-		inline el(T ptr):ptr(ptr),nxt(nullptr){printf(" * new lst element %p\n",(void*)this);}
-		inline~el(){printf(" * delete lst element %p\n",(void*)this);}
+		inline el(T ptr):ptr(ptr),nxt(nullptr){}
 	};
 	el*first{nullptr};
 	el*last{nullptr};
 	size_t size{0};
-public:
-	inline lst(){}
-	inline~lst(){
+	inline void clr(){
 		el*e=first;
 		while(e){
 			el*ee=e;
@@ -345,6 +353,10 @@ public:
 			e=e->nxt;
 		}
 	}
+public:
+	inline lst(){}
+	inline~lst(){clr();}
+	inline void clear(){clr();first=last=nullptr;}
 	inline void to(FILE*f)const{
 		fprintf(f,"[first=%p;last=%p][",first,last);
 		el*e=first;
@@ -392,6 +404,26 @@ public:
 	}
 	inline size_t getsize()const{return size;}
 	inline bool isempty()const{return size==0;}
+	void foreach(bool f(T)){
+		if(!first)
+			return;
+		el*e=first;
+		while(e){
+			if(!f(e->ptr))
+				break;
+			e=e->nxt;
+		}
+	}
+	void foreach2(const std::function<bool (T)>&f){
+		if(!first)
+			return;
+		el*e=first;
+		while(e){
+			if(!f(e->ptr))
+				break;
+			e=e->nxt;
+		}
+	}
 };
 class session{
 	char*_id;
@@ -703,6 +735,7 @@ public:
 			}
 		}
 		if(state==header_key){
+read_header_key:
 			while(bufi<bufnn){
 				bufi++;
 				const char c=*bufp++;
@@ -813,7 +846,8 @@ public:
 					hdrs.put(hdrk,hdrv);
 					hdrk=bufp;
 					state=header_key;
-					break;
+//					break;
+					goto read_header_key;
 				}
 			}
 		}
@@ -996,6 +1030,10 @@ static void sigexit(int i){
 	kill(getpid(),SIGINT);
 //	exit(i);
 }
+bool func(const char*li){
+	puts(li);
+	return true;
+};
 int main(int argc,char**argv){
 //	lst<const char*>ls;
 //	ls.to(stdout);
@@ -1004,8 +1042,13 @@ int main(int argc,char**argv){
 //	ls.addfirst("world");
 //	ls.to(stdout);
 //	const char*s=ls.take_first();
+//	ls.to(stdout);
+//	ls.add(s);
+//	ls.foreach(func);
+//	ls.foreach2([](const char*li){puts(li);return true;});
+//	ls.clear();
+//	ls.to(stdout);
 //	return 0;
-
 
 	signal(SIGINT,sigexit);
 	printf("%s on port %d\n",APP,port);
@@ -1107,7 +1150,7 @@ int main(int argc,char**argv){
 
 class a:public widget{
 	/*ref*/a*pt{nullptr};// parent
-	/*own*/const char*nm{nullptr};
+	/*own*/const char*nm{nullptr};// name
 public:
 	a(/*refs*/a*parent,/*takes*/const char*name):pt(parent),nm(name){
 		printf("%s:%d %s  #    new  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
@@ -1198,6 +1241,7 @@ public:
 };
 class page:public a{
 	strb txt;
+//	lst<page*>sub;
 public:
 	page(a*parent,/*takes*/const char*name):a(parent,name){
 		printf("%s:%d %s  # new page  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
@@ -1205,7 +1249,8 @@ public:
 	virtual void to(reply&x)override{
 		strb s;
 		s.html5("page")
-				.p("<input id=_btn type=button value=update onclick=\"this.disabled=true;ajax_post('/?page',$('_txt').value,function(r){console.log(r);$('_btn').disabled=false;eval(r.responseText);})\"><br>\n")
+				.p("<input id=_btn type=button value=update onclick=\"this.disabled=true;ajax_post('/?page',$('_txt').value,function(r){console.log(r);$('_btn').disabled=false;eval(r.responseText);})\">")
+				.p("\n")
 				.p("<textarea id=_txt class=big>")
 				.p(txt)
 				.p("</textarea>")
