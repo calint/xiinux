@@ -494,16 +494,8 @@ public:
 				perror("while closing file");
 			}
 //			printf("      done %s\n",pth+1);
-			io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
-//			const char*str=hdrs["connection"];
-//			if(!str||strcmp("Keep-Alive",str)){
-//				delete this;
-//				return;
-//			}
+			io_send(fd,"HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n",16,true);
 			state=method;
-//			io_request_read();
-//			return;
-			//?? chained requests
 		}else if(state==read_content){
 			stats.reads++;
 			const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
@@ -547,21 +539,23 @@ public:
 			file_len-=size_t(sf);
 			stats.output+=size_t(sf);
 			if(file_len!=0){
-				state=resume_send_file;
+//				state=resume_send_file;
 				io_request_write();
 				return;
 			}
 			::close(file_fd);
 			state=method;
 		}
-		if(bufi==conbufnn)
-			throw"bufferoverrun";
-		if(bufi==bufnn){
-			bufi=bufnn=0;
-			bufp=buf;
+		if(bufi==bufnn){//? assumes request and headers fit in conbufnn and done in one read
+			if(bufi>=conbufnn)
+				throw"reqbufoverrun";//? chained requests buf pointers
+			if(state==method){//? next_request
+				bufi=bufnn=0;
+				bufp=buf;
+			}
 			stats.reads++;
-			const ssize_t nn=recv(fd,buf+bufi,conbufnn-bufi,0);
-			if(nn==0){//closed
+			const ssize_t nn=recv(fd,bufp,conbufnn-bufi,0);
+			if(nn==0){//closed by client
 				delete this;
 				return;
 			}
@@ -578,59 +572,75 @@ public:
 				delete this;
 				return;
 			}
-			bufnn+=(unsigned)nn;
+			bufnn+=(size_t)nn;
+			printf("%s : %s",__PRETTY_FUNCTION__,buf);fflush(stdout);
 			stats.input+=(unsigned)nn;
 		}
-//		printf("%s\n",buf);
-		while(bufi<bufnn){
-			bufi++;
-			const char c=*bufp++;
-			switch(state){
-			case method:
+		if(state==method){
+			while(bufi<bufnn){
+				bufi++;
+				const char c=*bufp++;
 				if(c==' '){
 					state=uri;
 					pth=bufp;
-					qs=0;
+					qs=nullptr;
+					break;
 				}
-				break;
-			case uri:
+			}
+		}
+		if(state==uri){
+			while(bufi<bufnn){
+				bufi++;
+				const char c=*bufp++;
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
-//					printf("%s\n",pth);
 					urldecode(pth);
-//					printf("%s\n",pth);
+					break;
 				}else if(c=='?'){
 					state=query;
 					qs=bufp;
 					*(bufp-1)=0;
+					break;
 				}
-				break;
-			case query:
+			}
+		}
+		if(state==query){
+			while(bufi<bufnn){
+				bufi++;
+				const char c=*bufp++;
 				if(c==' '){
 					state=protocol;
 					*(bufp-1)=0;
 					urldecode(qs);
+					break;
 				}
-				break;
-			case protocol:
+			}
+		}
+		if(state==protocol){
+			while(bufi<bufnn){
+				bufi++;
+				const char c=*bufp++;
 				if(c=='\n'){
 					hdrs.clear();
 					hdrk=bufp;
 					state=header_key;
+					break;
 				}
-				break;
-			case header_key:
+			}
+		}
+		if(state==header_key){
+			while(bufi<bufnn){
+				bufi++;
+				const char c=*bufp++;
 				if(c=='\n'){// content or done parsing
 					const char*content_length_str=hdrs["content-length"];
 					if(!content_length_str){
 						content=nullptr;
-						content_len=0;
+						content_len=0;//? already
 						process();
 						break;
 					}
-					// request contains content
-//					if(content_length_str){
 					content_len=(size_t)atoll(content_length_str);
 					const char*content_type=hdrs["content-type"];
 					if(content_type&&strstr(content_type,"file")){// file upload
@@ -646,7 +656,7 @@ public:
 						const char*s=hdrs["expect"];
 						if(s&&!strcmp(s,"100-continue")){
 //								printf("client expects 100 continue before sending post\n");
-							io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+							io_send(fd,"HTTP/1.1 100\r\nContent-Length: 0\r\n\r\n",16,true);
 							state=upload;
 							break;
 						}
@@ -669,7 +679,7 @@ public:
 							if(::close(upload_fd)<0){
 								perror("while closing file");
 							}
-							io_send(fd,"HTTP/1.1 200\r\n\r\n",16,true);
+							io_send(fd,"HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n",16,true);
 							bufp+=content_len;
 							bufi+=content_len;
 							state=method;
@@ -699,23 +709,25 @@ public:
 						state=read_content;
 						const char*s=hdrs["expect"];
 						if(s&&!strcmp(s,"100-continue")){
-							io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+							io_send(fd,"HTTP/1.1 100\r\nContent-Length: 0\r\n\r\n",16,true);
 						}
 						state=read_content;
 						break;
 					}
-//					}else{
-//						content=nullptr;
-//					}
 					process();
 					break;
 				}else if(c==':'){
 					*(bufp-1)=0;
 					hdrv=bufp;
 					state=header_value;
+					break;
 				}
-				break;
-			case header_value:
+			}
+		}
+		if(state==header_value){
+			while(bufi<bufnn){
+				bufi++;
+				const char c=*bufp++;
 				if(c=='\n'){
 					*(bufp-1)=0;
 					hdrk=strtrm(hdrk,hdrv-2);
@@ -724,46 +736,14 @@ public:
 					hdrs.put(hdrk,hdrv);
 					hdrk=bufp;
 					state=header_key;
+					break;
 				}
-				break;
-			case resume_send_file:
-			case read_content:
-			case upload:
-//			case next_request:
-				throw"illegalstate";
 			}
-//			printf("%s:%d %s  #  done\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
-//			if(state==upload)
-//				printf("%s %s",__FILE__,__LINE__);
-//				printf("upp");
-//				break;
-//			else if(state==next_request){
-//				state=method;
-//				break;
-//			}
 		}
-//		if(state==method){//? nextreq
-//			stats.requests++;
-//			const char*str=hdrs["connection"];
-//	//			if(str&&strcmp("close",str)){
-//	////				printf("connection close\n");
-//	//				delete this;
-//	//				return;
-//	//			}else
-//			if(!str||strcasecmp("keep-alive",str)){
-////				printf("connection close\n");
-//				delete this;
-//				return;
-//			}
-//		}
-//		if(bufi==bufnn){// not finished parsing request
-//			io_request_read();
-//			return;
-//		}
 	}}
 private:
 	void process(){
-		const char*path=pth+1;
+		const char*path=*pth=='/'?pth+1:pth;
 		reply x=reply(fd);
 		if(!*path&&qs){
 			stats.widgets++;
@@ -1006,9 +986,9 @@ int main(int argc,char**argv){
 //					exit(10);
 				}
 				ev.data.ptr=new sock(fda);
-//				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
+				ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
 //				ev.events=EPOLLIN|EPOLLRDHUP;
-				ev.events=EPOLLIN;
+//				ev.events=EPOLLIN;
 				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,fda,&ev)){
 					perror("epolladd");
 					puts("epolladd");
