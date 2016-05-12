@@ -503,7 +503,7 @@ class sock{
 	}
 public:
 	int fd{0};
-	sock(const int f=0):fd(f){
+	sock(const int f):fd(f){
 		stats.socks++;
 		printf("%s:%d %s : new %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 	}
@@ -969,7 +969,7 @@ private:
 		state=method;
 	}
 };
-static sock server_socket;
+static sock server_socket(0);
 static void*thdwatchrun(void*arg){
 	if(arg)
 		puts((const char*)arg);
