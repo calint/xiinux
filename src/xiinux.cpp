@@ -323,6 +323,76 @@ public:
 		}
 	}
 };
+template<class T>class lst{
+private:
+	class el{
+	public:
+		T ptr{0};
+		el*nxt{nullptr};
+		inline el(T ptr):ptr(ptr),nxt(nullptr){printf(" * new lst element %p\n",(void*)this);}
+		inline~el(){printf(" * delete lst element %p\n",(void*)this);}
+	};
+	el*first{nullptr};
+	el*last{nullptr};
+	size_t size{0};
+public:
+	inline lst(){}
+	inline~lst(){
+		el*e=first;
+		while(e){
+			el*ee=e;
+			delete ee;
+			e=e->nxt;
+		}
+	}
+	inline void to(FILE*f)const{
+		fprintf(f,"[first=%p;last=%p][",first,last);
+		el*e=first;
+		while(e){
+			fprintf(f,"%p",e);
+			e=e->nxt;
+			if(e)
+				fprintf(f," ");
+		}
+		fprintf(f,"]\n");
+	}
+	inline void add(T ptr){
+		size++;
+		el*e=new el(ptr);
+		if(!last){
+			first=last=e;
+			return;
+		}
+		last=last->nxt=e;
+	}
+	inline void addfirst(T ptr){
+		size++;
+		el*e=new el(ptr);
+		if(!first){
+			first=last=e;
+			return;
+		}
+		e->nxt=first;
+		first=e;
+	}
+	inline T take_first(){
+		if(first==nullptr)
+			return nullptr;
+		size--;
+		T ret=first->ptr;
+		if(!first->nxt){
+			delete first;
+			first=last=nullptr;
+			return ret;
+		}
+		el*e=first;
+		first=first->nxt;
+		delete e;
+		return ret;
+	}
+	inline size_t getsize()const{return size;}
+	inline bool isempty()const{return size==0;}
+};
 class session{
 	char*_id;
 	lut<char*>kvp;
@@ -842,8 +912,8 @@ private:
 		strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
 		const char*lastmodstr=hdrs["if-modified-since"];
 		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
-			const char*hdr="HTTP/1.1 304\r\n\r\n";
-			const size_t hdrnn=strlen(hdr);
+			const char hdr[]="HTTP/1.1 304\r\n\r\n";
+			const size_t hdrnn=sizeof hdr;
 			io_send(fd,hdr,hdrnn,true);
 			state=method;
 			return;
@@ -927,6 +997,16 @@ static void sigexit(int i){
 //	exit(i);
 }
 int main(int argc,char**argv){
+//	lst<const char*>ls;
+//	ls.to(stdout);
+//	ls.add("hello");
+//	ls.to(stdout);
+//	ls.addfirst("world");
+//	ls.to(stdout);
+//	const char*s=ls.take_first();
+//	return 0;
+
+
 	signal(SIGINT,sigexit);
 	printf("%s on port %d\n",APP,port);
 
@@ -1003,7 +1083,7 @@ int main(int argc,char**argv){
 //					exit(11);
 				}
 				int flag=1;
-				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){
+				if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){//? for performance tests
 					perror("optsetTCP_NODELAY");
 					puts("optsetTCP_NODELAY");
 					exit(12);
@@ -1024,17 +1104,22 @@ int main(int argc,char**argv){
 		}
 	}
 }
+
 class a:public widget{
-	a*pt;
+	/*ref*/a*pt{nullptr};// parent
+	/*own*/const char*nm{nullptr};
 public:
-	a(a*parent=nullptr):pt(parent){
+	a(/*refs*/a*parent,/*takes*/const char*name):pt(parent),nm(name){
 		printf("%s:%d %s  #    new  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 	}
 	virtual~a(){
 		printf("%s:%d %s  # delete  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
+		delete nm;
 	};
 	inline a*getparent()const{return pt;}
 	inline void setparent(a*p){pt=p;}
+	inline void setname(/*takes*/const char*name){if(nm)delete(nm);nm=name;}
+	inline const char*getname()const{return nm;}
 	virtual void to(reply&x){
 		strb s;
 //		s.p(__FILE__).p(":").p(__LINE__).p(" ").p(__PRETTY_FUNCTION__).p("  ");
@@ -1114,7 +1199,7 @@ public:
 class page:public a{
 	strb txt;
 public:
-	page(a*parent):a(parent){
+	page(a*parent,/*takes*/const char*name):a(parent,name){
 		printf("%s:%d %s  # new page  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 	}
 	virtual void to(reply&x)override{
@@ -1135,40 +1220,6 @@ public:
 		x.http2(200,"location.reload();");
 	}
 };
-
-class notebook:public a{
-public:
-	page toc;
-	page index;
-	int mode{0};
-	notebook():a(),toc(this),index(this){
-		printf("%s:%d %s  # new notebook  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
-	}
-	virtual void to(reply&x)override{
-		strb s;
-		s.html5("notebook");
-		s.p("<pre>notebook");
-		switch(mode){
-		case 0:
-			s.p(" pages ");
-			toc.to(x);
-			break;
-		case 1:
-			s.p(" page");
-			break;
-		case 2:
-			s.p(" index");
-			break;
-		default:throw"notebook1";
-		}
-		s.nl();
-		s.nl();
-		x.http(200,s);
-	}
-	virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len)override{
-		x.http2(200,"location.reload();");
-	}
-};
 }
 //-- generated
 static widget*widgetget(const char*qs){
@@ -1177,7 +1228,6 @@ static widget*widgetget(const char*qs){
 	if(!strcmp("bye",qs))return new web::bye();
 	if(!strcmp("counter",qs))return new web::counter();
 	if(!strcmp("notes",qs))return new web::notes();
-	if(!strcmp("page",qs))return new web::page(nullptr);
-	if(!strcmp("notebook",qs))return new web::notebook();
+	if(!strcmp("page",qs))return new web::page(nullptr,nullptr);
 	return new web::notfound();
 }
