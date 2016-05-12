@@ -374,7 +374,7 @@ static void urldecode(char*str){
 	*str++='\0';
 }
 #define perr(str) printf("\n\n%s:%d ",__FILE__,__LINE__);perror(str);
-#define dbg(str) printf("\n\n%s:%d %s",__FILE__,__LINE__,__PRETTY_FUNCTION__);puts(str);
+#define dbg(str) printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);
 class sock{
 //	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
@@ -669,7 +669,7 @@ public:
 							break;
 						}
 						if(chars_left_in_buffer>=content_len){
-							perr("upload fits in buffer");
+							dbg("upload fits in buffer");
 							const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
 							if(nn<0){
 								perror("while writing upload to file");
