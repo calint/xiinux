@@ -373,6 +373,8 @@ static void urldecode(char*str){
 	}
 	*str++='\0';
 }
+#define perr(str) printf("\n\n%s:%d ",__FILE__,__LINE__);perror(str);
+#define dbg(str) printf("\n\n%s:%d %s",__FILE__,__LINE__,__PRETTY_FUNCTION__);puts(str);
 class sock{
 //	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
@@ -469,8 +471,9 @@ public:
 				}else if(errno==ECONNRESET){
 					throw"brk";
 				}
-				printf("\n\n%s:%d ",__FILE__,__LINE__);
-				perror("upload");
+//				printf("\n\n%s:%d ",__FILE__,__LINE__);
+//				perror("upload");
+				perr("upload");
 				stats.errors++;
 				throw"upload";
 			}
@@ -494,7 +497,7 @@ public:
 				perror("while closing file");
 			}
 //			printf("      done %s\n",pth+1);
-			io_send(fd,"HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n",16,true);
+			io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 			state=method;
 		}else if(state==read_content){
 			stats.reads++;
@@ -656,7 +659,7 @@ public:
 						const char*s=hdrs["expect"];
 						if(s&&!strcmp(s,"100-continue")){
 //								printf("client expects 100 continue before sending post\n");
-							io_send(fd,"HTTP/1.1 100\r\nContent-Length: 0\r\n\r\n",16,true);
+							io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							state=upload;
 							break;
 						}
@@ -666,7 +669,7 @@ public:
 							break;
 						}
 						if(chars_left_in_buffer>=content_len){
-//								printf(" upload in buffer\n");
+							perr("upload fits in buffer");
 							const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
 							if(nn<0){
 								perror("while writing upload to file");
@@ -679,7 +682,9 @@ public:
 							if(::close(upload_fd)<0){
 								perror("while closing file");
 							}
-							io_send(fd,"HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n",16,true);
+//							const char resp[]="HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n";
+							const char resp[]="HTTP/1.1 204\r\n\r\n";
+							io_send(fd,resp,sizeof resp-1,true);//. -1 to remove eos
 							bufp+=content_len;
 							bufi+=content_len;
 							state=method;
@@ -709,7 +714,9 @@ public:
 						state=read_content;
 						const char*s=hdrs["expect"];
 						if(s&&!strcmp(s,"100-continue")){
-							io_send(fd,"HTTP/1.1 100\r\nContent-Length: 0\r\n\r\n",16,true);
+//							io_send(fd,"HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n",42,true);
+//							io_send(fd,"HTTP/1.1 100\r\nContent-Length: 0\r\n\r\n",42,true);
+							io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 						}
 						state=read_content;
 						break;
