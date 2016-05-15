@@ -983,7 +983,7 @@ namespace xiinux{
 			int bb_len;
 			if(range&&*range){
 				off_t rs=0;
-				if(EOF==sscanf(range,"bytes=%zu",&rs)){
+				if(EOF==sscanf(range,"bytes=%jd",&rs)){
 					sts.errors++;
 					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
 					throw"errrorscanning";

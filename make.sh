@@ -1,12 +1,13 @@
 #CC="clang++ -std=c++17"
 CC="g++ -std=c++17"
 BIN=xiinux
-SRC=src/*.cpp
+SRC=src/main.cpp
 DBG="-O3"
 #DBG="-g -O0"
 #DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
 #OPTS=-Os
-OPTS="-O3 -static"
+#OPTS="-O3 -static"
+OPTS=-O3
 WARNINGS="-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wfatal-errors"
 LIB="-pthread -lgcov"
 
