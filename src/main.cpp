@@ -497,11 +497,12 @@ namespace xiinux{
 		*str++='\0';
 	}
 	#define perr(str) printf("\n\n%s:%d ",__FILE__,__LINE__);perror(str);
-	#define dbg(str) printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);
+//	#define dbg(str) printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);
+	#define dbg(str)
 	class sock{
-	//	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
-		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
-		parser_state state{method};
+		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
+//		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
+		parser_state state{next_request};
 		int file_fd{0};
 		off_t file_pos{0};
 		size_t file_len{0};
@@ -558,11 +559,11 @@ namespace xiinux{
 		int fd{0};
 		inline sock(const int f):fd(f){
 			sts.socks++;
-			printf("%s:%d %s : new %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
+//			printf("%s:%d %s : new %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 		}
 		inline~sock(){
 			sts.socks--;
-			printf("%s:%d %s : delete %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
+//			printf("%s:%d %s : delete %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 			//printf(" * delete sock %p\n",(void*)this);
 			delete[]content;
 			if(!::close(fd)){
@@ -621,7 +622,7 @@ namespace xiinux{
 				}
 	//			printf("      done %s\n",pth+1);
 				io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
-				state=method;
+				state=next_request;
 			}else if(state==read_content){
 				sts.reads++;
 				const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
@@ -670,12 +671,12 @@ namespace xiinux{
 					return;
 				}
 				::close(file_fd);
-				state=method;
+				state=next_request;
 			}
 			if(bufi==bufnn){//? assumes request and headers fit in conbufnn and done in one read
 				if(bufi>=conbufnn)
 					throw"reqbufoverrun";//? chained requests buf pointers
-				if(state==method){//? next_request
+				if(state==next_request){//? next_request
 					bufi=bufnn=0;
 					bufp=buf;
 				}
@@ -693,14 +694,18 @@ namespace xiinux{
 						delete this;
 						return;
 					}
-					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readbuf");
+//					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readbuf");
 					sts.errors++;
 					delete this;
 					return;
 				}
 				bufnn+=(size_t)nn;
-				printf("%s : %s",__PRETTY_FUNCTION__,buf);fflush(stdout);
+//				printf("%s : %s",__PRETTY_FUNCTION__,buf);fflush(stdout);
 				sts.input+=(unsigned)nn;
+			}
+			if(state==next_request){
+				sts.requests++;
+				state=method;
 			}
 			if(state==method){
 				while(bufi<bufnn){
@@ -811,7 +816,7 @@ namespace xiinux{
 								io_send(fd,resp,sizeof resp-1,true);//. -1 to remove eos
 								bufp+=content_len;
 								bufi+=content_len;
-								state=method;
+								state=next_request;
 								break;
 							}
 							const ssize_t nn=write(fd,bufp,chars_left_in_buffer);
@@ -927,35 +932,35 @@ namespace xiinux{
 					o->on_content(x,content,content_len);
 					delete[]content;
 					content=nullptr;
-					state=method;
+					state=next_request;
 					return;
 				}else{
 					o->to(x);
-					state=method;
+					state=next_request;
 					return;
 				}
 			}
 			if(!*path){
 				sts.cache++;
 				homepage->to(x);
-				state=method;
+				state=next_request;
 				return;
 			}
 			if(strstr(path,"..")){
 				x.http2(403,"path contains ..");
-				state=method;
+				state=next_request;
 				return;
 			}
 			sts.files++;
 			struct stat fdstat;
 			if(stat(path,&fdstat)){
 				x.http2(404,"not found");
-				state=method;
+				state=next_request;
 				return;
 			}
 			if(S_ISDIR(fdstat.st_mode)){
 				x.http2(403,"path is directory");
-				state=method;
+				state=next_request;
 				return;
 			}
 			const struct tm*tm=gmtime(&fdstat.st_mtime);
@@ -967,13 +972,13 @@ namespace xiinux{
 				const char hdr[]="HTTP/1.1 304\r\n\r\n";
 				const size_t hdrnn=sizeof hdr;
 				io_send(fd,hdr,hdrnn,true);
-				state=method;
+				state=next_request;
 				return;
 			}
 			file_fd=open(path,O_RDONLY);
 			if(file_fd==-1){
 				x.http2(404,"cannot open");
-				state=method;
+				state=next_request;
 				return;
 			}
 			file_pos=0;
@@ -985,7 +990,7 @@ namespace xiinux{
 				off_t rs=0;
 				if(EOF==sscanf(range,"bytes=%jd",&rs)){
 					sts.errors++;
-					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
+//					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
 					throw"errrorscanning";
 				}
 				file_pos=rs;
@@ -1007,7 +1012,7 @@ namespace xiinux{
 					throw"brk";
 				}
 				sts.errors++;
-				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
+//				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
 				throw"err";
 			}
 			sts.output+=size_t(nn);
@@ -1018,7 +1023,7 @@ namespace xiinux{
 				return;
 			}
 			::close(file_fd);
-			state=method;
+			state=next_request;
 		}
 	};
 	static sock server_socket(0);
@@ -1190,10 +1195,10 @@ namespace web{
 		/*own*/const char*nm{nullptr};// name
 	public:
 		a(/*refs*/a*parent,/*takes*/const char*name):pt(parent),nm(name){
-			printf("%s:%d %s  #    new  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
+//			printf("%s:%d %s  #    new  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 		}
 		virtual~a(){
-			printf("%s:%d %s  # delete  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
+//			printf("%s:%d %s  # delete  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 			delete nm;
 		};
 		inline a*getparent()const{return pt;}
@@ -1211,7 +1216,7 @@ namespace web{
 	public:
 		const char*id;
 		virtual~an(){
-			printf("%s:%d %s  # delete  %s  @  %p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
+//			printf("%s:%d %s  # delete  %s  @  %p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 			delete id;
 		};
 		virtual void to(reply&x)=0;
