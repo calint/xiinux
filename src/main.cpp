@@ -17,211 +17,24 @@
 #include<netinet/tcp.h>
 #include<typeinfo>
 #include<functional>
+#include"lst.hpp"
+#include"lut.hpp"
+#include"stats.hpp"
+#include"xprinter.hpp"
+#include"strb.hpp"
+#include"doc.hpp"
+#include"reply.hpp"
+#include"session.hpp"
+#include"sessions.hpp"
 namespace xiinux{
 	#define APP "xiinux web server"
 	static int const K=1024;
 	static size_t const conbufnn=K;
 	static int const nclients=K;
 	static int const port=8088;
-	class stats{
-	public:
-		size_t ms{0};
-		size_t socks{0};
-		size_t sessions{0};
-		size_t requests{0};
-		size_t input{0};
-		size_t output{0};
-		size_t accepts{0};
-		size_t reads{0};
-		size_t writes{0};
-		size_t files{0};
-		size_t widgets{0};
-		size_t cache{0};
-		size_t errors{0};
-		size_t brkp{0};
-		void printhdr(FILE*f){
-			fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","socks","reqs","sess","accepts","reads","writes","files","widgets","cache","errors","brkp");
-			fflush(f);
-		}
-		void print(FILE*f){
-			fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,socks,requests,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
-			fflush(f);
-		}
-	};
-	static stats sts;
-	static const char*exception_connection_reset_by_client="brk";
-	static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
-		sts.writes++;
-		const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
-		if(n<0){
-			if(errno==EPIPE||errno==ECONNRESET){
-				sts.brkp++;
-	//			throw"brk";
-				throw exception_connection_reset_by_client;
-			}
-			sts.errors++;
-			throw"iosend";
-		}
-		sts.output+=(size_t)n;
-		if(throw_if_send_not_complete&&(size_t)n!=len){
-			sts.errors++;
-			throw"sendnotcomplete";
-		}
-		return(size_t)n;
-	}
-	class xprinter{
-	public:
-		virtual~xprinter(){};
-		virtual xprinter&p(/*scan*/const char*str)=0;
-		virtual xprinter&p(const size_t len,/*scan*/const char*str)=0;
-		virtual xprinter&p(const int i)=0;
-		virtual xprinter&p_ptr(const void*ptr)=0;
-		virtual xprinter&nl()=0;
-	//	virtual xprinter&p(const strb&sb)=0;
-		virtual xprinter&html5(const char*title="")=0;
-	};
-	class strb:public xprinter{
-		size_t size{0};
-		char buf[4096];
-	//	strb*nxt{nullptr};
-	public:
-		inline strb(){}
-		inline strb(const char*str){p(str);}
-		inline const char*getbuf()const{return buf;}
-		inline size_t getsize()const{return size;}
-		inline strb&rst(){size=0;return*this;}
-		inline strb&p(/*copies*/const char*str){
-			const size_t len=strnlen(str,sizeof buf+1);//. togetbufferoverrun
-			const ssize_t rem=sizeof buf-size-len;
-			if(rem<0)throw"bufferoverrun";
-			strncpy(buf+size,str,len);
-			size+=len;
-			return*this;
-		}
-		inline strb&p(const size_t len,/*copies*/const char*str){
-			const ssize_t rem=sizeof buf-size-len;
-			if(rem<0)throw"bufferoverrun";
-			strncpy(buf+size,str,len);
-			size+=len;
-			return*this;
-		}
-		inline strb&p(const int i){
-			char str[32];
-			const int len=snprintf(str,sizeof str,"%d",i);
-			if(len<0)throw"snprintf";
-			return p(len,str);
-	//		const ssize_t rem=sizeof buf-size-len;
-	//		if(rem<0)throw"bufferoverrun";
-	//		strncpy(buf+size,str,len);
-	//		size+=len;
-	//		return*this;
-		}
-		inline strb&p_ptr(const void*ptr){
-			char str[32];
-			const int len=snprintf(str,sizeof str,"%p",ptr);
-			if(len<0)throw"p_ptr:1";
-			return p(len,str);
-		}
-		inline strb&nl(){
-			if(sizeof buf-size<1)throw"bufferoverrun2";
-			*(buf+size++)='\n';
-			return*this;
-		}
-		inline strb&p(const strb&sb){
-			const ssize_t rem=sizeof buf-size-sb.size;
-			if(rem<0)throw"bufferoverrun";
-			strncpy(buf+size,sb.buf,sb.size);
-			size+=sb.size;
-			return*this;
-		}
 
-		// html5
-		inline strb&html5(const char*title=""){
-			const char s[]="<!doctype html><script src=/x.js></script><link rel=stylesheet href=/x.css>";
-			return p(sizeof s,s)
-					.p(sizeof "<title>","<title>").p(title).p(sizeof "</title>","</title>");
-		}
-	//	inline strb&title(const char*str){return p(sizeof "<title>","<title>").p(sizeof str,str).p(sizeof "</title>","</title>");}
-	//	inline strb&textarea(){
-	//		return p("<textarea id=_txt style='width:40em height:10em'>").p(s.getsize(),s.getbuf()).p("</textarea>");
-	//
-	//	}
-		inline strb&to(FILE*f){
-			char fmt[32];
-			if(snprintf(fmt,sizeof fmt,"%%%zus",size)<1)throw"err";
-			fprintf(f,fmt,buf);
-		}
-	};
-
-	class reply{
-		int fd;
-		const char*set_session_id{nullptr};
-	//	inline reply&pk(const char*s){
-	//		const size_t snn=strlen(s);
-	//		return pk(s,snn);
-	//	}
-	public:
-		inline reply(const int fd=0):fd(fd){}
-		inline reply&pk(const char*s,const size_t nn){
-			io_send(fd,s,nn,true);
-			return*this;
-		}
-		inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
-		inline reply&http(const int code,const char*content,const size_t len){
-			char bb[K];
-			int n;
-			if(set_session_id){
-				// Connection: Keep-Alive\r\n  for apache bench
-	//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
-				n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
-				set_session_id=nullptr;
-			}else{
-	//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
-				n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
-			}
-			if(n<0)throw"send";
-			pk(bb,(size_t)n).pk(content,len);
-			return*this;
-		}
-		inline reply&http(const int code,const strb&s){
-			return http(code,s.getbuf(),s.getsize());
-		}
-		inline reply&http2(const int code,const char*content){
-			const size_t nn=strlen(content);
-			return http(code,content,nn);
-		}
-	};
-	class doc{
-		size_t size;
-		char*buf;
-	//	const char*lastmod;
-	public:
-		inline doc(const char*data,const char*lastmod=nullptr){//:lastmod(lastmod){
-	//		printf("new doc %p\n",(void*)this);
-			size=strlen(data); //? overrun
-			buf=(char*)malloc(size);
-			memcpy(buf,data,size);
-		}
-		inline~doc(){
-	//		printf(" * delete doc %p\n",(void*)this);
-			free(buf);
-	//		delete buf;
-		}
-		inline const char*getbuf()const{return buf;}
-		inline size_t getsize()const{return size;}
-		inline void to(reply&x)const{x.pk(buf,size);}
-	};
 	static doc*homepage;
 
-	class widget{
-	public:
-		virtual~widget(){
-	//		printf(" * delete widget %s  @  %p\n",typeid(*this).name(),(void*)this);
-		};
-		virtual void to(reply&x)=0;
-	//	virtual void ax(reply&x,char*a[]=0){if(a)x.pk(a[0]);}
-		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len){};
-	};
 	static widget*widgetget(const char*qs);
 
 	static inline char*strtrm(char*p,char*e){
@@ -237,245 +50,7 @@ namespace xiinux{
 			p++;
 		}
 	}
-	template<class T>class lut{
-	private:
-		unsigned int size;
-		class el{
-		public:
-			char*key{nullptr};
-			T data{nullptr};
-			el*nxt{nullptr};
-			inline el(char*key,T data):key(key),data(data){
-	//			printf(" * new lut element %s @ %p\n",key,(void*)this);
-			}
-			inline~el(){
-	//			printf("delete lut element %s  %s @ %p\n",key,typeid(*this).name(),(void*)this);
-	//			printf("delete lut element %s  @ %p\n",key,(void*)this);
-	//			printf("delete lut element @ %p\n",(void*)this);
-				if(nxt)
-					delete nxt;
-			}
-			inline void delete_content_recurse(bool delete_key){
-	//			printf("delete lut data %s @ %p\n",typeid(*data).name(),(void*)this);
-				if(data)
-					delete data;
-				if(delete_key)
-					free(key);
-				if(!nxt)
-					return;
-				nxt->delete_content_recurse(delete_key);
-			}
-		};
-		el**array;
-	public:
-		static inline unsigned int hash(const char*key,const unsigned int roll){
-			unsigned int i=0;
-			const char*p=key;
-			while(*p)
-				i+=(unsigned int)*p++;
-			i%=roll;
-			return i;
-		}
-		inline lut(const unsigned int size=8):size(size){
-	//		printf("new lut %p\n",(void*)this);
-			array=(el**)calloc(size_t(size),sizeof(el*));
-		}
-		inline~lut(){
-	//		printf("delete lut %p\n",(void*)this);
-			clear();
-			free(array);
-		}
-		inline T operator[](const char*key){
-			const unsigned int h=hash(key,size);
-			el*e=array[h];
-			if(!e)
-				return nullptr;
-			while(true){
-				if(!strcmp(e->key,key)){
-					return e->data;
-				}
-				if(e->nxt){
-					e=e->nxt;
-					continue;
-				}
-				return nullptr;
-			}
-		}
-		inline void put(char*key,T data,bool allow_overwrite=true){
-			const unsigned int h=hash(key,size);
-			el*l=array[h];
-			if(!l){
-				array[h]=new el(key,data);
-				return;
-			}
-			while(1){
-				if(!strcmp(l->key,key)){
-					if(!allow_overwrite)
-						throw"lutoverwrite";
-					l->data=data;
-					return;
-				}
-				if(l->nxt){
-					l=l->nxt;
-					continue;
-				}
-				l->nxt=new el(key,data);
-				return;
-			}
-		}
-		inline void clear(){
-	//		printf("clear lut %p\n",(void*)this);
-			for(unsigned int i=0;i<size;i++){
-				el*e=array[i];
-				if(!e)
-					continue;
-				delete e;
-				array[i]=nullptr;
-			}
-		}
-		inline void delete_content(const bool delete_keys){
-	//		printf("delete lut content %p\n",(void*)this);
-			for(unsigned int i=0;i<size;i++){
-				el*e=array[i];
-				if(!e)
-					continue;
-				e->delete_content_recurse(delete_keys);
-				delete e;
-				array[i]=nullptr;
-			}
-		}
-	};
-//	#include<functional>
-	template<class T>class lst{
-	private:
-		class el{
-		public:
-			T ptr{0};
-			el*nxt{nullptr};
-			inline el(T ptr):ptr(ptr),nxt(nullptr){}
-		};
-		el*first{nullptr};
-		el*last{nullptr};
-		size_t size{0};
-		inline void clr(){
-			el*e=first;
-			while(e){
-				el*ee=e;
-				delete ee;
-				e=e->nxt;
-			}
-		}
-	public:
-		inline lst(){}
-		inline~lst(){clr();}
-		inline void clear(){clr();first=last=nullptr;}
-		inline void to(FILE*f)const{
-			fprintf(f,"[first=%p;last=%p][",first,last);
-			el*e=first;
-			while(e){
-				fprintf(f,"%p",e);
-				e=e->nxt;
-				if(e)
-					fprintf(f," ");
-			}
-			fprintf(f,"]\n");
-		}
-		inline void add(T ptr){
-			size++;
-			el*e=new el(ptr);
-			if(!last){
-				first=last=e;
-				return;
-			}
-			last=last->nxt=e;
-		}
-		inline void addfirst(T ptr){
-			size++;
-			el*e=new el(ptr);
-			if(!first){
-				first=last=e;
-				return;
-			}
-			e->nxt=first;
-			first=e;
-		}
-		inline T take_first(){
-			if(first==nullptr)
-				return nullptr;
-			size--;
-			T ret=first->ptr;
-			if(!first->nxt){
-				delete first;
-				first=last=nullptr;
-				return ret;
-			}
-			el*e=first;
-			first=first->nxt;
-			delete e;
-			return ret;
-		}
-		inline T find(T key){
-			el*e=first;
-			while(e){
-				if(e->ptr==key)
-					return e->ptr;
-				e=e->nxt;
-			}
-			return nullptr;
-		}
-		inline size_t getsize()const{return size;}
-		inline bool isempty()const{return size==0;}
-		inline void foreach(bool f(T)){
-			if(!first)
-				return;
-			el*e=first;
-			while(e){
-				if(!f(e->ptr))
-					break;
-				e=e->nxt;
-			}
-		}
-		inline void foreach2(const std::function<bool (T)>&f){
-			if(!first)
-				return;
-			el*e=first;
-			while(e){
-				if(!f(e->ptr))
-					break;
-				e=e->nxt;
-			}
-		}
-	};
-	class session{
-		char*_id;
-		lut<char*>kvp;
-		lut<widget*>widgets;
-	public:
-		inline session(/*takes*/char*session_id):_id(session_id){
-			sts.sessions++;
-	//		printf(" * new session %s @ %p\n",session_id,(void*)this);
-		}
-		inline~session(){
-			sts.sessions--;
-	//		printf(" * delete session %s\n",_id);
-			free(_id);
-			kvp.delete_content(true);
-			widgets.delete_content(true);
-		}
-		inline const char*id()const{return _id;}
-		inline void*operator[](const char*key){return kvp[key];}
-		inline void put(char*key,/*takes*/char*data){kvp.put(key,data);}
-		inline widget*get_widget(const char*key){return widgets[key];}
-		inline void put_widget(char*key,/*takes*/widget*o){widgets.put(key,o);}
-	};
-	class sessions{
-	public:
-		inline~sessions(){
-	//		printf(" * delete sessions %p\n",(void*)this);
-			all.delete_content(false);
-		}
-		lut<session*>all{K};
-	};
+
 	static sessions sess;
 //	static widget*widgetget(const char*qs);
 	static int epollfd;
@@ -620,8 +195,8 @@ namespace xiinux{
 				if(::close(upload_fd)<0){
 					perror("while closing file");
 				}
+				reply::io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 	//			printf("      done %s\n",pth+1);
-				io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 				state=next_request;
 			}else if(state==read_content){
 				sts.reads++;
@@ -788,7 +363,7 @@ namespace xiinux{
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
 	//								printf("client expects 100 continue before sending post\n");
-								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+								reply::io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 								state=upload;
 								break;
 							}
@@ -813,7 +388,7 @@ namespace xiinux{
 								}
 	//							const char resp[]="HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n";
 								const char resp[]="HTTP/1.1 204\r\n\r\n";
-								io_send(fd,resp,sizeof resp-1,true);//. -1 to remove eos
+								reply::io_send(fd,resp,sizeof resp-1,true);//. -1 to remove eos
 								bufp+=content_len;
 								bufi+=content_len;
 								state=next_request;
@@ -844,7 +419,7 @@ namespace xiinux{
 							content_pos=chars_left_in_buffer;
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
-								io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+								reply::io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 							}
 							state=read_content;
 							break;
@@ -971,7 +546,7 @@ namespace xiinux{
 			if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
 				const char hdr[]="HTTP/1.1 304\r\n\r\n";
 				const size_t hdrnn=sizeof hdr;
-				io_send(fd,hdr,hdrnn,true);
+				reply::io_send(fd,hdr,hdrnn,true);
 				state=next_request;
 				return;
 			}
@@ -1004,7 +579,7 @@ namespace xiinux{
 				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
 			}
 			if(bb_len<0)throw"err";
-			io_send(fd,bb,(size_t)bb_len,true);
+			reply::io_send(fd,bb,(size_t)bb_len,true);
 			const ssize_t nn=sendfile(fd,file_fd,&file_pos,file_len);
 			if(nn<0){
 				if(errno==EPIPE||errno==ECONNRESET){
@@ -1176,7 +751,8 @@ namespace xiinux{
 				try{
 					c->run();
 				}catch(const char*msg){
-					if(msg!=exception_connection_reset_by_client){
+					if(!strcmp(msg,"brk")){
+//					if(msg!=exception_connection_reset_by_client){
 						printf(" *** exception from %p : %s\n",(void*)c,msg);
 					}
 					delete c;
