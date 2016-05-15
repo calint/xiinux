@@ -1,4 +1,5 @@
-#define APP "xiinux web server"
+#ifndef XIINUX_hpp
+#define XIINUX_hpp
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
@@ -11,16 +12,15 @@
 #include<unistd.h>
 #include<sys/sendfile.h>
 #include<pthread.h>
+//#include<thread>
 #include<ctype.h>
 #include<sys/types.h>
 #include<sys/stat.h>
-//#include<thread>
 #include<netinet/tcp.h>
 #include<typeinfo>
 #include<functional>
-//class widget;
-//static widget*widgetget(const char*qs);
 namespace xiinux{
+	#define APP "xiinux web server"
 	static int const K=1024;
 	static size_t const conbufnn=K;
 	static int const nclients=K;
@@ -50,23 +50,23 @@ namespace xiinux{
 			fflush(f);
 		}
 	};
-	static stats stats;
+	static stats sts;
 	static const char*exception_connection_reset_by_client="brk";
-	static size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
-		stats.writes++;
+	static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
+		sts.writes++;
 		const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 		if(n<0){
 			if(errno==EPIPE||errno==ECONNRESET){
-				stats.brkp++;
+				sts.brkp++;
 	//			throw"brk";
 				throw exception_connection_reset_by_client;
 			}
-			stats.errors++;
+			sts.errors++;
 			throw"iosend";
 		}
-		stats.output+=(size_t)n;
+		sts.output+=(size_t)n;
 		if(throw_if_send_not_complete&&(size_t)n!=len){
-			stats.errors++;
+			sts.errors++;
 			throw"sendnotcomplete";
 		}
 		return(size_t)n;
@@ -163,13 +163,13 @@ namespace xiinux{
 	//		return pk(s,snn);
 	//	}
 	public:
-		reply(const int fd=0):fd(fd){}
+		inline reply(const int fd=0):fd(fd){}
 		inline reply&pk(const char*s,const size_t nn){
 			io_send(fd,s,nn,true);
 			return*this;
 		}
 		inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
-		reply&http(const int code,const char*content,const size_t len){
+		inline reply&http(const int code,const char*content,const size_t len){
 			char bb[K];
 			int n;
 			if(set_session_id){
@@ -185,10 +185,10 @@ namespace xiinux{
 			pk(bb,(size_t)n).pk(content,len);
 			return*this;
 		}
-		reply&http(const int code,const strb&s){
+		inline reply&http(const int code,const strb&s){
 			return http(code,s.getbuf(),s.getsize());
 		}
-		reply&http2(const int code,const char*content){
+		inline reply&http2(const int code,const char*content){
 			const size_t nn=strlen(content);
 			return http(code,content,nn);
 		}
@@ -198,13 +198,13 @@ namespace xiinux{
 		char*buf;
 	//	const char*lastmod;
 	public:
-		doc(const char*data,const char*lastmod=nullptr){//:lastmod(lastmod){
+		inline doc(const char*data,const char*lastmod=nullptr){//:lastmod(lastmod){
 	//		printf("new doc %p\n",(void*)this);
 			size=strlen(data); //? overrun
 			buf=(char*)malloc(size);
 			memcpy(buf,data,size);
 		}
-		~doc(){
+		inline~doc(){
 	//		printf(" * delete doc %p\n",(void*)this);
 			free(buf);
 	//		delete buf;
@@ -226,14 +226,14 @@ namespace xiinux{
 	};
 	static widget*widgetget(const char*qs);
 
-	static char*strtrm(char*p,char*e){
+	static inline char*strtrm(char*p,char*e){
 		while(p!=e&&isspace(*p))
 			p++;
 		while(p!=e&&isspace(*e))
 			*e--=0;
 		return p;
 	}
-	static void strlwr(char*p){
+	static inline void strlwr(char*p){
 		while(*p){
 			*p=(char)tolower(*p);
 			p++;
@@ -247,17 +247,17 @@ namespace xiinux{
 			char*key{nullptr};
 			T data{nullptr};
 			el*nxt{nullptr};
-			el(char*key,T data):key(key),data(data){
+			inline el(char*key,T data):key(key),data(data){
 	//			printf(" * new lut element %s @ %p\n",key,(void*)this);
 			}
-			~el(){
+			inline~el(){
 	//			printf("delete lut element %s  %s @ %p\n",key,typeid(*this).name(),(void*)this);
 	//			printf("delete lut element %s  @ %p\n",key,(void*)this);
 	//			printf("delete lut element @ %p\n",(void*)this);
 				if(nxt)
 					delete nxt;
 			}
-			void delete_content_recurse(bool delete_key){
+			inline void delete_content_recurse(bool delete_key){
 	//			printf("delete lut data %s @ %p\n",typeid(*data).name(),(void*)this);
 				if(data)
 					delete data;
@@ -270,7 +270,7 @@ namespace xiinux{
 		};
 		el**array;
 	public:
-		static unsigned int hash(const char*key,const unsigned int roll){
+		static inline unsigned int hash(const char*key,const unsigned int roll){
 			unsigned int i=0;
 			const char*p=key;
 			while(*p)
@@ -278,16 +278,16 @@ namespace xiinux{
 			i%=roll;
 			return i;
 		}
-		lut(const unsigned int size=8):size(size){
+		inline lut(const unsigned int size=8):size(size){
 	//		printf("new lut %p\n",(void*)this);
 			array=(el**)calloc(size_t(size),sizeof(el*));
 		}
-		~lut(){
+		inline~lut(){
 	//		printf("delete lut %p\n",(void*)this);
 			clear();
 			free(array);
 		}
-		T operator[](const char*key){
+		inline T operator[](const char*key){
 			const unsigned int h=hash(key,size);
 			el*e=array[h];
 			if(!e)
@@ -303,7 +303,7 @@ namespace xiinux{
 				return nullptr;
 			}
 		}
-		void put(char*key,T data,bool allow_overwrite=true){
+		inline void put(char*key,T data,bool allow_overwrite=true){
 			const unsigned int h=hash(key,size);
 			el*l=array[h];
 			if(!l){
@@ -325,7 +325,7 @@ namespace xiinux{
 				return;
 			}
 		}
-		void clear(){
+		inline void clear(){
 	//		printf("clear lut %p\n",(void*)this);
 			for(unsigned int i=0;i<size;i++){
 				el*e=array[i];
@@ -335,7 +335,7 @@ namespace xiinux{
 				array[i]=nullptr;
 			}
 		}
-		void delete_content(const bool delete_keys){
+		inline void delete_content(const bool delete_keys){
 	//		printf("delete lut content %p\n",(void*)this);
 			for(unsigned int i=0;i<size;i++){
 				el*e=array[i];
@@ -427,7 +427,7 @@ namespace xiinux{
 		}
 		inline size_t getsize()const{return size;}
 		inline bool isempty()const{return size==0;}
-		void foreach(bool f(T)){
+		inline void foreach(bool f(T)){
 			if(!first)
 				return;
 			el*e=first;
@@ -437,7 +437,7 @@ namespace xiinux{
 				e=e->nxt;
 			}
 		}
-		void foreach2(const std::function<bool (T)>&f){
+		inline void foreach2(const std::function<bool (T)>&f){
 			if(!first)
 				return;
 			el*e=first;
@@ -453,12 +453,12 @@ namespace xiinux{
 		lut<char*>kvp;
 		lut<widget*>widgets;
 	public:
-		session(/*takes*/char*session_id):_id(session_id){
-			stats.sessions++;
+		inline session(/*takes*/char*session_id):_id(session_id){
+			sts.sessions++;
 	//		printf(" * new session %s @ %p\n",session_id,(void*)this);
 		}
-		~session(){
-			stats.sessions--;
+		inline~session(){
+			sts.sessions--;
 	//		printf(" * delete session %s\n",_id);
 			free(_id);
 			kvp.delete_content(true);
@@ -472,16 +472,16 @@ namespace xiinux{
 	};
 	class sessions{
 	public:
-		~sessions(){
+		inline~sessions(){
 	//		printf(" * delete sessions %p\n",(void*)this);
 			all.delete_content(false);
 		}
 		lut<session*>all{K};
 	};
-	static sessions sessions;
+	static sessions sess;
 //	static widget*widgetget(const char*qs);
 	static int epollfd;
-	static void urldecode(char*str){
+	static inline void urldecode(char*str){
 		const char*p=str;
 		while(*p){
 			char a,b;
@@ -538,7 +538,7 @@ namespace xiinux{
 	//		bufi=0;
 	//		bufnn=0;
 	//	}
-		void io_request_read(){
+		inline void io_request_read(){
 			struct epoll_event ev;
 			ev.data.ptr=this;
 			ev.events=EPOLLIN;
@@ -547,7 +547,7 @@ namespace xiinux{
 				throw"epollmodread";
 			}
 		}
-		void io_request_write(){
+		inline void io_request_write(){
 			struct epoll_event ev;
 			ev.data.ptr=this;
 			ev.events=EPOLLOUT;
@@ -558,24 +558,24 @@ namespace xiinux{
 		}
 	public:
 		int fd{0};
-		sock(const int f):fd(f){
-			stats.socks++;
+		inline sock(const int f):fd(f){
+			sts.socks++;
 			printf("%s:%d %s : new %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 		}
-		~sock(){
-			stats.socks--;
+		inline~sock(){
+			sts.socks--;
 			printf("%s:%d %s : delete %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
 			//printf(" * delete sock %p\n",(void*)this);
 			delete[]content;
 			if(!::close(fd)){
 				return;
 			}
-			stats.errors++;
+			sts.errors++;
 	//		printf("%s:%d ",__FILE__,__LINE__);perror("sockdel");
 			printf("%s:%d %s : sockdel\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			perror("sockdel");
 		}
-		void close(){
+		inline void close(){
 			::close(fd);
 		}
 		void run(){while(true){
@@ -583,7 +583,7 @@ namespace xiinux{
 			if(state==upload){
 				char upload_buffer[4*K];
 				const size_t upload_remaining=content_len-content_pos;
-				stats.reads++;
+				sts.reads++;
 				const ssize_t nn=recv(fd,upload_buffer,upload_remaining>sizeof upload_buffer?sizeof upload_buffer:upload_remaining,0);
 				if(nn==0){//closed by client
 					throw"brk";
@@ -599,20 +599,20 @@ namespace xiinux{
 	//				printf("\n\n%s:%d ",__FILE__,__LINE__);
 	//				perror("upload");
 					perr("upload");
-					stats.errors++;
+					sts.errors++;
 					throw"upload";
 				}
 				const ssize_t nw=write(upload_fd,upload_buffer,(size_t)nn);
 				if(nw<0){
 					printf("\n\n%s:%d ",__FILE__,__LINE__);
 					perror("writing upload to file");
-					stats.errors++;
+					sts.errors++;
 					throw"writing upload to file";
 				}
 				if(nw!=nn){
 					throw"writing upload to file 2";
 				}
-				stats.input+=(size_t)nn;
+				sts.input+=(size_t)nn;
 				content_pos+=(size_t)nn;
 	//			printf(" uploading %s   %zu of %zu\n",pth+1,content_pos,content_len);
 				if(content_pos<content_len){
@@ -625,7 +625,7 @@ namespace xiinux{
 				io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
 				state=method;
 			}else if(state==read_content){
-				stats.reads++;
+				sts.reads++;
 				const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
 				if(nn==0){//closed by client
 					delete this;
@@ -640,11 +640,11 @@ namespace xiinux{
 						throw"brk";
 					}
 					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readcontent");
-					stats.errors++;
+					sts.errors++;
 					throw"readingcontent";
 				}
 				content_pos+=(unsigned)nn;
-				stats.input+=(unsigned)nn;
+				sts.input+=(unsigned)nn;
 				if(content_pos==content_len){
 					*(content+content_len)=0;
 					process();
@@ -652,20 +652,20 @@ namespace xiinux{
 				}
 				return;
 			}else if(state==resume_send_file){
-				stats.writes++;
+				sts.writes++;
 				const ssize_t sf=sendfile(fd,file_fd,&file_pos,file_len);
 				if(sf<0){//error
 					if(errno==EAGAIN){
 						io_request_write();
 						return;
 					}
-					stats.errors++;
+					sts.errors++;
 					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("resumesendfile");
 					delete this;
 					return;
 				}
 				file_len-=size_t(sf);
-				stats.output+=size_t(sf);
+				sts.output+=size_t(sf);
 				if(file_len!=0){
 	//				state=resume_send_file;
 					io_request_write();
@@ -681,7 +681,7 @@ namespace xiinux{
 					bufi=bufnn=0;
 					bufp=buf;
 				}
-				stats.reads++;
+				sts.reads++;
 				const ssize_t nn=recv(fd,bufp,conbufnn-bufi,0);
 				if(nn==0){//closed by client
 					delete this;
@@ -696,13 +696,13 @@ namespace xiinux{
 						return;
 					}
 					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readbuf");
-					stats.errors++;
+					sts.errors++;
 					delete this;
 					return;
 				}
 				bufnn+=(size_t)nn;
 				printf("%s : %s",__PRETTY_FUNCTION__,buf);fflush(stdout);
-				stats.input+=(unsigned)nn;
+				sts.input+=(unsigned)nn;
 			}
 			if(state==method){
 				while(bufi<bufnn){
@@ -801,7 +801,7 @@ namespace xiinux{
 									perror("while writing upload to file");
 									throw"err";
 								}
-								stats.input+=(size_t)nn;
+								sts.input+=(size_t)nn;
 								if((size_t)nn!=content_len){
 									throw"incomplete upload";
 								}
@@ -877,7 +877,7 @@ namespace xiinux{
 			const char*path=*pth=='/'?pth+1:pth;
 			reply x=reply(fd);
 			if(!*path&&qs){
-				stats.widgets++;
+				sts.widgets++;
 				const char*cookie=hdrs["cookie"];
 				const char*session_id;
 				if(cookie&&strstr(cookie,"i=")){//? parse cookie
@@ -901,10 +901,10 @@ namespace xiinux{
 					*sid_ptr=0;
 	//				printf(" * creating session %s\n",session_id);
 					ses=new session(sid);
-					sessions.all.put(sid,ses,false);
+					sess.all.put(sid,ses,false);
 					x.send_session_id_at_next_opportunity(sid);
 				}else{
-					ses=sessions.all[session_id];
+					ses=sess.all[session_id];
 					if(!ses){// session not found, reload
 	//					printf(" * session not found, recreating: %s\n",session_id);
 						char*sid=(char*)malloc(64);
@@ -912,7 +912,7 @@ namespace xiinux{
 						strncpy(sid,session_id,64);
 		//				printf(" * creating session %s\n",session_id);
 						ses=new session(sid);
-						sessions.all.put(sid,ses,false);
+						sess.all.put(sid,ses,false);
 					}
 				}
 				widget*o=ses->get_widget(qs);
@@ -938,7 +938,7 @@ namespace xiinux{
 				}
 			}
 			if(!*path){
-				stats.cache++;
+				sts.cache++;
 				homepage->to(x);
 				state=method;
 				return;
@@ -948,7 +948,7 @@ namespace xiinux{
 				state=method;
 				return;
 			}
-			stats.files++;
+			sts.files++;
 			struct stat fdstat;
 			if(stat(path,&fdstat)){
 				x.http2(404,"not found");
@@ -986,7 +986,7 @@ namespace xiinux{
 			if(range&&*range){
 				off_t rs=0;
 				if(EOF==sscanf(range,"bytes=%zu",&rs)){
-					stats.errors++;
+					sts.errors++;
 					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
 					throw"errrorscanning";
 				}
@@ -1005,14 +1005,14 @@ namespace xiinux{
 			const ssize_t nn=sendfile(fd,file_fd,&file_pos,file_len);
 			if(nn<0){
 				if(errno==EPIPE||errno==ECONNRESET){
-					stats.brkp++;
+					sts.brkp++;
 					throw"brk";
 				}
-				stats.errors++;
+				sts.errors++;
 				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
 				throw"err";
 			}
-			stats.output+=size_t(nn);
+			sts.output+=size_t(nn);
 			file_len-=size_t(nn);
 			if(file_len!=0){
 				state=resume_send_file;
@@ -1027,14 +1027,14 @@ namespace xiinux{
 	static void*thdwatchrun(void*arg){
 		if(arg)
 			puts((const char*)arg);
-		stats.printhdr(stdout);
+		sts.printhdr(stdout);
 		while(1){
 			int n=10;
 			while(n--){
 				const int sleep=100000;
 				usleep(sleep);
-				stats.ms+=sleep/1000;//? not really
-				stats.print(stdout);
+				sts.ms+=sleep/1000;//? not really
+				sts.print(stdout);
 			}
 			fprintf(stdout,"\n");
 		}
@@ -1130,7 +1130,7 @@ namespace xiinux{
 			for(int i=0;i<nn;i++){
 				sock*c=(sock*)events[i].data.ptr;
 				if(c->fd==server_socket.fd){// new connection
-					stats.accepts++;
+					sts.accepts++;
 					const int fda=accept(server_socket.fd,0,0);
 					if(fda==-1){
 						perror("accept");
@@ -1185,139 +1185,4 @@ namespace xiinux{
 		}
 	}
 }
-//-- application
-namespace web{
-	using namespace xiinux;
-	class hello:public widget{
-		virtual void to(reply&x)override{
-			x.http2(200,"hello world");
-		}
-	};
-	class bye:public widget{
-		virtual void to(reply&x)override{
-			x.http2(200,"b y e");
-		}
-	};
-	class notfound:public widget{
-		virtual void to(reply&x)override{
-			x.http2(404,"path not found");
-		}
-	};
-	class typealine:public widget{
-		virtual void to(reply&x)override{
-			x.http2(200,"typealine");
-		}
-		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len)override{
-	//		printf(" typealine received content: %s\n",content);
-			x.http(200,content,content_len);
-		}
-	};
-	class counter:public widget{
-		int c;
-		virtual void to(reply&x)override{
-			strb sb;sb.p("counter ").p(++c).nl();
-	//		strb().p("counter ").p(++c).nl();
-			x.http(200,sb.getbuf(),sb.getsize());
-		}
-	};
-	class notes:public widget{
-		strb txt;
-	public:
-		notes(){
-			txt.p("notebook\n");
-		}
-		virtual void to(reply&x)override{
-			strb s;
-			s.html5("notebook")
-					.p("<input id=_btn type=button value=save onclick=\"this.disabled=true;ajax_post('/?notes',$('_txt').value,function(r){console.log(r);$('_btn').disabled=false;eval(r.responseText);})\"><br>\n")
-					.p("<textarea id=_txt class=big>")
-					.p(txt)
-					.p("</textarea>")
-					.p("<script>$('_txt').focus()</script>")
-					.nl();
-			x.http(200,s.getbuf(),s.getsize());
-		}
-		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len)override{
-			txt.
-				rst().
-				p(content_len,content);
-			x.http2(200,"location.reload();");
-		}
-	};
-	class a:public widget{
-		/*ref*/a*pt{nullptr};// parent
-		/*own*/const char*nm{nullptr};// name
-	public:
-		a(/*refs*/a*parent,/*takes*/const char*name):pt(parent),nm(name){
-			printf("%s:%d %s  #    new  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
-		}
-		virtual~a(){
-			printf("%s:%d %s  # delete  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
-			delete nm;
-		};
-		inline a*getparent()const{return pt;}
-		inline void setparent(a*p){pt=p;}
-		inline void setname(/*takes*/const char*name){if(nm)delete(nm);nm=name;}
-		inline const char*getname()const{return nm;}
-		virtual void to(reply&x){
-			strb s;
-	//		s.p(__FILE__).p(":").p(__LINE__).p(" ").p(__PRETTY_FUNCTION__).p("  ");
-			s.p(typeid(*this).name()).p("@").p_ptr(this);
-			x.http(200,s);
-		}
-	};
-	class an:public a{
-	public:
-		const char*id;
-		virtual~an(){
-			printf("%s:%d %s  # delete  %s  @  %p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
-			delete id;
-		};
-		virtual void to(reply&x)=0;
-		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len){};
-	};
-
-	class page:public a{
-		strb txt;
-	//	lst<page*>sub;
-	public:
-		page(a*parent,/*takes*/const char*name):a(parent,name){
-			printf("%s:%d %s  # new page  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
-		}
-		virtual void to(reply&x)override{
-			strb s;
-			s.html5("page")
-					.p("<input id=_btn type=button value=update onclick=\"this.disabled=true;ajax_post('/?page',$('_txt').value,function(r){console.log(r);$('_btn').disabled=false;eval(r.responseText);})\">")
-					.p("\n")
-					.p("<textarea id=_txt class=big>")
-					.p(txt)
-					.p("</textarea>")
-					.p("<script>$('_txt').focus()</script>")
-					.nl();
-			x.http(200,s);
-		}
-		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len)override{
-			txt.
-			rst().
-				p(content_len,content);
-			x.http2(200,"location.reload();");
-		}
-	};
-}//namespace web
-
-//-- generated
-namespace xiinux{
-	static widget*widgetget(const char*qs){
-		if(!strcmp("hello",qs))return new web::hello();
-		if(!strcmp("typealine",qs))return new web::typealine();
-		if(!strcmp("bye",qs))return new web::bye();
-		if(!strcmp("counter",qs))return new web::counter();
-		if(!strcmp("notes",qs))return new web::notes();
-		if(!strcmp("page",qs))return new web::page(nullptr,nullptr);
-		return new web::notfound();
-	}
-}
-int main(int c,char**a){
-	return xiinux::main(c,a);
-}
-
+#endif

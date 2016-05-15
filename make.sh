@@ -1,5 +1,5 @@
 #CC="clang++ -std=c++17"
-CC="g++ -std=c++11"
+CC="g++ -std=c++17"
 BIN=xiinux
 SRC=src/*.cpp
 DBG="-O3"
