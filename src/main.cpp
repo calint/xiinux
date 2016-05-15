@@ -1,7 +1,6 @@
 #include"xiinux.hpp"
 #include"web.hpp"
 #include"sock.hpp"
-
 static void sigexit(int i){
 	puts("exiting");
 	delete xiinux::homepage;
