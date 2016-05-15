@@ -1,4 +1,3 @@
-//-- generated
 #include"web/notfound.hpp"
 #include"web/page.hpp"
 #include"web/hello.hpp"

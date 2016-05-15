@@ -1,5 +1,6 @@
 #ifndef PAGE_hpp
 #define PAGE_hpp
+#include"a.hpp"
 namespace web{
 	using namespace xiinux;
 	class page:public a{
