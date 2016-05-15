@@ -59,7 +59,7 @@ namespace xiinux{
 		while(*p){
 			char a,b;
 			if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
-				if(a>='a')a-='a'-'A';//?
+				if(a>='a')a-=(char)('a'-'A');//?
 				if(a>='A')a-='A'-10;else a-='0';
 				if(b>='a')b-='a'-'A';//?
 				if(b>='A')b-='A'-10;else b-='0';
@@ -479,10 +479,11 @@ namespace xiinux{
 					*sid_ptr=0;
 	//				printf(" * creating session %s\n",session_id);
 					ses=new session(sid);
-					sess.all.put(sid,ses,false);
+					sess.put(sid,ses,false);
+//					sess.all.put(sid,ses,false);
 					x.send_session_id_at_next_opportunity(sid);
 				}else{
-					ses=sess.all[session_id];
+					ses=sess.get_session(session_id);
 					if(!ses){// session not found, reload
 	//					printf(" * session not found, recreating: %s\n",session_id);
 						char*sid=(char*)malloc(64);
@@ -490,7 +491,8 @@ namespace xiinux{
 						strncpy(sid,session_id,64);
 		//				printf(" * creating session %s\n",session_id);
 						ses=new session(sid);
-						sess.all.put(sid,ses,false);
+//						sess.all.put(sid,ses,false);
+						sess.put(sid,ses,false);
 					}
 				}
 				widget*o=ses->get_widget(qs);
