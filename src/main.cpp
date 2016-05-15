@@ -1221,7 +1221,7 @@ namespace web{
 }//namespace web
 
 
-#include"gen.hpp"
+#include"web.hpp"
 
 int main(int c,char**a){
 	return xiinux::main(c,a);
