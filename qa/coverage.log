@@ -339,3 +339,22 @@ coverage tests on http://localhost:8088
  * chained upload
 Sun May 15 15:15:39 ICT 2016
 
+
+Sun May 15 15:26:44 ICT 2016
+coverage tests on http://localhost:8088
+ * static document
+ * if-modified-since
+ * dynamic document
+ * resumable download
+ * cached document
+ * illegal path
+ * page not found
+ * widget not found
+ * chained get
+ * post
+ * bigger post >4K
+ * upload small file
+ * upload bigger file
+ * chained upload
+Sun May 15 15:26:44 ICT 2016
+
