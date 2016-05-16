@@ -19,15 +19,15 @@
 #include<netinet/tcp.h>
 #include<typeinfo>
 #include<functional>
-#include"lst.hpp"
-#include"lut.hpp"
-#include"stats.hpp"
-#include"xprinter.hpp"
-#include"strb.hpp"
-#include"doc.hpp"
-#include"reply.hpp"
-#include"session.hpp"
-#include"sessions.hpp"
+#include"xiinux/lst.hpp"
+#include"xiinux/lut.hpp"
+#include"xiinux/stats.hpp"
+#include"xiinux/xprinter.hpp"
+#include"xiinux/strb.hpp"
+#include"xiinux/doc.hpp"
+#include"xiinux/reply.hpp"
+#include"xiinux/session.hpp"
+#include"xiinux/sessions.hpp"
 namespace xiinux{
 	#define APP "xiinux web server"
 	static int const K=1024;

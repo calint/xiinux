@@ -1,6 +1,6 @@
 #ifndef sock_hpp
 #define sock_hpp
-#include"xiinux.hpp"
+#include"../xiinux.hpp"
 #include"args.hpp"
 namespace xiinux{
 	class sock{
