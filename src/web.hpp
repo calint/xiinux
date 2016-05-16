@@ -1,9 +1,11 @@
 //-- generated
+#include"xiinux/widget.hpp"
 #include"web/notfound.hpp"
 #include"web/page.hpp"
 #include"web/hello.hpp"
 #include"web/counter.hpp"
 #include"web/typealine.hpp"
+#include<string.h>
 namespace xiinux{
 	static inline widget*widgetget(const char*qs){
 		if(!strcmp("hello",qs))return new web::hello();

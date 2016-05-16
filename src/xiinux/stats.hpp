@@ -1,5 +1,7 @@
 #ifndef stats_hpp
 #define stats_hpp
+#include<stdlib.h>
+#include<stdio.h>
 namespace xiinux{
 	class stats{
 	public:

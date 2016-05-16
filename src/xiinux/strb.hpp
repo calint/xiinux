@@ -1,5 +1,7 @@
 #ifndef strb_hpp
 #define strb_hpp
+#include"xprinter.hpp"
+#include<string.h>
 namespace xiinux{
 	class strb:public xprinter{
 		size_t size{0};

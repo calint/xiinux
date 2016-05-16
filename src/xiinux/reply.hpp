@@ -1,6 +1,10 @@
 #ifndef reply_hpp
 #define reply_hpp
 #include"stats.hpp"
+#include"strb.hpp"
+#include<sys/socket.h>
+#include<errno.h>
+#include<string.h>
 namespace xiinux{
 	class reply{
 		int fd;

@@ -1,5 +1,7 @@
 #ifndef widget_hpp
 #define widget_hpp
+#include"../xiinux/reply.hpp"
+#include<stdlib.h>
 namespace xiinux{
 	class widget{
 	public:

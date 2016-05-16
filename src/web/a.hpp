@@ -1,5 +1,6 @@
 #ifndef A_hpp
 #define A_hpp
+#include<typeinfo>
 namespace web{
 	using namespace xiinux;
 	class a:public widget{
