@@ -5,7 +5,7 @@
 #include<utility>
 namespace xiinux{
 	class strb:public xprinter{
-		size_t size{0};
+		size_t length{0};
 		char buf[4096];
 	//	strb*nxt{nullptr};
 	public:
@@ -15,21 +15,21 @@ namespace xiinux{
 		inline strb(const char*str){p(str);}
 		inline strb&flush(){return*this;}
 		inline const char*getbuf()const{return buf;}
-		inline size_t getsize()const{return size;}
-		inline strb&rst(){size=0;return*this;}
+		inline size_t getsize()const{return length;}
+		inline strb&rst(){length=0;return*this;}
 		inline strb&p(/*copies*/const char*str){
 			const size_t len=strnlen(str,sizeof buf+1);//. togetbufferoverrun
-			const ssize_t rem=sizeof buf-size-len;
+			const ssize_t rem=sizeof buf-length-len;
 			if(rem<0)throw"bufferoverrun";
-			strncpy(buf+size,str,len);
-			size+=len;
+			strncpy(buf+length,str,len);
+			length+=len;
 			return*this;
 		}
 		inline strb&p(const size_t len,/*copies*/const char*str){
-			const ssize_t rem=sizeof buf-size-len;
+			const ssize_t rem=sizeof buf-length-len;
 			if(rem<0)throw"bufferoverrun";
-			strncpy(buf+size,str,len);
-			size+=len;
+			strncpy(buf+length,str,len);
+			length+=len;
 			return*this;
 		}
 		inline strb&p(const int i){
@@ -43,22 +43,34 @@ namespace xiinux{
 	//		size+=len;
 	//		return*this;
 		}
+		inline strb&p(const size_t i){
+			char str[32];
+			const int len=snprintf(str,sizeof str,"%zu",i);
+			if(len<0)throw"snprintf";
+			return p(len,str);
+		}
 		inline strb&p_ptr(const void*ptr){
 			char str[32];
 			const int len=snprintf(str,sizeof str,"%p",ptr);
 			if(len<0)throw"p_ptr:1";
 			return p(len,str);
 		}
+		inline strb&p_hex(const long long i){
+			char str[32];
+			const int len=snprintf(str,sizeof str,"%llx",i);
+			if(len<0)throw"snprintf";
+			return p(len,str);
+		}
 		inline strb&nl(){
-			if(sizeof buf-size<1)throw"bufferoverrun2";
-			*(buf+size++)='\n';
+			if(sizeof buf-length<1)throw"bufferoverrun2";
+			*(buf+length++)='\n';
 			return*this;
 		}
 		inline strb&p(const strb&sb){
-			const ssize_t rem=sizeof buf-size-sb.size;
+			const ssize_t rem=sizeof buf-length-sb.length;
 			if(rem<0)throw"bufferoverrun";
-			strncpy(buf+size,sb.buf,sb.size);
-			size+=sb.size;
+			strncpy(buf+length,sb.buf,sb.length);
+			length+=sb.length;
 			return*this;
 		}
 
@@ -75,7 +87,7 @@ namespace xiinux{
 	//	}
 		inline strb&to(FILE*f){
 			char fmt[32];
-			if(snprintf(fmt,sizeof fmt,"%%%zus",size)<1)throw"err";
+			if(snprintf(fmt,sizeof fmt,"%%%zus",length)<1)throw"err";
 			fprintf(f,fmt,buf);
 		}
 	};

@@ -7,7 +7,9 @@ namespace xiinux{
 		virtual xprinter&p(/*scan*/const char*str)=0;
 		virtual xprinter&p(const size_t len,/*scan*/const char*str)=0;
 		virtual xprinter&p(const int i)=0;
+		virtual xprinter&p(const size_t i)=0;
 		virtual xprinter&p_ptr(const void*ptr)=0;
+		virtual xprinter&p_hex(const long long i)=0;
 		virtual xprinter&nl()=0;
 	//	virtual xprinter&p(const strb&sb)=0;
 		virtual xprinter&html5(const char*title="")=0;

@@ -96,6 +96,11 @@ diff -q cmp t14.cmp&&
 rm cmp&&
 rm ../upload/upl&&
 rm ../upload/upl2&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * chunked small"&&
+curl -s $HTTP/?chunked>cmp&&
+diff -q cmp t15.cmp&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 

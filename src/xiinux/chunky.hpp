@@ -7,12 +7,13 @@
 #include"reply.hpp"
 namespace xiinux{
 	class chunky:public xprinter{
+		#define loop()while(true)
 		size_t length{0};
 		char buf[4096];
 		int sockfd;
 		static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 			sts.writes++;
-			const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
+			const ssize_t n=::send(fd,buf,len,MSG_NOSIGNAL);
 			if(n<0){
 				if(errno==EPIPE||errno==ECONNRESET){
 					sts.brkp++;
@@ -36,23 +37,35 @@ namespace xiinux{
 //		inline const char*getbuf()const{return buf;}
 //		inline size_t getsize()const{return size;}
 		inline chunky&flush(){
-			char fmt[32];
-			const int nn=snprintf(fmt,sizeof fmt,"%zu",length);
-			if((unsigned)nn>sizeof fmt+2)
-				throw"snprintf";
-			fmt[nn]='\r';
-			fmt[nn+1]='\n';
-			fmt[nn+2]='\0';
-			const size_t sent=io_send(sockfd,buf,length,false);
-			while(sent!=length){
-				// sock.state=waiting_for_write
-				// sock::io_request_write()
-				// block
-				// send rest
-
+			strb b;
+			b.p_hex(length).p(2,"\r\n");
+//			const auto bf=b.getbuf();
+//			const auto ln=b.getsize();
+			io_send(sockfd,b.getbuf(),b.getsize(),true);
+			size_t sent_total=0;
+			loop(){
+				size_t n=io_send(sockfd,buf+sent_total,length-sent_total,false);
+				if(n==0){
+					//blocking
+					perror("sock.state=waiting_for_write");
+					perror("sock::io_request_write()");
+					perror("wait");//? racing
+					perror("sent+=io_send(...)");//? racing
+				}
+				sent_total+=n;
+				if(sent_total==length)break;
 			}
+			io_send(sockfd,"\r\n",sizeof "\r\n"-1,true);
 			length=0;
-//			*buf=0;
+			return*this;
+		}
+		inline chunky&finish(){
+			io_send(sockfd,"0\r\n\r\n",sizeof "0\r\n\r\n"-1,true);
+			return*this;
+		}
+		inline chunky&send_response_header(){
+			io_send(sockfd,buf,length,true);
+			length=0;
 			return*this;
 		}
 		inline chunky&p(/*copies*/const char*str){
@@ -80,7 +93,7 @@ namespace xiinux{
 //		}
 		inline chunky&p(const int i){
 			char str[32];
-			const int n=snprintf(str,sizeof str,"%d",i);
+			const size_t n=snprintf(str,sizeof str,"%d",i);
 			if(n>sizeof str)throw"snprintf";
 //			char*str=sp("%d",i);
 			return p(n,str);
@@ -91,11 +104,23 @@ namespace xiinux{
 	//		size+=len;
 	//		return*this;
 		}
+		inline chunky&p(const size_t i){
+			char str[32];
+			const size_t n=snprintf(str,sizeof str,"%zd",i);
+			if(n>sizeof str)throw"snprintf";
+			return p(n,str);
+		}
 		inline chunky&p_ptr(const void*ptr){
 			char str[32];
 			const int n=snprintf(str,sizeof str,"%p",ptr);
 			if((unsigned)n>sizeof str)throw"p_ptr:1";
 			return p(n,str);
+		}
+		inline chunky&p_hex(const long long i){
+			char str[32];
+			const int len=snprintf(str,sizeof str,"%llx",i);
+			if(len<0)throw"snprintf";
+			return p(len,str);
 		}
 		inline chunky&nl(){
 			if(sizeof buf-length<1){

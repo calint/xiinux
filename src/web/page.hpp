@@ -7,7 +7,7 @@ namespace web{
 		strb txt;
 	//	lst<page*>sub;
 	public:
-		page(a*parent,/*takes*/const char*name):a(parent,name){
+		page(a*parent=nullptr,/*takes*/const char*name=nullptr):a(parent,name){
 			printf("%s:%d %s  # new page  %s@%p\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,typeid(*this).name(),(void*)this);
 		}
 		virtual void to(reply&x)override{
