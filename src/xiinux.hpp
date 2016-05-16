@@ -28,6 +28,7 @@
 #include"xiinux/reply.hpp"
 #include"xiinux/session.hpp"
 #include"xiinux/sessions.hpp"
+#include"xiinux/widget.hpp"
 namespace xiinux{
 	#define APP "xiinux web server"
 	static int const K=1024;

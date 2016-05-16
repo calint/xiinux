@@ -5,6 +5,7 @@
 #include<sys/socket.h>
 #include<errno.h>
 #include<string.h>
+#include"chunky.hpp"
 namespace xiinux{
 	class reply{
 		int fd;
@@ -17,6 +18,7 @@ namespace xiinux{
 
 	public:
 		inline reply(const int fd=0):fd(fd){}
+		inline chunky*reply_chunky(){return new chunky(fd);}
 		static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 			sts.writes++;
 			const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);

@@ -1,9 +1,9 @@
 #ifndef COUNTER_hpp
 #define COUNTER_hpp
 #include<atomic>
+using namespace xiinux;
+using namespace std;
 namespace web{
-	using namespace xiinux;
-	using namespace std;
 	class counter:public widget{
 	public:
 		static atomic_int page_counter;

@@ -2,14 +2,18 @@
 #define strb_hpp
 #include"xprinter.hpp"
 #include<string.h>
+#include<utility>
 namespace xiinux{
 	class strb:public xprinter{
 		size_t size{0};
 		char buf[4096];
 	//	strb*nxt{nullptr};
 	public:
+//		inline strb(strb&&s):size(s.size),buf(std::move(s.buf)){}
+//		inline strb&operator=(strb&&other){buf=std::move(other.buf);size=other.size;return*this;}
 		inline strb(){}
 		inline strb(const char*str){p(str);}
+		inline strb&flush(){return*this;}
 		inline const char*getbuf()const{return buf;}
 		inline size_t getsize()const{return size;}
 		inline strb&rst(){size=0;return*this;}

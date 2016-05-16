@@ -11,6 +11,7 @@ namespace xiinux{
 		virtual xprinter&nl()=0;
 	//	virtual xprinter&p(const strb&sb)=0;
 		virtual xprinter&html5(const char*title="")=0;
+		virtual xprinter&flush()=0;
 	};
 }
 #endif

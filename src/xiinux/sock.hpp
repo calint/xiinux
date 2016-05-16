@@ -595,6 +595,7 @@ namespace xiinux{
 		args a(argc,argv);
 		const bool watch_thread=a.hasoption('v');
 		const int port=atoi(a.getoptionvalue('p',"8088"));
+		const bool option_benchmark_mode=a.hasoption('b');
 		printf("%s on port %d\n",APP,port);
 
 		char buf[4*K];
@@ -668,11 +669,13 @@ namespace xiinux{
 						continue;
 	//					exit(11);
 					}
-					int flag=1;
-					if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){//? for performance tests
-						perror("optsetTCP_NODELAY");
-						puts("optsetTCP_NODELAY");
-						exit(12);
+					if(option_benchmark_mode){
+						int flag=1;
+						if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){//? for performance tests
+							perror("optsetTCP_NODELAY");
+							puts("optsetTCP_NODELAY");
+							return 8;
+						}
 					}
 					continue;
 				}
