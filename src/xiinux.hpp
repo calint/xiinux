@@ -33,7 +33,7 @@ namespace xiinux{
 	static int const K=1024;
 	static size_t const conbufnn=K;
 	static int const nclients=K;
-	static int const port=8088;
+//	static int const port=8088;
 	static doc*homepage;
 	static widget*widgetget(const char*qs);
 	static sessions sess;

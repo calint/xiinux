@@ -562,7 +562,7 @@ namespace xiinux{
 		}
 	};
 	static sock server_socket(0);
-#define loop() while(true)
+#define loop()while(true)
 	class args{
 		const int c;
 		const char**v;
@@ -571,7 +571,7 @@ namespace xiinux{
 		inline bool hasoption(const char short_name){
 			auto vv=v;
 			loop(){
-				int i=c-1;
+				auto i=c-1;
 				if(i==0)return false;
 				vv++;
 				auto p=*vv;
@@ -589,7 +589,7 @@ namespace xiinux{
 			}
 		}
 		inline const char*getoptionvalue(const char short_name,const char*default_value){
-			int i=c-1;
+			auto i=c-1;
 			if(i==0)return default_value;
 			auto vv=v;
 			loop(){
@@ -602,17 +602,14 @@ namespace xiinux{
 						if(!ch)break;
 						if(ch==short_name){
 							p++;
-							if(!*p){
-								if(i>1)// more arguments
-									return*(vv+1);
-								else
-									return default_value;
+							if(!*p){//? secondparametervaluestartswith
+								if(i>1)return*(vv+1);
+								return default_value;
 							}
 							return p;
 						}
 						p++;
 					}
-					return default_value;
 				}
 				i--;
 				if(i==0)break;
