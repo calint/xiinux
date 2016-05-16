@@ -6,6 +6,7 @@
 #include"web/counter.hpp"
 #include"web/typealine.hpp"
 #include"web/chunked.hpp"
+#include"web/chunkedbig.hpp"
 #include<string.h>
 namespace xiinux{
 	static inline widget*widgetget(const char*qs){
@@ -14,6 +15,7 @@ namespace xiinux{
 		if(!strcmp("counter",qs))return new web::counter();
 		if(!strcmp("page",qs))return new web::page(nullptr,nullptr);
 		if(!strcmp("chunked",qs))return new web::chunked();
+		if(!strcmp("chunkedbig",qs))return new web::chunkedbig();
 		return new web::notfound();
 	}
 }

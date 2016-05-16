@@ -101,6 +101,11 @@ echo " * chunked small"&&
 curl -s $HTTP/?chunked>cmp&&
 diff -q cmp t15.cmp&&
 rm cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * chunked larger >4K "&&
+curl -s $HTTP/?chunkedbig>cmp&&
+diff -q cmp t16.cmp&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 

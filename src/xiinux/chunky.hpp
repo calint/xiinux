@@ -37,6 +37,7 @@ namespace xiinux{
 //		inline const char*getbuf()const{return buf;}
 //		inline size_t getsize()const{return size;}
 		inline chunky&flush(){
+			if(length==0)return*this;
 			strb b;
 			b.p_hex(length).p(2,"\r\n");
 //			const auto bf=b.getbuf();
@@ -60,6 +61,7 @@ namespace xiinux{
 			return*this;
 		}
 		inline chunky&finish(){
+			flush();
 			io_send(sockfd,"0\r\n\r\n",sizeof "0\r\n\r\n"-1,true);
 			return*this;
 		}
@@ -76,9 +78,12 @@ namespace xiinux{
 			const ssize_t rem=sizeof buf-length-len;
 			if(rem<0){
 				// copy to buf
-				strncpy(buf+length,str,len+rem);
+				const size_t fit=len+rem;
+				strncpy(buf+length,str,fit);
+				length+=fit;
 				flush();
-				strncpy(buf,str+len,-rem);
+				strncpy(buf,str+fit,-rem);
+				length+=-rem;
 				return*this;
 			}
 			strncpy(buf+length,str,len);
