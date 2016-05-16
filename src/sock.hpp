@@ -562,7 +562,65 @@ namespace xiinux{
 		}
 	};
 	static sock server_socket(0);
-	int main(int argc,char**argv){
+#define loop() while(true)
+	class args{
+		const int c;
+		const char**v;
+	public:
+		args(const int argc,const char*argv[]):c(argc),v(argv){}
+		inline bool hasoption(const char short_name){
+			auto vv=v;
+			loop(){
+				int i=c-1;
+				if(i==0)return false;
+				vv++;
+				auto p=*vv;
+				if(*p=='-'){
+					p++;
+					loop(){
+						const auto ch=*p;
+						if(ch==short_name)return true;
+						if(ch==0)break;
+						if(isdigit(ch))break;
+						p++;
+					}
+					return false;
+				}
+			}
+		}
+		inline const char*getoptionvalue(const char short_name,const char*default_value){
+			int i=c-1;
+			if(i==0)return default_value;
+			auto vv=v;
+			loop(){
+				vv++;
+				auto p=*vv;
+				if(*p=='-'){
+					p++;
+					loop(){
+						const auto ch=*p;
+						if(!ch)break;
+						if(ch==short_name){
+							p++;
+							if(!*p){
+								if(i>1)// more arguments
+									return*(vv+1);
+								else
+									return default_value;
+							}
+							return p;
+						}
+						p++;
+					}
+					return default_value;
+				}
+				i--;
+				if(i==0)break;
+			}
+			return default_value;
+		}
+	};
+	int main(const int argc,const char**argv){
 	//	lst<const char*>ls;
 	//	ls.to(stdout);
 	////	const char*cc_hello="hello";
@@ -591,7 +649,9 @@ namespace xiinux{
 	//	test_xprinter(sb);
 	//	sb.to(stdout);
 	//	return 0;
-
+		args a(argc,argv);
+		const bool watch_thread=a.hasoption('v');
+		const int port=atoi(a.getoptionvalue('p',"8088"));
 		printf("%s on port %d\n",APP,port);
 
 		char buf[4*K];
@@ -616,7 +676,6 @@ namespace xiinux{
 		ev.data.ptr=&server_socket;
 		if(epoll_ctl(epollfd,EPOLL_CTL_ADD,server_socket.fd,&ev)<0){perror("epolladd");exit(5);}
 		struct epoll_event events[nclients];
-		const bool watch_thread=argc>1;
 		pthread_t thdwatch;
 		if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 		while(true){
