@@ -18,7 +18,7 @@ namespace xiinux{
 
 	public:
 		inline reply(const int fd=0):fd(fd){}
-		inline chunky*reply_chunky(){
+		inline /*gives*/chunky*reply_chunky(){
 			chunky*c=new chunky(fd);
 			return c;
 		}

@@ -32,6 +32,9 @@ namespace xiinux{
 		}
 	public:
 		inline chunky(int sockfd):sockfd(sockfd){}
+//		inline~chunky(){
+//			puts("delete chunky");
+//		}
 //		inline chunky(){}
 //		inline chunky(const char*str){p(str);}
 //		inline const char*getbuf()const{return buf;}

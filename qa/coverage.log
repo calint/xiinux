@@ -494,3 +494,24 @@ coverage tests on http://localhost:8080
  * chunked larger >4K 
 Mon May 16 17:22:42 ICT 2016
 
+
+Mon May 16 17:35:36 ICT 2016
+coverage tests on http://localhost:8080
+ * static document
+ * if-modified-since
+ * dynamic document
+ * resumable download
+ * cached document
+ * illegal path
+ * page not found
+ * widget not found
+ * chained get
+ * post
+ * bigger post >4K
+ * upload small file
+ * upload bigger file
+ * chained upload
+ * chunked small
+ * chunked larger >4K 
+Mon May 16 17:35:36 ICT 2016
+
