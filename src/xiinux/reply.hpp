@@ -17,7 +17,7 @@ namespace xiinux{
 //	static const char*exception_connection_reset_by_client="brk";
 
 	public:
-		inline reply(const int fd=0):fd(fd){}
+		inline reply(const int fd=0):fd{fd}{}
 		inline /*gives*/chunky*reply_chunky(){
 			chunky*c=new chunky(fd);
 			return c;

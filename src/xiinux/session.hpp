@@ -1,12 +1,13 @@
 #ifndef session_hpp
 #define session_hpp
+#include"widget.hpp"
 namespace xiinux{
 	class session{
 		char*_id;
 		lut<char*>kvp;
 		lut<widget*>widgets;
 	public:
-		inline session(/*takes*/char*session_id):_id(session_id){sts.sessions++;}
+		inline session(/*takes*/char*session_id):_id{session_id}{sts.sessions++;}
 		inline~session(){
 			sts.sessions--;
 			free(_id);

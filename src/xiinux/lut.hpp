@@ -9,7 +9,7 @@ namespace xiinux{
 			char*key{nullptr};
 			T data{nullptr};
 			el*nxt{nullptr};
-			inline el(char*key,T data):key(key),data(data){
+			inline el(char*key,T data):key{key},data{data}{
 	//			printf(" * new lut element %s @ %p\n",key,(void*)this);
 			}
 			inline~el(){

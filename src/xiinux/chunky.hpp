@@ -3,7 +3,6 @@
 #include"defines.hpp"
 namespace xiinux{
 	class chunky:public xprinter{
-		#define loop()while(true)
 		size_t length{0};
 		char buf[4*1024];
 		int sockfd;
@@ -27,8 +26,8 @@ namespace xiinux{
 			return(size_t)n;
 		}
 	public:
-		inline chunky(int sockfd):sockfd(sockfd){}
-		inline chunky&flush(){
+		inline chunky(int sockfd):sockfd{sockfd}{}
+		inline chunky&flush()override{
 			if(length==0)return*this;
 			strb b;
 			b.p_hex(length).p(2,"\r\n");
@@ -59,13 +58,13 @@ namespace xiinux{
 			length=0;
 			return*this;
 		}
-		inline chunky&p(/*copies*/const char*str){
+		inline chunky&p(/*copies*/const char*str)override{
 			const size_t n=strnlen(str,sizeof buf+1);//. togetbufferoverrun
 			return p(n,str);
 		}
-		inline chunky&p(const size_t len,/*copies*/const char*str){
+		inline chunky&p(const size_t len,/*copies*/const char*str)override{
 			const ssize_t sizeofbuf=sizeof buf;
-			const ssize_t bufrem=(sizeofbuf-length);
+			const ssize_t bufrem=sizeofbuf-length;
 			ssize_t rem=bufrem-len;
 			if(rem>=0){
 				strncpy(buf+length,str,len);
@@ -89,36 +88,36 @@ namespace xiinux{
 				s+=nn;
 			}
 		}
-		inline chunky&p(const int i){
+		inline chunky&p(const int i)override{
 			char str[32];
 			const size_t n=snprintf(str,sizeof str,"%d",i);
 			if(n>sizeof str)throw"snprintf";
 			return p(n,str);
 		}
-		inline chunky&p(const size_t i){
+		inline chunky&p(const size_t i)override{
 			char str[32];
 			const size_t n=snprintf(str,sizeof str,"%zd",i);
 			if(n>sizeof str)throw"snprintf";
 			return p(n,str);
 		}
-		inline chunky&p_ptr(const void*ptr){
+		inline chunky&p_ptr(const void*ptr)override{
 			char str[32];
 			const int n=snprintf(str,sizeof str,"%p",ptr);
 			if((unsigned)n>sizeof str)throw"p_ptr:1";
 			return p(n,str);
 		}
-		inline chunky&p_hex(const long long i){
+		inline chunky&p_hex(const long long i)override{
 			char str[32];
 			const int len=snprintf(str,sizeof str,"%llx",i);
 			if(len<0)throw"snprintf";
 			return p(len,str);
 		}
-		inline chunky&p(char ch){
+		inline chunky&p(char ch)override{
 			if(sizeof buf-length==0)flush();
 			*(buf+length++)=ch;
 			return*this;
 		}
-		inline chunky&nl(){return p('\n');}
+		inline chunky&nl()override{return p('\n');}
 		inline chunky&p(const strb&sb){return p(sb.getsize(),sb.getbuf());}
 
 		// html5

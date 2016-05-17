@@ -31,26 +31,9 @@
 #include"xiinux/widget.hpp"
 #include"xiinux/defines.hpp"
 namespace xiinux{
-	static doc*homepage;
-	static widget*widgetget(const char*qs);
-	static sessions sess;
 	static int epollfd;
-
-	static void*thdwatchrun(void*arg){
-		if(arg)
-			puts((const char*)arg);
-		sts.printhdr(stdout);
-		while(1){
-			int n=10;
-			while(n--){
-				const int sleep=100000;
-				usleep(sleep);
-				sts.ms+=sleep/1000;//? not really
-				sts.print(stdout);
-			}
-			fprintf(stdout,"\n");
-		}
-		return nullptr;
-	}
+	static doc*homepage;
+	static sessions sess;
+	static widget*widgetget(const char*qs);
 }
 #endif

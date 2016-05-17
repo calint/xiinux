@@ -4,11 +4,11 @@
 using namespace xiinux;
 using namespace std;
 namespace web{
-	class counter:public widget{
+	class counter final:public widget{
 	public:
 		static atomic_int page_counter;
 		int my_counter;
-		virtual void to(reply&r)override{
+		void to(reply&r)override{
 			my_counter++;
 			counter::page_counter++;
 			strb sb;
@@ -19,6 +19,6 @@ namespace web{
 			r.http(200,sb.getbuf(),sb.getsize());
 		}
 	};
-	atomic_int counter::page_counter;
+	atomic_int counter::page_counter{0};
 }
 #endif

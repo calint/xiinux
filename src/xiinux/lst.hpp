@@ -7,7 +7,7 @@ namespace xiinux{
 		public:
 			T ptr{0};
 			el*nxt{nullptr};
-			inline el(T ptr):ptr(ptr),nxt(nullptr){}
+			inline el(T ptr):ptr{ptr}{}
 		};
 		el*first{nullptr};
 		el*last{nullptr};

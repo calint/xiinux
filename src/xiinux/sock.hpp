@@ -1,6 +1,8 @@
 #ifndef sock_hpp
 #define sock_hpp
 #include"args.hpp"
+#include"widget.hpp"
+//#include"../xiinux.hpp"
 namespace xiinux{
 	class sock{
 		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
@@ -59,7 +61,7 @@ namespace xiinux{
 		}
 	public:
 		int fd{0};
-		inline sock(const int f):fd(f){sts.socks++;}
+		inline sock(const int f):fd{f}{sts.socks++;}
 		inline~sock(){
 			sts.socks--;
 			delete[]content;
@@ -388,7 +390,7 @@ namespace xiinux{
 					strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
 					char*sid_ptr=sid+16;
 					for(int i=0;i<7;i++){
-						*sid_ptr++='a'+(char)(random()%26);
+						*sid_ptr++='a'+(char)random()%26;
 					}
 					*sid_ptr=0;
 					ses=new session(sid);
@@ -539,17 +541,36 @@ namespace xiinux{
 			*str++='\0';
 		}
 	};
+
+	static void*thdwatchrun(void*arg){
+		if(arg)
+			puts((const char*)arg);
+		sts.printhdr(stdout);
+		while(1){
+			int n=10;
+			while(n--){
+				const int sleep=100000;
+				usleep(sleep);
+				sts.ms+=sleep/1000;//? not really
+				sts.print(stdout);
+			}
+			fprintf(stdout,"\n");
+		}
+		return nullptr;
+	}
+
 	static sock server_socket(0);
+
 	int main(const int argc,const char**argv){
 		args a(argc,argv);
 		const bool watch_thread=a.hasoption('v');
 		const int port=atoi(a.getoptionvalue('p',"8088"));
 		const bool option_benchmark_mode=a.hasoption('b');
-		printf("%s on port %d\n",APP,port);
+		printf("%s on port %d\n",application_name,port);
 
 		char buf[4*K];
 		// Connection: Keep-Alive for apachebench
-		snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
+		snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s",strlen(application_name),application_name);
 		homepage=new doc(buf);
 
 		struct sockaddr_in srv;
