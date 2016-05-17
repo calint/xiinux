@@ -1,11 +1,9 @@
 #ifndef sock_hpp
 #define sock_hpp
-#include"../xiinux.hpp"
 #include"args.hpp"
 namespace xiinux{
 	class sock{
 		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
-//		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload};
 		parser_state state{next_request};
 		int file_fd{0};
 		off_t file_pos{0};
@@ -46,7 +44,7 @@ namespace xiinux{
 			ev.data.ptr=this;
 			ev.events=EPOLLIN;
 			if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
-				perror("ioreqread");
+				perr("ioreqread");
 				throw"epollmodread";
 			}
 		}
@@ -55,32 +53,23 @@ namespace xiinux{
 			ev.data.ptr=this;
 			ev.events=EPOLLOUT;
 			if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev)){
-				perror("ioreqwrite");
+				perr("ioreqwrite");
 				throw"epollmodwrite";
 			}
 		}
 	public:
 		int fd{0};
-		inline sock(const int f):fd(f){
-			sts.socks++;
-//			printf("%s:%d %s : new %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
-		}
+		inline sock(const int f):fd(f){sts.socks++;}
 		inline~sock(){
 			sts.socks--;
-//			printf("%s:%d %s : delete %d\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,fd);
-			//printf(" * delete sock %p\n",(void*)this);
 			delete[]content;
 			if(!::close(fd)){
 				return;
 			}
 			sts.errors++;
-	//		printf("%s:%d ",__FILE__,__LINE__);perror("sockdel");
-			printf("%s:%d %s : sockdel\n",__FILE__,__LINE__,__PRETTY_FUNCTION__);
-			perror("sockdel");
+			perr("sockdel");
 		}
-		inline void close(){
-			::close(fd);
-		}
+		inline void close(){::close(fd);}
 		void run(){while(true){
 			//printf(" state %d\n",state);
 			if(state==upload){
@@ -93,14 +82,12 @@ namespace xiinux{
 				}
 				if(nn<0){
 					if(errno==EAGAIN||errno==EWOULDBLOCK){
-	//					printf("eagain || wouldblock\n");
+						dbg("eagain || wouldblock");
 						io_request_read();
 						return;
 					}else if(errno==ECONNRESET){
 						throw"brk";
 					}
-	//				printf("\n\n%s:%d ",__FILE__,__LINE__);
-	//				perror("upload");
 					perr("upload");
 					sts.errors++;
 					throw"upload";
@@ -122,10 +109,10 @@ namespace xiinux{
 					continue;
 				}
 				if(::close(upload_fd)<0){
-					perror("while closing file");
+					perr("while closing file");
 				}
 				reply::io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
-	//			printf("      done %s\n",pth+1);
+	//			printf("     upload done: %s\n",pth+1);
 				state=next_request;
 			}else if(state==read_content){
 				sts.reads++;
@@ -136,13 +123,13 @@ namespace xiinux{
 				}
 				if(nn<0){
 					if(errno==EAGAIN||errno==EWOULDBLOCK){
-	//					printf("eagain || wouldblock\n");
+						dbg("eagain || wouldblock");
 						io_request_read();
 						return;
 					}else if(errno==ECONNRESET){
 						throw"brk";
 					}
-					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("readcontent");
+					perror("readcontent");
 					sts.errors++;
 					throw"readingcontent";
 				}
@@ -170,7 +157,6 @@ namespace xiinux{
 				file_len-=size_t(sf);
 				sts.output+=size_t(sf);
 				if(file_len!=0){
-	//				state=resume_send_file;
 					io_request_write();
 					return;
 				}
@@ -291,7 +277,7 @@ namespace xiinux{
 							}
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
-	//								printf("client expects 100 continue before sending post\n");
+//									dbg("client expects 100 continue before sending post");
 								reply::io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
 								state=upload;
 								break;
@@ -305,7 +291,7 @@ namespace xiinux{
 								dbg("upload fits in buffer");
 								const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
 								if(nn<0){
-									perror("while writing upload to file");
+									perr("while writing upload to file");
 									throw"err";
 								}
 								sts.input+=(size_t)nn;
@@ -313,9 +299,8 @@ namespace xiinux{
 									throw"incomplete upload";
 								}
 								if(::close(upload_fd)<0){
-									perror("while closing file");
+									perr("while closing file");
 								}
-	//							const char resp[]="HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n";
 								const char resp[]="HTTP/1.1 204\r\n\r\n";
 								reply::io_send(fd,resp,sizeof resp-1,true);//. -1 to remove eos
 								bufp+=content_len;
@@ -406,27 +391,20 @@ namespace xiinux{
 						*sid_ptr++='a'+(char)(random()%26);
 					}
 					*sid_ptr=0;
-	//				printf(" * creating session %s\n",session_id);
 					ses=new session(sid);
 					sess.put(sid,ses,false);
-//					sess.all.put(sid,ses,false);
 					x.send_session_id_at_next_opportunity(sid);
 				}else{
 					ses=sess.get(session_id);
 					if(!ses){// session not found, reload
-	//					printf(" * session not found, recreating: %s\n",session_id);
 						char*sid=(char*)malloc(64);
-	//					if(strlen(session_id)>23)throw"cookielen";
 						strncpy(sid,session_id,64);
-		//				printf(" * creating session %s\n",session_id);
 						ses=new session(sid);
-//						sess.all.put(sid,ses,false);
 						sess.put(sid,ses,false);
 					}
 				}
 				widget*o=ses->get_widget(qs);
 				if(!o){
-	//				printf(" * widget not found in session, creating  %s\n",qs);
 					o=widgetget(qs);
 					const size_t key_len=strlen(qs);
 					char*key=(char*)malloc(key_len+1);
@@ -434,7 +412,6 @@ namespace xiinux{
 					ses->put_widget(key,o);
 				}
 				if(content){
-	//				printf(" * content:\n%s\n",content);
 					o->on_content(x,content,content_len);
 					delete[]content;
 					content=nullptr;
@@ -496,17 +473,15 @@ namespace xiinux{
 				off_t rs=0;
 				if(EOF==sscanf(range,"bytes=%jd",&rs)){
 					sts.errors++;
-//					printf("\n\n%s:%d ",__FILE__,__LINE__);perror("scanrange");
+					perr("range");
 					throw"errrorscanning";
 				}
 				file_pos=rs;
 				const size_t e=file_len;
 				file_len-=(size_t)rs;
-	//			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,rs,e,e);
 				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,rs,e,e);
 			}else{
 				// Connection: Keep-Alive\r\n for apache-bench
-	//			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
 				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
 			}
 			if(bb_len<0)throw"err";
@@ -518,7 +493,7 @@ namespace xiinux{
 					throw"brk";
 				}
 				sts.errors++;
-//				printf("\n\n%s:%d ",__FILE__,__LINE__);perror("sendfile");
+				perr("sendingfile");
 				throw"err";
 			}
 			sts.output+=size_t(nn);
@@ -564,34 +539,6 @@ namespace xiinux{
 	};
 	static sock server_socket(0);
 	int main(const int argc,const char**argv){
-	//	lst<const char*>ls;
-	//	ls.to(stdout);
-	////	const char*cc_hello="hello";
-	//	ls.add("hello");
-	//	ls.to(stdout);
-	//	ls.addfirst("world");
-	//	ls.to(stdout);
-	//	const char*s=ls.take_first();
-	//	ls.to(stdout);
-	//	ls.add(s);
-	//	ls.foreach(func);
-	//	ls.foreach2([](const char*li){puts(li);return true;});
-	//	const char*hello=ls.find("hello");
-	//	ls.clear();
-	//	ls.to(stdout);
-	//	return 0;
-	//
-	//	void*b1=malloc(256);
-	//	void*b3=0;
-	////	void*b3=malloc(128);
-	//	void*b2=realloc(b1,512);
-	//	printf("%p  %p    %p   \n",b1,b2,b3);
-	//	return 0;
-	//
-	//	strb sb("hello there");
-	//	test_xprinter(sb);
-	//	sb.to(stdout);
-	//	return 0;
 		args a(argc,argv);
 		const bool watch_thread=a.hasoption('v');
 		const int port=atoi(a.getoptionvalue('p',"8088"));
@@ -600,7 +547,6 @@ namespace xiinux{
 
 		char buf[4*K];
 		// Connection: Keep-Alive for apachebench
-	//	snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
 		snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s",strlen(APP),APP);
 		homepage=new doc(buf);
 
@@ -623,15 +569,13 @@ namespace xiinux{
 		pthread_t thdwatch;
 		if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 		while(true){
-			//printf(" epoll_wait\n");
 			const int nn=epoll_wait(epollfd,events,nclients,-1);
-			//printf(" epoll_wait returned %d\n",nn);
 			if(nn==0){
-				puts("epoll 0");
+				perr("epoll 0");
 				continue;
 			}
 			if(nn==-1){
-				perror("epollwait");
+				perr("epollwait");
 				continue;
 			}
 			for(int i=0;i<nn;i++){
@@ -640,24 +584,18 @@ namespace xiinux{
 					sts.accepts++;
 					const int fda=accept(server_socket.fd,0,0);
 					if(fda==-1){
-						perror("accept");
-						puts("accept");
+						perr("accept");
 						continue;
-	//					exit(8);
 					}
 					int opts=fcntl(fda,F_GETFL);
 					if(opts<0){
-						perror("optget");
-						puts("optget");
+						perr("optget");
 						continue;
-	//					exit(9);
 					}
 					opts|=O_NONBLOCK;
 					if(fcntl(fda,F_SETFL,opts)){
-						perror("optsetNONBLOCK");
-						puts("optsetNONBLOCK");
+						perr("optsetNONBLOCK");
 						continue;
-	//					exit(10);
 					}
 					ev.data.ptr=new sock(fda);
 					ev.events=EPOLLIN|EPOLLRDHUP|EPOLLET;
@@ -667,7 +605,6 @@ namespace xiinux{
 						perror("epolladd");
 						puts("epolladd");
 						continue;
-	//					exit(11);
 					}
 					if(option_benchmark_mode){
 						int flag=1;

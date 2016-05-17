@@ -7,7 +7,7 @@
 #include"web/typealine.hpp"
 #include"web/chunked.hpp"
 #include"web/chunkedbig.hpp"
-#include<string.h>
+#include"web/chunkedbigger.hpp"
 namespace xiinux{
 	static inline widget*widgetget(const char*qs){
 		if(!strcmp("hello",qs))return new web::hello();
@@ -16,6 +16,7 @@ namespace xiinux{
 		if(!strcmp("page",qs))return new web::page(nullptr,nullptr);
 		if(!strcmp("chunked",qs))return new web::chunked();
 		if(!strcmp("chunkedbig",qs))return new web::chunkedbig();
+		if(!strcmp("chunkedbigger",qs))return new web::chunkedbigger();
 		return new web::notfound();
 	}
 }

@@ -1,6 +1,5 @@
 #ifndef doc_hpp
 #define doc_hpp
-#include"reply.hpp"
 namespace xiinux{
 	class doc{
 		size_t size;

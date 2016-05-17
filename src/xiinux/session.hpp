@@ -1,20 +1,14 @@
 #ifndef session_hpp
 #define session_hpp
-#include"lut.hpp"
-#include"widget.hpp"
 namespace xiinux{
 	class session{
 		char*_id;
 		lut<char*>kvp;
 		lut<widget*>widgets;
 	public:
-		inline session(/*takes*/char*session_id):_id(session_id){
-			sts.sessions++;
-	//		printf(" * new session %s @ %p\n",session_id,(void*)this);
-		}
+		inline session(/*takes*/char*session_id):_id(session_id){sts.sessions++;}
 		inline~session(){
 			sts.sessions--;
-	//		printf(" * delete session %s\n",_id);
 			free(_id);
 			kvp.delete_content(true);
 			widgets.delete_content(true);

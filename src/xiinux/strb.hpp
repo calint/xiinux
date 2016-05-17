@@ -2,15 +2,11 @@
 #define strb_hpp
 #include"xprinter.hpp"
 #include<string.h>
-#include<utility>
 namespace xiinux{
 	class strb:public xprinter{
 		size_t length{0};
 		char buf[4096];
-	//	strb*nxt{nullptr};
 	public:
-//		inline strb(strb&&s):size(s.size),buf(std::move(s.buf)){}
-//		inline strb&operator=(strb&&other){buf=std::move(other.buf);size=other.size;return*this;}
 		inline strb(){}
 		inline strb(const char*str){p(str);}
 		inline strb&flush(){return*this;}
@@ -37,11 +33,6 @@ namespace xiinux{
 			const int len=snprintf(str,sizeof str,"%d",i);
 			if(len<0)throw"snprintf";
 			return p(len,str);
-	//		const ssize_t rem=sizeof buf-size-len;
-	//		if(rem<0)throw"bufferoverrun";
-	//		strncpy(buf+size,str,len);
-	//		size+=len;
-	//		return*this;
 		}
 		inline strb&p(const size_t i){
 			char str[32];
@@ -61,11 +52,12 @@ namespace xiinux{
 			if(len<0)throw"snprintf";
 			return p(len,str);
 		}
-		inline strb&nl(){
-			if(sizeof buf-length<1)throw"bufferoverrun2";
-			*(buf+length++)='\n';
+		inline strb&p(char ch){
+			if(sizeof buf-length==0)flush();
+			*(buf+length++)=ch;
 			return*this;
 		}
+		inline strb&nl(){return p('\n');}
 		inline strb&p(const strb&sb){
 			const ssize_t rem=sizeof buf-length-sb.length;
 			if(rem<0)throw"bufferoverrun";
@@ -80,11 +72,6 @@ namespace xiinux{
 			return p(sizeof s,s)
 					.p(sizeof "<title>","<title>").p(title).p(sizeof "</title>","</title>");
 		}
-	//	inline strb&title(const char*str){return p(sizeof "<title>","<title>").p(sizeof str,str).p(sizeof "</title>","</title>");}
-	//	inline strb&textarea(){
-	//		return p("<textarea id=_txt style='width:40em height:10em'>").p(s.getsize(),s.getbuf()).p("</textarea>");
-	//
-	//	}
 		inline strb&to(FILE*f){
 			char fmt[32];
 			if(snprintf(fmt,sizeof fmt,"%%%zus",length)<1)throw"err";
