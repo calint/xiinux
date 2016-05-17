@@ -99,5 +99,11 @@ curl -s $HTTP/?chunkedbigger>cmp&&
 gunzip -fk t17.cmp.gz &&
 diff -q cmp t17.cmp&&
 rm cmp t17.cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " [todo] * resumable upload "&&
+#curl -s $HTTP/?chunkedbigger>cmp&&
+#gunzip -fk t17.cmp.gz &&
+#diff -q cmp t17.cmp&&
+#rm cmp t17.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
