@@ -9,7 +9,7 @@ namespace xiinux{
 	class chunky:public xprinter{
 		#define loop()while(true)
 		size_t length{0};
-		char buf[4096];
+		char buf[256];
 		int sockfd;
 		static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 			sts.writes++;
@@ -48,15 +48,18 @@ namespace xiinux{
 			io_send(sockfd,b.getbuf(),b.getsize(),true);
 			size_t sent_total=0;
 			loop(){
-				size_t n=io_send(sockfd,buf+sent_total,length-sent_total,false);
-				if(n==0){
+				loop(){
+					const size_t nsend=length-sent_total;
+					const size_t n=io_send(sockfd,buf+sent_total,nsend,false);
+					sent_total+=n;
+					if(n==nsend)break;
 					//blocking
-					perror("sock.state=waiting_for_write");
-					perror("sock::io_request_write()");
-					perror("wait");//? racing
-					perror("sent+=io_send(...)");//? racing
+					perror("would block");
+//					perror("sock.state=waiting_for_write");
+//					perror("sock::io_request_write()");
+//					perror("wait");//? racing
+//					perror("sent+=io_send(...)");//? racing
 				}
-				sent_total+=n;
 				if(sent_total==length)break;
 			}
 			io_send(sockfd,"\r\n",sizeof "\r\n"-1,true);
@@ -82,9 +85,11 @@ namespace xiinux{
 			if(rem<0){
 				// copy to buf
 				const size_t fit=len+rem;
+				//? if fit<0
 				strncpy(buf+length,str,fit);
 				length+=fit;
 				flush();
+				//? while rem>sizeof buf   send chunks
 				strncpy(buf,str+fit,-rem);
 				length+=-rem;
 				return*this;

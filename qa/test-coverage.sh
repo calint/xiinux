@@ -1,8 +1,6 @@
 HOST=localhost
-#PORT=8088
-PORT=8080
-#HTTP=http://localhost:8088
-HTTP=http://localhost:8080
+PORT=8088
+HTTP=http://localhost:8088
 
 
 echo&&date&&echo coverage tests on $HTTP&&
