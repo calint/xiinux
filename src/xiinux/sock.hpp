@@ -82,7 +82,7 @@ namespace xiinux{
 				}
 				if(nn<0){
 					if(errno==EAGAIN||errno==EWOULDBLOCK){
-						dbg("eagain || wouldblock");
+//						dbg("eagain || wouldblock");
 						io_request_read();
 						return;
 					}else if(errno==ECONNRESET){
@@ -123,7 +123,7 @@ namespace xiinux{
 				}
 				if(nn<0){
 					if(errno==EAGAIN||errno==EWOULDBLOCK){
-						dbg("eagain || wouldblock");
+//						dbg("eagain || wouldblock");
 						io_request_read();
 						return;
 					}else if(errno==ECONNRESET){
@@ -288,7 +288,7 @@ namespace xiinux{
 								break;
 							}
 							if(chars_left_in_buffer>=content_len){
-								dbg("upload fits in buffer");
+//								dbg("upload fits in buffer");
 								const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
 								if(nn<0){
 									perr("while writing upload to file");
@@ -392,15 +392,17 @@ namespace xiinux{
 					}
 					*sid_ptr=0;
 					ses=new session(sid);
-					sess.put(sid,ses,false);
+//					sess.put(sid,ses,false);
+					sess.put(ses,false);
 					x.send_session_id_at_next_opportunity(sid);
 				}else{
 					ses=sess.get(session_id);
 					if(!ses){// session not found, reload
 						char*sid=(char*)malloc(64);
 						strncpy(sid,session_id,64);
-						ses=new session(sid);
-						sess.put(sid,ses,false);
+						ses=new session(/*gives*/sid);
+//						sess.put(sid,ses,false);
+						sess.put(ses,false);
 					}
 				}
 				widget*o=ses->get_widget(qs);
