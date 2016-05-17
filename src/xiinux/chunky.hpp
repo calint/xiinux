@@ -9,7 +9,7 @@ namespace xiinux{
 	class chunky:public xprinter{
 		#define loop()while(true)
 		size_t length{0};
-		char buf[256];
+		char buf[4*1024];
 		int sockfd;
 		static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
 			sts.writes++;
@@ -89,6 +89,7 @@ namespace xiinux{
 				strncpy(buf+length,str,fit);
 				length+=fit;
 				flush();
+				if(-rem>sizeof buf)throw"notimplemented";
 				//? while rem>sizeof buf   send chunks
 				strncpy(buf,str+fit,-rem);
 				length+=-rem;

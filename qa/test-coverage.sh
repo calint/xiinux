@@ -49,7 +49,7 @@ curl -s $HTTP/?asdf>cmp&&
 diff -q cmp t04.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chained get"&&
+echo " * chained get  (deprecated)"&&
 echo $'GET / HTTP/1.1\r\n\r\nGET / HTTP/1.1\r\n\r\n'|nc $HOST $PORT>cmp&&
 diff -q cmp t09.cmp&&
 rm cmp&&
@@ -79,7 +79,7 @@ diff -q cmp q02.txt&&
 rm cmp&&
 rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chained upload"&&
+echo " * chained upload  (deprecated)"&&
 #echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
 #echo $'PUT /upl HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
 #echo -e "PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny"|nc $HOST $PORT>cmp&&
@@ -95,15 +95,20 @@ rm cmp&&
 rm ../upload/upl&&
 rm ../upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked small"&&
+echo " * chunked small 12B"&&
 curl -s $HTTP/?chunked>cmp&&
 diff -q cmp t15.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked larger >4K "&&
+echo " * chunked many small to larger than chunk size >4K "&&
 curl -s $HTTP/?chunkedbig>cmp&&
 diff -q cmp t16.cmp&&
 rm cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo "[todo] * chunked reply data larger than buffers >256K "&&
+#curl -s $HTTP/?chunkedbiggy>cmp&&
+#diff -q cmp t17.cmp&&
+#rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
 
