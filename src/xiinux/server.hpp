@@ -55,11 +55,13 @@ namespace xiinux{
 			if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
 			while(true){
 				const int nn=epoll_wait(epollfd,events,nclients,-1);
-				if(nn==0){
-					perr("epoll 0");
-					continue;
-				}
+//				if(nn==0){
+//					perr("epoll 0");
+//					continue;
+//				}
 				if(nn==-1){
+					if(errno==EINTR)
+						continue;// interrupted system call ok
 					perr("epollwait");
 					continue;
 				}

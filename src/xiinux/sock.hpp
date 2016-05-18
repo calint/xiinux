@@ -447,7 +447,6 @@ namespace xiinux{
 				state=next_request;
 				return;
 			}
-			sts.files++;
 			struct stat fdstat;
 			if(stat(path,&fdstat)){
 				x.http2(404,"not found");
@@ -477,6 +476,7 @@ namespace xiinux{
 				state=next_request;
 				return;
 			}
+			sts.files++;
 			file_pos=0;
 			file_len=size_t(fdstat.st_size);
 			const char*range=hdrs["range"];
