@@ -1,0 +1,58 @@
+Mon May  9 04:05:55 ICT 2016
+uri: /
+concurrency: 1 localhost:8088/
+concurrency: 10 localhost:8088/
+concurrency: 100 localhost:8088/
+concurrency: 1000 localhost:8088/
+concurrency: 10000 localhost:8088/
+concurrency: 20000 localhost:8088/
+uri keep-alive: /
+concurrency: 1 localhost:8088/
+concurrency: 10 localhost:8088/
+concurrency: 100 localhost:8088/
+concurrency: 1000 localhost:8088/
+concurrency: 10000 localhost:8088/
+concurrency: 20000 localhost:8088/
+uri: /qa/q01.txt
+concurrency: 1 localhost:8088/qa/q01.txt
+concurrency: 10 localhost:8088/qa/q01.txt
+concurrency: 100 localhost:8088/qa/q01.txt
+concurrency: 1000 localhost:8088/qa/q01.txt
+concurrency: 10000 localhost:8088/qa/q01.txt
+concurrency: 20000 localhost:8088/qa/q01.txt
+uri keep-alive: /qa/q01.txt
+concurrency: 1 localhost:8088/qa/q01.txt
+concurrency: 10 localhost:8088/qa/q01.txt
+concurrency: 100 localhost:8088/qa/q01.txt
+concurrency: 1000 localhost:8088/qa/q01.txt
+concurrency: 10000 localhost:8088/qa/q01.txt
+concurrency: 20000 localhost:8088/qa/q01.txt
+uri: /qa/q02.txt
+concurrency: 1 localhost:8088/qa/q02.txt
+concurrency: 10 localhost:8088/qa/q02.txt
+concurrency: 100 localhost:8088/qa/q02.txt
+concurrency: 1000 localhost:8088/qa/q02.txt
+concurrency: 10000 localhost:8088/qa/q02.txt
+concurrency: 20000 localhost:8088/qa/q02.txt
+uri keep-alive: /qa/q02.txt
+concurrency: 1 localhost:8088/qa/q02.txt
+concurrency: 10 localhost:8088/qa/q02.txt
+concurrency: 100 localhost:8088/qa/q02.txt
+concurrency: 1000 localhost:8088/qa/q02.txt
+concurrency: 10000 localhost:8088/qa/q02.txt
+concurrency: 20000 localhost:8088/qa/q02.txt
+uri: /?hello
+concurrency: 1 localhost:8088/?hello
+concurrency: 10 localhost:8088/?hello
+concurrency: 100 localhost:8088/?hello
+concurrency: 1000 localhost:8088/?hello
+concurrency: 10000 localhost:8088/?hello
+concurrency: 20000 localhost:8088/?hello
+uri keep-alive: /?hello
+concurrency: 1 localhost:8088/?hello
+concurrency: 10 localhost:8088/?hello
+concurrency: 100 localhost:8088/?hello
+concurrency: 1000 localhost:8088/?hello
+concurrency: 10000 localhost:8088/?hello
+concurrency: 20000 localhost:8088/?hello
+Mon May  9 04:05:55 ICT 2016

@@ -1,0 +1,4 @@
+HTTP/1.1 403
+Content-Length: 16
+
+path contains ..

@@ -1,0 +1,4 @@
+watch cat /proc/$(ps a|grep xiinux|head -n1|awk '{print $1}')/status
+
+
+
