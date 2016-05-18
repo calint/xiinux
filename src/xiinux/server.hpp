@@ -2,6 +2,7 @@
 #define server_hpp
 #include"args.hpp"
 #include"sock.hpp"
+#include<netinet/tcp.h>
 namespace xiinux{
 	class server final{
 		static sock sck;

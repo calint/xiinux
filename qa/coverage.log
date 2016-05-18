@@ -67,3 +67,26 @@ coverage tests on http://localhost:8088
  [todo] * resumable upload 
 Wed May 18 08:24:47 ICT 2016
 
+
+Wed May 18 08:41:28 ICT 2016
+coverage tests on http://localhost:8088
+ * static document
+ * if-modified-since
+ * dynamic document
+ * resumable download
+ * cached document
+ * illegal path
+ * page not found
+ * widget not found
+ * chained get  (deprecated)
+ * post
+ * bigger post >4K
+ * upload small file
+ * upload bigger file
+ * chained upload  (deprecated)
+ * chunked small 12B
+ * chunked many small to larger than chunk size >4K 
+ * chunked reply data larger than buffers >256K 
+ [todo] * resumable upload 
+Wed May 18 08:41:29 ICT 2016
+

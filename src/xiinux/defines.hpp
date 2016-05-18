@@ -7,6 +7,7 @@ namespace xiinux{
 	static const size_t conbufnn=K;
 	static const int nclients=K;
 
+
 	#define loop()while(true)
 	#define perr(str)printf("%s:%d %s   ",__FILE__,__LINE__,__PRETTY_FUNCTION__);perror(str);/*throw"perr";*/
 	#define dbg(str)printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);

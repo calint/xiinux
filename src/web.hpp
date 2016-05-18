@@ -1,15 +1,14 @@
 //-- generated
-#include"xiinux/widget.hpp"
-#include"web/notfound.hpp"
-#include"web/page.hpp"
 #include"web/hello.hpp"
-#include"web/counter.hpp"
 #include"web/typealine.hpp"
+#include"web/counter.hpp"
+#include"web/page.hpp"
 #include"web/chunked.hpp"
 #include"web/chunkedbig.hpp"
 #include"web/chunkedbigger.hpp"
+#include"web/notfound.hpp"
 namespace xiinux{
-	inline widget*widgetget(const char*qs){
+	static inline widget*widgetget(const char*qs){
 		if(!strcmp("hello",qs))return new web::hello();
 		if(!strcmp("typealine",qs))return new web::typealine();
 		if(!strcmp("counter",qs))return new web::counter();

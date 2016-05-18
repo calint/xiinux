@@ -4,8 +4,16 @@
 #include"widget.hpp"
 #include"../xiinux.hpp"
 #include"../web.hpp"
+#include<sys/socket.h>
+#include<sys/epoll.h>
+#include<netinet/in.h>
+#include<fcntl.h>
+#include<unistd.h>
+#include<sys/sendfile.h>
+#include<sys/stat.h>
 namespace xiinux{
 	class sock{
+		static sessions sess;
 		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
 		parser_state state{next_request};
 		int file_fd{0};
@@ -65,7 +73,7 @@ namespace xiinux{
 		inline sock(const int f):fd{f}{sts.socks++;}
 		inline~sock(){
 			sts.socks--;
-			dbg("sock deleted");
+//			dbg("sock deleted");
 			delete[]content;
 			if(!::close(fd)){
 				return;
@@ -543,5 +551,6 @@ namespace xiinux{
 			*str++='\0';
 		}
 	};
+	sessions sock::sess;
 }
 #endif

@@ -40,7 +40,7 @@ namespace xiinux{
 					sent_total+=n;
 					if(n==nsend)break;
 					//blocking
-					perr("would block");
+					perr("would block, try again");
 				}
 				if(sent_total==length)break;
 			}
