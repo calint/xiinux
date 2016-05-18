@@ -1,5 +1,4 @@
-#ifndef defines_hpp
-#define defines_hpp
+#pragma once
 #include<stdio.h>
 namespace xiinux{
 	static const char*application_name="xiinux web server";
@@ -13,4 +12,3 @@ namespace xiinux{
 	#define dbg(str)printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);
 //	#define dbg(str)/*nodebug*/
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef args_hpp
-#define args_hpp
+#pragma once
 #include"defines.hpp"
 #include<ctype.h>
 namespace xiinux{
@@ -58,4 +57,3 @@ namespace xiinux{
 		}
 	};
 }
-#endif

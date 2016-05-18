@@ -1,5 +1,4 @@
-#ifndef NOTFOUND_hpp
-#define NOTFOUND_hpp
+#pragma once
 namespace web{
 	using namespace xiinux;
 	class notfound:public widget{
@@ -8,4 +7,3 @@ namespace web{
 		}
 	};
 }
-#endif

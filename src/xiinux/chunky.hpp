@@ -1,6 +1,6 @@
-#ifndef chunky_hpp
-#define chunky_hpp
+#pragma once
 #include"defines.hpp"
+#include<errno.h>
 namespace xiinux{
 	class chunky:public xprinter{
 		size_t length{0};
@@ -133,4 +133,3 @@ namespace xiinux{
 		}
 	};
 }
-#endif

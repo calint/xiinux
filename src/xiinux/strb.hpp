@@ -1,5 +1,4 @@
-#ifndef strb_hpp
-#define strb_hpp
+#pragma once
 #include"xprinter.hpp"
 #include<string.h>
 namespace xiinux{
@@ -79,4 +78,3 @@ namespace xiinux{
 		}
 	};
 }
-#endif

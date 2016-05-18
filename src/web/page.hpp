@@ -1,5 +1,4 @@
-#ifndef PAGE_hpp
-#define PAGE_hpp
+#pragma once
 #include"a.hpp"
 namespace web{
 	using namespace xiinux;
@@ -30,4 +29,3 @@ namespace web{
 		}
 	};
 }
-#endif

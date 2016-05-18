@@ -1,5 +1,4 @@
-#ifndef lst_hpp
-#define lst_hpp
+#pragma once
 namespace xiinux{
 	template<class T>class lst{
 	private:
@@ -102,4 +101,3 @@ namespace xiinux{
 		}
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef stats_hpp
-#define stats_hpp
+#pragma once
 #include<stdlib.h>
 #include<stdio.h>
 namespace xiinux{
@@ -28,6 +27,5 @@ namespace xiinux{
 			fflush(f);
 		}
 	};
+	stats sts;
 }
-xiinux::stats sts;
-#endif

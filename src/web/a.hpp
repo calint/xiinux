@@ -1,5 +1,4 @@
-#ifndef A_hpp
-#define A_hpp
+#pragma once
 #include<typeinfo>
 namespace web{
 	using namespace xiinux;
@@ -26,4 +25,3 @@ namespace web{
 		}
 	};
 }
-#endif

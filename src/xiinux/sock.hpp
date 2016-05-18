@@ -1,9 +1,8 @@
-#ifndef sock_hpp
-#define sock_hpp
+#pragma once
 #include"args.hpp"
 #include"widget.hpp"
-#include"../xiinux.hpp"
-#include"../web.hpp"
+#include"xiinux.hpp"
+#include"../web/web.hpp"
 #include<sys/socket.h>
 #include<sys/epoll.h>
 #include<netinet/in.h>
@@ -553,4 +552,3 @@ namespace xiinux{
 	};
 	sessions sock::sess;
 }
-#endif

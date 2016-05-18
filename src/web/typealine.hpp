@@ -1,5 +1,4 @@
-#ifndef TYPEALINE_hpp
-#define TYPEALINE_hpp
+#pragma once
 namespace web{
 	using namespace xiinux;
 	class typealine:public widget{
@@ -12,4 +11,3 @@ namespace web{
 		}
 	};
 }
-#endif

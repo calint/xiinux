@@ -1,12 +1,13 @@
+#pragma once
 //-- generated
-#include"web/hello.hpp"
-#include"web/typealine.hpp"
-#include"web/counter.hpp"
-#include"web/page.hpp"
-#include"web/chunked.hpp"
-#include"web/chunkedbig.hpp"
-#include"web/chunkedbigger.hpp"
-#include"web/notfound.hpp"
+#include"hello.hpp"
+#include"typealine.hpp"
+#include"counter.hpp"
+#include"page.hpp"
+#include"chunked.hpp"
+#include"chunkedbig.hpp"
+#include"chunkedbigger.hpp"
+#include"notfound.hpp"
 namespace xiinux{
 	static inline widget*widgetget(const char*qs){
 		if(!strcmp("hello",qs))return new web::hello();

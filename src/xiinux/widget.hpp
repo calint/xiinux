@@ -1,5 +1,4 @@
-#ifndef widget_hpp
-#define widget_hpp
+#pragma once
 #include"reply.hpp"
 namespace xiinux{
 	class widget{
@@ -9,4 +8,3 @@ namespace xiinux{
 		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len){};
 	};
 }
-#endif

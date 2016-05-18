@@ -1,5 +1,4 @@
-#ifndef xprinter_hpp
-#define xprinter_hpp
+#pragma once
 namespace xiinux{
 	class xprinter{
 	public:
@@ -16,4 +15,3 @@ namespace xiinux{
 		virtual xprinter&flush()=0;
 	};
 }
-#endif

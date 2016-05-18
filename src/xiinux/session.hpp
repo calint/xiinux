@@ -1,5 +1,4 @@
-#ifndef session_hpp
-#define session_hpp
+#pragma once
 #include"widget.hpp"
 namespace xiinux{
 	class session{
@@ -21,4 +20,3 @@ namespace xiinux{
 		inline void put_widget(char*key,/*takes*/widget*o){widgets.put(key,o);}
 	};
 }
-#endif

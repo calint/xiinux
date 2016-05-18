@@ -1,5 +1,4 @@
-#ifndef lut_hpp
-#define lut_hpp
+#pragma once
 namespace xiinux{
 	template<class T>class lut{
 	private:
@@ -110,4 +109,3 @@ namespace xiinux{
 		}
 	};
 }
-#endif

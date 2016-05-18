@@ -1,5 +1,4 @@
-#ifndef sessions_hpp
-#define sessions_hpp
+#pragma once
 #include"lut.hpp"
 #include"session.hpp"
 namespace xiinux{
@@ -13,4 +12,3 @@ namespace xiinux{
 		inline session*get(const char*sid){return all[sid];}
 	};
 }
-#endif

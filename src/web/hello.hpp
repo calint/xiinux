@@ -1,5 +1,4 @@
-#ifndef HELLO_hpp
-#define HELLO_hpp
+#pragma once
 namespace web{
 	using namespace xiinux;
 	class hello final:public widget{
@@ -8,4 +7,3 @@ namespace web{
 		}
 	};
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef chunkedbig_hpp
-#define chunkedbig_hpp
+#pragma once
 #include<memory>
 using namespace xiinux;
 using namespace std;
@@ -22,4 +21,3 @@ namespace web{
 		}
 	};
 }
-#endif

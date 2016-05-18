@@ -1,5 +1,4 @@
-#ifndef doc_hpp
-#define doc_hpp
+#pragma once
 #include"reply.hpp"
 namespace xiinux{
 	class doc{
@@ -23,4 +22,3 @@ namespace xiinux{
 		inline void to(reply&x)const{x.pk(buf,len);}
 	};
 }
-#endif

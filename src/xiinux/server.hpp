@@ -1,5 +1,4 @@
-#ifndef server_hpp
-#define server_hpp
+#pragma once
 #include"args.hpp"
 #include"sock.hpp"
 #include<netinet/tcp.h>
@@ -120,4 +119,3 @@ namespace xiinux{
 	};
 	sock server::sck{0};
 }
-#endif

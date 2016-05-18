@@ -1,5 +1,4 @@
-#ifndef reply_hpp
-#define reply_hpp
+#pragma once
 #include"stats.hpp"
 #include"strb.hpp"
 #include<sys/socket.h>
@@ -71,4 +70,3 @@ namespace xiinux{
 		}
 	};
 }
-#endif
