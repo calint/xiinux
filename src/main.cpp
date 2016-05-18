@@ -1,13 +1,12 @@
 #include"xiinux/server.hpp"
-static void sigexit(int i){
+static void sigint(int i){
 	puts("exiting");
-	delete xiinux::homepage;
-	xiinux::server_socket.close();
+	xiinux::server::stop();
 	signal(SIGINT,SIG_DFL);
 	kill(getpid(),SIGINT);
 }
 int main(const int c,const char**a){
-	signal(SIGINT,sigexit);
-	return xiinux::main(c,a);
+	signal(SIGINT,sigint);
+	return xiinux::server::start(c,a);
 }
 

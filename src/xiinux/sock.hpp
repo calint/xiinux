@@ -543,6 +543,5 @@ namespace xiinux{
 			*str++='\0';
 		}
 	};
-//	static sock server_socket(0);
 }
 #endif

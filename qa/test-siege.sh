@@ -1,7 +1,7 @@
 HTTP=http://localhost:8088
 STATS=test-siege.report
 NCLIENTS=10
-TIME=10s
+TIME=1m
 URIS='/ /?page /typealine.html'
 echo
 echo "   s i e g e    b e n c h"&&
