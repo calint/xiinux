@@ -399,7 +399,7 @@ namespace xiinux{
 					strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
 					char*sid_ptr=sid+16;
 					for(int i=0;i<7;i++){
-						*sid_ptr++='a'+(char)random()%26;
+						*sid_ptr++='a'+(unsigned char)random()%26;
 					}
 					*sid_ptr=0;
 					ses=new session(sid);
