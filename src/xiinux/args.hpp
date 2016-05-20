@@ -1,11 +1,11 @@
 #pragma once
-#include"defines.hpp"
 #include<ctype.h>
 namespace xiinux{
 	class args{
 		const int argc;
 		const char**argv;
 	public:
+		#define loop()while(true)
 		args(const int argc,const char*argv[]):argc{argc},argv{argv}{}
 		inline bool hasoption(const char short_name){
 			auto vv=argv;

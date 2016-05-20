@@ -32,7 +32,7 @@ namespace xiinux{
 
 			char buf[4*K];
 			// Connection: Keep-Alive for apachebench
-			snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s",strlen(application_name),application_name);
+			snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",strlen(application_name)+1,application_name);
 			homepage=new doc(buf);
 
 			struct sockaddr_in srv;
