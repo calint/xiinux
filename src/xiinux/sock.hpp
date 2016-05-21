@@ -2,6 +2,7 @@
 #include"args.hpp"
 #include"widget.hpp"
 #include"xiinux.hpp"
+#include"conf.hpp"
 #include"../web/web.hpp"
 #include<sys/socket.h>
 #include<sys/epoll.h>
@@ -31,6 +32,7 @@ namespace xiinux{
 		char*bufp{buf};
 		size_t bufi{0};
 		size_t bufnn{0};
+		size_t meter_requests{0};
 	//	void reset_for_new_request(){
 	//		file_fd=0;
 	//		file_pos=0;
@@ -66,6 +68,28 @@ namespace xiinux{
 				perr("ioreqwrite");
 				throw"epollmodwrite";
 			}
+		}
+		inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
+			sts.writes++;
+			const ssize_t nn=send(fd,buf,len,MSG_NOSIGNAL);
+			if(nn<0){
+				if(errno==EPIPE||errno==ECONNRESET){
+					sts.brkp++;
+					throw"brk";
+//					throw exception_connection_reset_by_client;
+				}
+				sts.errors++;
+				throw"iosend";
+			}
+			if(conf::print_trafic){
+				write(conf::print_trafic_fd,buf,len);
+			}
+			sts.output+=(size_t)nn;
+			if(throw_if_send_not_complete&&(size_t)nn!=len){
+				sts.errors++;
+				throw"sendnotcomplete";
+			}
+			return(size_t)nn;
 		}
 	public:
 		int fd{0};
@@ -113,6 +137,9 @@ namespace xiinux{
 				if(nw!=nn){
 					throw"writing upload to file 2";
 				}
+				if(conf::print_trafic){
+					write(conf::print_trafic_fd,upload_buffer,nn);
+				}
 				sts.input+=(size_t)nn;
 				content_pos+=(size_t)nn;
 	//			printf(" uploading %s   %zu of %zu\n",pth+1,content_pos,content_len);
@@ -122,7 +149,7 @@ namespace xiinux{
 				if(::close(upload_fd)<0){
 					perr("while closing file");
 				}
-				reply::io_send(fd,"HTTP/1.1 204\r\n\r\n",16,true);
+				io_send("HTTP/1.1 204\r\n\r\n",16,true);
 	//			printf("     upload done: %s\n",pth+1);
 				state=next_request;
 			}else if(state==read_content){
@@ -143,6 +170,9 @@ namespace xiinux{
 					perror("readcontent");
 					sts.errors++;
 					throw"readingcontent";
+				}
+				if(conf::print_trafic){
+					write(conf::print_trafic_fd,content+content_pos,nn);
 				}
 				content_pos+=(unsigned)nn;
 				sts.input+=(unsigned)nn;
@@ -174,6 +204,13 @@ namespace xiinux{
 				::close(file_fd);
 				state=next_request;
 			}
+			if(meter_requests){
+				auto connection=hdrs["connection"];
+				if(connection and !strcmp("close",connection)){
+					delete this;
+					return;
+				}
+			}
 			if(bufi==bufnn){//? assumes request and headers fit in conbufnn and done in one read
 				if(bufi>=conbufnn)
 					throw"reqbufoverrun";//? chained requests buf pointers
@@ -200,12 +237,16 @@ namespace xiinux{
 					delete this;
 					return;
 				}
+				if(conf::print_trafic){
+					write(conf::print_trafic_fd,bufp,nn);
+				}
 				bufnn+=(size_t)nn;
 //				printf("%s : %s",__PRETTY_FUNCTION__,buf);fflush(stdout);
 				sts.input+=(unsigned)nn;
 			}
 			if(state==next_request){
 				sts.requests++;
+				meter_requests++;
 				state=method;
 			}
 			if(state==method){
@@ -289,7 +330,7 @@ namespace xiinux{
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
 //									dbg("client expects 100 continue before sending post");
-								reply::io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+								io_send("HTTP/1.1 100\r\n\r\n",16,true);
 								state=upload;
 								break;
 							}
@@ -313,7 +354,7 @@ namespace xiinux{
 									perr("while closing file");
 								}
 								const char resp[]="HTTP/1.1 204\r\n\r\n";
-								reply::io_send(fd,resp,sizeof resp-1,true);//. -1 to remove eos
+								io_send(resp,sizeof resp-1,true);//. -1 to remove eos
 								bufp+=content_len;
 								bufi+=content_len;
 								state=next_request;
@@ -344,7 +385,7 @@ namespace xiinux{
 							content_pos=chars_left_in_buffer;
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
-								reply::io_send(fd,"HTTP/1.1 100\r\n\r\n",16,true);
+								io_send("HTTP/1.1 100\r\n\r\n",16,true);
 							}
 							state=read_content;
 							break;
@@ -466,7 +507,7 @@ namespace xiinux{
 			if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
 				const char hdr[]="HTTP/1.1 304\r\n\r\n";
 				const size_t hdrnn=sizeof hdr;
-				reply::io_send(fd,hdr,hdrnn,true);
+				io_send(hdr,hdrnn,true);
 				state=next_request;
 				return;
 			}
@@ -498,7 +539,7 @@ namespace xiinux{
 				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
 			}
 			if(bb_len<0)throw"err";
-			reply::io_send(fd,bb,(size_t)bb_len,true);
+			io_send(bb,(size_t)bb_len,true);
 			const ssize_t nn=sendfile(fd,file_fd,&file_pos,file_len);
 			if(nn<0){
 				if(errno==EPIPE||errno==ECONNRESET){

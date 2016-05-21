@@ -1,6 +1,8 @@
 #pragma once
 #include"defines.hpp"
 #include<errno.h>
+#include"conf.hpp"
+#include<unistd.h>
 namespace xiinux{
 	class chunky:public xprinter{
 		size_t length{0};
@@ -17,6 +19,9 @@ namespace xiinux{
 				}
 				sts.errors++;
 				throw"iosend";
+			}
+			if(conf::print_trafic){
+				write(conf::print_trafic_fd,buf,len);
 			}
 			sts.output+=(size_t)n;
 			if(throw_if_send_not_complete&&(size_t)n!=len){

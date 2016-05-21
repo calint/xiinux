@@ -28,6 +28,7 @@ namespace xiinux{
 			const bool watch_thread=a.hasoption('v');
 			const int port=atoi(a.getoptionvalue('p',"8088"));
 			const bool option_benchmark_mode=a.hasoption('b');
+			conf::print_trafic=a.hasoption('t');
 			printf("%s on port %d\n",application_name,port);
 
 			char buf[4*K];
@@ -106,7 +107,7 @@ namespace xiinux{
 					try{
 						c->run();
 					}catch(const char*msg){
-						if(!strcmp(msg,"brk")){
+						if(strcmp(msg,"brk")){
 	//					if(msg!=exception_connection_reset_by_client){
 							printf(" *** exception from %p : %s\n",(void*)c,msg);
 						}

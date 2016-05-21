@@ -5,6 +5,8 @@
 #include<errno.h>
 #include<string.h>
 #include"chunky.hpp"
+#include"conf.hpp"
+#include<unistd.h>
 namespace xiinux{
 	class reply{
 		int fd;
@@ -21,7 +23,7 @@ namespace xiinux{
 			chunky*c=new chunky(fd);
 			return c;
 		}
-		static inline size_t io_send(int fd,const void*buf,size_t len,bool throw_if_send_not_complete=false){
+		inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 			sts.writes++;
 			const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
 			if(n<0){
@@ -33,6 +35,9 @@ namespace xiinux{
 				sts.errors++;
 				throw"iosend";
 			}
+			if(conf::print_trafic){
+				write(conf::print_trafic_fd,buf,len);
+			}
 			sts.output+=(size_t)n;
 			if(throw_if_send_not_complete&&(size_t)n!=len){
 				sts.errors++;
@@ -41,7 +46,7 @@ namespace xiinux{
 			return(size_t)n;
 		}
 		inline reply&pk(const char*s,const size_t nn){
-			io_send(fd,s,nn,true);
+			io_send(s,nn,true);
 			return*this;
 		}
 		inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
