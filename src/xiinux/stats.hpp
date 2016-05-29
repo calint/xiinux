@@ -19,11 +19,11 @@ namespace xiinux{
 		size_t errors{0};
 		size_t brkp{0};
 		void printhdr(FILE*f){
-			fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s\n","ms","input","output","socks","reqs","sess","accepts","reads","writes","files","widgets","cache","errors","brkp");
+			fprintf(f,"%12s%12s%12s%8s%8s%8s%8s%12s%12s%12s%12s%12s%8s%8s\n","ms","input","output","socks","reqs","sess","accepts","reads","writes","files","widgets","cache","errors","brkp");
 			fflush(f);
 		}
 		void print(FILE*f){
-			fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu%8zu",ms,input,output,socks,requests,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
+			fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",ms,input,output,socks,requests,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
 			fflush(f);
 		}
 	};

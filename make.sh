@@ -25,6 +25,6 @@ echo && ls -ho --color $BIN &&
 echo &&
 rm all.src &&
 echo
-valgrind --leak-check=yes --leak-check=full --show-leak-kinds=all ./$BIN -bv
+#valgrind --leak-check=yes --leak-check=full --show-leak-kinds=all ./$BIN -bv
 #valgrind --leak-check=yes ./$BIN
 #valgrind --tool=callgrind --collect-jumps=yes ./$BIN

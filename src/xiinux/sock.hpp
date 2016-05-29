@@ -16,41 +16,45 @@ namespace xiinux{
 		static sessions sess;
 		enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,read_content,upload,next_request};
 		parser_state state{next_request};
-		int file_fd{0};
-		off_t file_pos{0};
-		size_t file_len{0};
+		struct{
+			int fd{0};
+			off_t pos{0};
+			size_t len{0};
+			inline void close(){::close(fd);}
+			inline ssize_t send_to(int tofd){return sendfile(tofd,fd,&pos,len);}
+		}file;
 		int upload_fd{0};
-		char*pth{nullptr};
-		char*qs{nullptr};
+		struct{
+			char*pth{nullptr};
+			char*qs{nullptr};
+		}rline;
 		lut<const char*>hdrs;
 		char*hdrk{nullptr};
 		char*hdrv{nullptr};
-		char*content{nullptr};
-		size_t content_len{0};
-		size_t content_pos{0};
-		char buf[conbufnn];
-		char*bufp{buf};
-		size_t bufi{0};
-		size_t bufnn{0};
+		struct{
+			char*d{nullptr};
+			size_t len{0};
+			size_t pos{0};
+		}content;
+		class{
+			char d[sockbuf_size_in_bytes];
+			char*p{d};
+			size_t i{0};
+			size_t nn{0};
+		public:
+			inline bool needs_read()const{return i==nn;}
+			inline bool more()const{return i<nn;}
+			inline void inci(){i++;}
+			inline char unsafe_next_char(){return *p++;}
+			inline void eos(){*(p-1)=0;}
+			inline void rst(){i=nn=0;p=d;}
+			inline char*ptr()const{return p;}
+			inline size_t rem_total()const{return sockbuf_size_in_bytes-i;}
+			inline size_t rem()const{return nn-i;}
+			inline void unsafe_inc_len(const size_t n){nn+=n;}
+			inline void unsafe_inc_pi(const size_t n){p+=n;i+=n;}
+		}buf;
 		size_t meter_requests{0};
-	//	void reset_for_new_request(){
-	//		file_fd=0;
-	//		file_pos=0;
-	//		file_len=0;
-	//		upload_fd=0;
-	//		pth=nullptr;
-	//		qs=nullptr;
-	//		hdrs.clear();
-	//		hdrk=nullptr;
-	//		hdrv=nullptr;
-	//		content=nullptr;
-	//		content_len=0;
-	//		content_pos=0;
-	//		//? clear buf
-	//		bufp=buf;
-	//		bufi=0;
-	//		bufnn=0;
-	//	}
 		inline void io_request_read(){
 			struct epoll_event ev;
 			ev.data.ptr=this;
@@ -97,7 +101,7 @@ namespace xiinux{
 		inline~sock(){
 			sts.socks--;
 //			dbg("sock deleted");
-			delete[]content;
+			delete[]content.d;
 			if(!::close(fd)){
 				return;
 			}
@@ -108,8 +112,8 @@ namespace xiinux{
 		void run(){while(true){
 			//printf(" state %d\n",state);
 			if(state==upload){
-				char upload_buffer[4*K];
-				const size_t upload_remaining=content_len-content_pos;
+				char upload_buffer[upload_stack_buf_size_in_bytes];
+				const size_t upload_remaining=content.len-content.pos;
 				sts.reads++;
 				const ssize_t nn=recv(fd,upload_buffer,upload_remaining>sizeof upload_buffer?sizeof upload_buffer:upload_remaining,0);
 				if(nn==0){//closed by client
@@ -141,9 +145,9 @@ namespace xiinux{
 					write(conf::print_trafic_fd,upload_buffer,nn);
 				}
 				sts.input+=(size_t)nn;
-				content_pos+=(size_t)nn;
+				content.pos+=(size_t)nn;
 	//			printf(" uploading %s   %zu of %zu\n",pth+1,content_pos,content_len);
-				if(content_pos<content_len){
+				if(content.pos<content.len){
 					continue;
 				}
 				if(::close(upload_fd)<0){
@@ -154,7 +158,7 @@ namespace xiinux{
 				state=next_request;
 			}else if(state==read_content){
 				sts.reads++;
-				const ssize_t nn=recv(fd,content+content_pos,content_len-content_pos,0);
+				const ssize_t nn=recv(fd,content.d+content.pos,content.len-content.pos,0);
 				if(nn==0){//closed by client
 					delete this;
 					return;
@@ -172,19 +176,19 @@ namespace xiinux{
 					throw"readingcontent";
 				}
 				if(conf::print_trafic){
-					write(conf::print_trafic_fd,content+content_pos,nn);
+					write(conf::print_trafic_fd,content.d+content.pos,nn);
 				}
-				content_pos+=(unsigned)nn;
+				content.pos+=(unsigned)nn;
 				sts.input+=(unsigned)nn;
-				if(content_pos==content_len){
-					*(content+content_len)=0;
+				if(content.pos==content.len){
+					*(content.d+content.len)=0;
 					process();
 					break;
 				}
 				return;
 			}else if(state==resume_send_file){
 				sts.writes++;
-				const ssize_t sf=sendfile(fd,file_fd,&file_pos,file_len);
+				const ssize_t sf=file.send_to(fd);
 				if(sf<0){//error
 					if(errno==EAGAIN){
 						io_request_write();
@@ -195,13 +199,13 @@ namespace xiinux{
 					delete this;
 					return;
 				}
-				file_len-=size_t(sf);
+				file.len-=size_t(sf);
 				sts.output+=size_t(sf);
-				if(file_len!=0){
+				if(file.len!=0){
 					io_request_write();
 					return;
 				}
-				::close(file_fd);
+				file.close();
 				state=next_request;
 			}
 			if(meter_requests){
@@ -211,15 +215,14 @@ namespace xiinux{
 					return;
 				}
 			}
-			if(bufi==bufnn){//? assumes request and headers fit in conbufnn and done in one read
-				if(bufi>=conbufnn)
-					throw"reqbufoverrun";//? chained requests buf pointers
+			if(buf.needs_read()){//? assumes request and headers fit in conbufnn and done in one read
+//				if(buf.i>=sockbuf_size_in_bytes)
+//					throw"reqbufoverrun";//? chained requests buf pointers
 				if(state==next_request){//? next_request
-					bufi=bufnn=0;
-					bufp=buf;
+					buf.rst();
 				}
 				sts.reads++;
-				const ssize_t nn=recv(fd,bufp,conbufnn-bufi,0);
+				const ssize_t nn=recv(fd,buf.ptr(),buf.rem_total(),0);
 				if(nn==0){//closed by client
 					delete this;
 					return;
@@ -238,9 +241,9 @@ namespace xiinux{
 					return;
 				}
 				if(conf::print_trafic){
-					write(conf::print_trafic_fd,bufp,nn);
+					write(conf::print_trafic_fd,buf.ptr(),nn);
 				}
-				bufnn+=(size_t)nn;
+				buf.unsafe_inc_len((size_t)nn);
 //				printf("%s : %s",__PRETTY_FUNCTION__,buf);fflush(stdout);
 				sts.input+=(unsigned)nn;
 			}
@@ -250,53 +253,53 @@ namespace xiinux{
 				state=method;
 			}
 			if(state==method){
-				while(bufi<bufnn){
-					bufi++;
-					const char c=*bufp++;
+				while(buf.more()){
+					buf.inci();
+					const char c=buf.unsafe_next_char();
 					if(c==' '){
 						state=uri;
-						pth=bufp;
-						qs=nullptr;
+						rline.pth=buf.ptr();
+						rline.qs=nullptr;
 						break;
 					}
 				}
 			}
 			if(state==uri){
-				while(bufi<bufnn){
-					bufi++;
-					const char c=*bufp++;
+				while(buf.more()){
+					buf.inci();
+					const char c=buf.unsafe_next_char();
 					if(c==' '){
 						state=protocol;
-						*(bufp-1)=0;
-						urldecode(pth);
+						buf.eos();
+						urldecode(rline.pth);
 						break;
 					}else if(c=='?'){
 						state=query;
-						qs=bufp;
-						*(bufp-1)=0;
+						rline.qs=buf.ptr();
+						buf.eos();
 						break;
 					}
 				}
 			}
 			if(state==query){
-				while(bufi<bufnn){
-					bufi++;
-					const char c=*bufp++;
+				while(buf.more()){
+					buf.inci();
+					const char c=buf.unsafe_next_char();
 					if(c==' '){
 						state=protocol;
-						*(bufp-1)=0;
-						urldecode(qs);
+						buf.eos();
+						urldecode(rline.qs);
 						break;
 					}
 				}
 			}
 			if(state==protocol){
-				while(bufi<bufnn){
-					bufi++;
-					const char c=*bufp++;
+				while(buf.more()){
+					buf.inci();
+					const char c=buf.unsafe_next_char();
 					if(c=='\n'){
 						hdrs.clear();
-						hdrk=bufp;
+						hdrk=buf.ptr();
 						state=header_key;
 						break;
 					}
@@ -304,25 +307,25 @@ namespace xiinux{
 			}
 			if(state==header_key){
 	read_header_key:
-				while(bufi<bufnn){
-					bufi++;
-					const char c=*bufp++;
+				while(buf.more()){
+					buf.inci();
+					const char c=buf.unsafe_next_char();
 					if(c=='\n'){// content or done parsing
 						const char*content_length_str=hdrs["content-length"];
 						if(!content_length_str){
-							content=nullptr;
-							content_len=0;//? already
+							content.d=nullptr;
+							content.len=0;//? already
 							process();
 							break;
 						}
-						content_len=(size_t)atoll(content_length_str);
+						content.len=(size_t)atoll(content_length_str);
 						const char*content_type=hdrs["content-type"];
 						if(content_type&&strstr(content_type,"file")){// file upload
 	//							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
 							const mode_t mod{0664};
-							char buf[255];
-							snprintf(buf,sizeof buf,"upload/%s",pth+1);
-							upload_fd=open(buf,O_CREAT|O_WRONLY|O_TRUNC,mod);
+							char bf[255];
+							snprintf(bf,sizeof bf,"upload/%s",rline.pth+1);
+							upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod);
 							if(upload_fd<0){
 								perror("while creating file for upload");
 								throw"err";
@@ -334,20 +337,20 @@ namespace xiinux{
 								state=upload;
 								break;
 							}
-							const size_t chars_left_in_buffer=bufnn-bufi;
+							const size_t chars_left_in_buffer=buf.rem();
 							if(chars_left_in_buffer==0){
 								state=upload;
 								break;
 							}
-							if(chars_left_in_buffer>=content_len){
+							if(chars_left_in_buffer>=content.len){
 //								dbg("upload fits in buffer");
-								const ssize_t nn=write(upload_fd,bufp,(size_t)content_len);
+								const ssize_t nn=write(upload_fd,buf.ptr(),(size_t)content.len);
 								if(nn<0){
 									perr("while writing upload to file");
 									throw"err";
 								}
 								sts.input+=(size_t)nn;
-								if((size_t)nn!=content_len){
+								if((size_t)nn!=content.len){
 									throw"incomplete upload";
 								}
 								if(::close(upload_fd)<0){
@@ -355,34 +358,32 @@ namespace xiinux{
 								}
 								const char resp[]="HTTP/1.1 204\r\n\r\n";
 								io_send(resp,sizeof resp-1,true);//. -1 to remove eos
-								bufp+=content_len;
-								bufi+=content_len;
+								buf.unsafe_inc_pi(content.len);
 								state=next_request;
 								break;
 							}
-							const ssize_t nn=write(fd,bufp,chars_left_in_buffer);
+							const ssize_t nn=write(fd,buf.ptr(),chars_left_in_buffer);
 							if(nn<0){
 								perror("while writing upload to file2");
 								throw"err";
 							}
-							content_pos=(size_t)nn;
+							content.pos=(size_t)nn;
 							state=upload;
 							break;
 						}
 						// posted content
-						delete[]content;
-						content=new char[content_len+1];// extra char for end-of-string
-						const size_t chars_left_in_buffer=bufnn-bufi;
-						if(chars_left_in_buffer>=content_len){
-							memcpy(content,bufp,(size_t)content_len);
-							*(content+content_len)=0;
-							bufp+=content_len;
-							bufi+=content_len;
+						delete[]content.d;
+						content.d=new char[content.len+1];// extra char for end-of-string
+						const size_t chars_left_in_buffer=buf.rem();
+						if(chars_left_in_buffer>=content.len){
+							memcpy(content.d,buf.ptr(),(size_t)content.len);
+							*(content.d+content.len)=0;
+							buf.unsafe_inc_pi(content.len);
 							process();
 							break;
 						}else{
-							memcpy(content,bufp,chars_left_in_buffer);
-							content_pos=chars_left_in_buffer;
+							memcpy(content.d,buf.ptr(),chars_left_in_buffer);
+							content.pos=chars_left_in_buffer;
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
 								io_send("HTTP/1.1 100\r\n\r\n",16,true);
@@ -391,24 +392,24 @@ namespace xiinux{
 							break;
 						}
 					}else if(c==':'){
-						*(bufp-1)=0;
-						hdrv=bufp;
+						buf.eos();
+						hdrv=buf.ptr();
 						state=header_value;
 						break;
 					}
 				}
 			}
 			if(state==header_value){
-				while(bufi<bufnn){
-					bufi++;
-					const char c=*bufp++;
+				while(buf.more()){
+					buf.inci();
+					const char c=buf.unsafe_next_char();
 					if(c=='\n'){
-						*(bufp-1)=0;
+						buf.eos();
 						hdrk=strtrm(hdrk,hdrv-2);
 						strlwr(hdrk);
-						hdrv=strtrm(hdrv,bufp-2);
+						hdrv=strtrm(hdrv,buf.ptr()-2);
 						hdrs.put(hdrk,hdrv);
-						hdrk=bufp;
+						hdrk=buf.ptr();
 						state=header_key;
 	//					break;
 						goto read_header_key;
@@ -418,9 +419,9 @@ namespace xiinux{
 		}}
 	private:
 		void process(){
-			const char*path=*pth=='/'?pth+1:pth;
+			const char*path=*rline.pth=='/'?rline.pth+1:rline.pth;
 			reply x=reply(fd);
-			if(!*path&&qs){
+			if(!*path and rline.qs){
 				sts.widgets++;
 				const char*cookie=hdrs["cookie"];
 				const char*session_id;
@@ -457,18 +458,18 @@ namespace xiinux{
 						sess.put(ses,false);
 					}
 				}
-				widget*o=ses->get_widget(qs);
+				widget*o=ses->get_widget(rline.qs);
 				if(!o){
-					o=widgetget(qs);
-					const size_t key_len=strlen(qs);
+					o=widgetget(rline.qs);
+					const size_t key_len=strlen(rline.qs);
 					char*key=(char*)malloc(key_len+1);
-					memcpy(key,qs,key_len+1);
+					memcpy(key,rline.qs,key_len+1);
 					ses->put_widget(key,o);
 				}
-				if(content){
-					o->on_content(x,content,content_len);
-					delete[]content;
-					content=nullptr;
+				if(content.d){
+					o->on_content(x,content.d,content.len);
+					delete[]content.d;
+					content.d=nullptr;
 					state=next_request;
 					return;
 				}else{
@@ -511,15 +512,15 @@ namespace xiinux{
 				state=next_request;
 				return;
 			}
-			file_fd=open(path,O_RDONLY);
-			if(file_fd==-1){
+			file.fd=open(path,O_RDONLY);
+			if(file.fd==-1){
 				x.http2(404,"cannot open");
 				state=next_request;
 				return;
 			}
 			sts.files++;
-			file_pos=0;
-			file_len=size_t(fdstat.st_size);
+			file.pos=0;
+			file.len=size_t(fdstat.st_size);
 			const char*range=hdrs["range"];
 			char bb[K];
 			int bb_len;
@@ -530,17 +531,17 @@ namespace xiinux{
 					perr("range");
 					throw"errrorscanning";
 				}
-				file_pos=rs;
-				const size_t e=file_len;
-				file_len-=(size_t)rs;
-				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file_len,rs,e,e);
+				file.pos=rs;
+				const size_t e=file.len;
+				file.len-=(size_t)rs;
+				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file.len,rs,e,e);
 			}else{
 				// Connection: Keep-Alive\r\n for apache-bench
-				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file_len);
+				bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.len);
 			}
 			if(bb_len<0)throw"err";
 			io_send(bb,(size_t)bb_len,true);
-			const ssize_t nn=sendfile(fd,file_fd,&file_pos,file_len);
+			const ssize_t nn=file.send_to(fd);
 			if(nn<0){
 				if(errno==EPIPE||errno==ECONNRESET){
 					sts.brkp++;
@@ -551,13 +552,13 @@ namespace xiinux{
 				throw"err";
 			}
 			sts.output+=size_t(nn);
-			file_len-=size_t(nn);
-			if(file_len!=0){
+			file.len-=size_t(nn);
+			if(file.len!=0){
 				state=resume_send_file;
 				io_request_write();
 				return;
 			}
-			::close(file_fd);
+			file.close();
 			state=next_request;
 		}
 		static inline char*strtrm(char*p,char*e){
