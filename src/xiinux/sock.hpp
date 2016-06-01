@@ -125,7 +125,7 @@ namespace xiinux{class sock{
 		sts.writes++;
 		const ssize_t nn=send(fd,buf,len,MSG_NOSIGNAL);
 		if(nn<0){
-			if(errno==EPIPE||errno==ECONNRESET){
+			if(errno==EPIPE or errno==ECONNRESET){
 				sts.brkp++;
 				throw"brk";
 			}
@@ -162,7 +162,7 @@ public:
 			const ssize_t nn=buf.receive_from(fd);
 			if(!nn)throw"brk";
 			if(nn<0){
-				if(errno==EAGAIN||errno==EWOULDBLOCK){io_request_read();return;}
+				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw"brk";
 				sts.errors++;
 				throw"readingcontent";
@@ -188,7 +188,7 @@ public:
 			const ssize_t nn=buf.receive_from(fd);
 			if(!nn)throw"brk";
 			if(nn<0){
-				if(errno==EAGAIN||errno==EWOULDBLOCK){io_request_read();return;}
+				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw"brk";
 				sts.errors++;
 				throw"upload";
@@ -247,7 +247,7 @@ public:
 				return;
 			}
 			if(nn<0){//error
-				if(errno==EAGAIN||errno==EWOULDBLOCK){io_request_read();return;}
+				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw"brk";
 				sts.errors++;
 				throw"err";
@@ -315,7 +315,7 @@ read_header_key:
 						sts.widgets++;
 						const char*cookie=hdrs["cookie"];
 						const char*session_id;
-						if(cookie&&strstr(cookie,"i=")){
+						if(cookie and strstr(cookie,"i=")){
 							//? parse cookie
 							session_id=cookie+sizeof "i="-1;
 						}else{
@@ -363,7 +363,7 @@ read_header_key:
 						if(content_length_str){// posting content to widget
 							const size_t total=content.total_length();
 							const char*s=hdrs["expect"];
-							if(s&&!strcmp(s,"100-continue")){
+							if(s and !strcmp(s,"100-continue")){
 	//								dbg("client expects 100 continue before sending post");
 								io_send("HTTP/1.1 100\r\n\r\n",16,true);
 								wdgt->on_content(x,nullptr,0,total);//? begin content scan
@@ -391,13 +391,13 @@ read_header_key:
 						}
 					}
 					const char*content_type=hdrs["content-type"];
-					if(content_type&&strstr(content_type,"file")){// file upload
+					if(content_type and strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
 						char bf[255];
 						if(snprintf(bf,sizeof bf,"upload/%s",rline.pth+1)==sizeof bf)throw"pathtrunc";
 						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"err";}
 						const char*s=hdrs["expect"];
-						if(s&&!strcmp(s,"100-continue")){
+						if(s and !strcmp(s,"100-continue")){
 							io_send("HTTP/1.1 100\r\n\r\n",16,true);
 							state=receiving_upload;
 							break;
@@ -454,7 +454,7 @@ read_header_key:
 					//"Fri, 31 Dec 1999 23:59:59 GMT"
 					strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
 					const char*lastmodstr=hdrs["if-modified-since"];
-					if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
+					if(lastmodstr and !strcmp(lastmodstr,lastmod)){
 						const char hdr[]="HTTP/1.1 304\r\n\r\n";
 						const size_t hdrnn=sizeof hdr;
 						io_send(hdr,hdrnn,true);
@@ -470,7 +470,7 @@ read_header_key:
 					const char*range=hdrs["range"];
 					char bb[K];
 					int bb_len;
-					if(range&&*range){
+					if(range and *range){
 						off_t rs{0};
 						if(EOF==sscanf(range,"bytes=%jd",&rs)){
 							sts.errors++;
@@ -489,7 +489,7 @@ read_header_key:
 					io_send(bb,(size_t)bb_len,true);
 					const ssize_t nn=file.resume_send_to(fd);
 					if(nn<0){
-						if(errno==EPIPE||errno==ECONNRESET){
+						if(errno==EPIPE or errno==ECONNRESET){
 							sts.brkp++;
 							throw"brk";
 						}
@@ -530,9 +530,9 @@ read_header_key:
 	}}
 private:
 	static inline char*strtrm(char*p,char*e){
-		while(p!=e&&isspace(*p))
+		while(p!=e and isspace(*p))
 			p++;
-		while(p!=e&&isspace(*e))
+		while(p!=e and isspace(*e))
 			*e--=0;
 		return p;
 	}
