@@ -5,6 +5,6 @@ namespace xiinux{
 	public:
 		virtual~widget(){};
 		virtual void to(reply&x)=0;
-		virtual void on_content(reply&x,/*scan*/const char*content,const size_t content_len){};
+		virtual void on_content(reply&x,/*scan*/const char*buf,const size_t len,const size_t total_content_len){};
 	};
 }

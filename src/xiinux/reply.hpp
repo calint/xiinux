@@ -50,7 +50,7 @@ namespace xiinux{
 			return*this;
 		}
 		inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
-		inline reply&http(const int code,const char*content,const size_t len){
+		inline reply&http(const int code,const char*content=nullptr,const size_t len=0){
 			char bb[1024];
 			int n;
 			if(set_session_id){
@@ -63,7 +63,10 @@ namespace xiinux{
 				n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
 			}
 			if(n<0)throw"send";
-			pk(bb,(size_t)n).pk(content,len);
+			io_send(bb,n,true);
+			if(content)
+				io_send(content,len,true);
+//			pk(bb,(size_t)n).pk(content,len);
 			return*this;
 		}
 		inline reply&http(const int code,const strb&s){

@@ -1,5 +1,5 @@
 
-Sun May 29 20:15:46 ICT 2016
+Wed Jun  1 16:56:40 ICT 2016
 coverage tests on http://localhost:8088
  * static document
  * if-modified-since
@@ -19,5 +19,5 @@ coverage tests on http://localhost:8088
  * chunked many small to larger than chunk size >4K 
  * chunked reply data larger than buffers >256K 
  [todo] * resumable upload 
-Sun May 29 20:15:47 ICT 2016
+Wed Jun  1 16:56:42 ICT 2016
 
