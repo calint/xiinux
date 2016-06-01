@@ -60,7 +60,7 @@ namespace xiinux{class sock{
 		inline size_t rem()const{return len-pos;}
 		inline bool is_done()const{return pos==len;}
 		inline void rst(){len=pos=0;}
-		inline void unsafe_inc_pos(const size_t n){pos+=n;}
+		inline void unsafe_skip(const size_t n){pos+=n;}
 		inline size_t total_length()const{return len;}
 		inline void init_for_receive(const char*content_length_str){len=(size_t)atoll(content_length_str);pos=0;}
 	}content;
@@ -70,25 +70,21 @@ namespace xiinux{class sock{
 	class{
 		char d[sockbuf_size_in_bytes];
 		char*p{d};
-		char*eob{d};
+		char*e{d};
 	public:
-		inline bool needs_read()const{return p==eob;}
-		inline bool more()const{return p!=eob;}
-//		inline void inci(){i++;}
+		inline bool needs_read()const{return p==e;}
+		inline bool more()const{return p!=e;}
 		inline char unsafe_next_char(){return *p++;}
 		inline void eos(){*(p-1)=0;}
-//		inline void rst(){i=nn=0;p=d;}
-		inline void rst(){p=eob=d;}
+		inline void rst(){p=e=d;}
 		inline char*ptr()const{return p;}
-		inline size_t free_in_buf()const{return sockbuf_size_in_bytes-(p-d);}
-		inline size_t rem_to_parse()const{return eob-p;}
-//		inline void unsafe_inc_len(const size_t n){nn+=n;}
-//		inline void unsafe_inc_pi(const size_t n){p+=n;i+=n;}
-		inline void unsafe_inc_pi(const size_t n){p+=n;}
+//		inline size_t avail_buf()const{return sockbuf_size_in_bytes-(p-d);}
+		inline size_t rem()const{return e-p;}
+		inline void unsafe_skip(const size_t n){p+=n;}
 		inline ssize_t receive_from(int fd){
-			ssize_t n=recv(fd,p,free_in_buf(),0);
+			ssize_t n=recv(fd,p,sockbuf_size_in_bytes-(p-d),0);
 			if(n<0)return n;
-			eob=d+n;
+			e=d+n;
 			sts.input+=(unsigned)n;
 			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
 			return n;
@@ -172,18 +168,19 @@ public:
 				throw"readingcontent";
 			}
 			const size_t crem=content.rem();
+			const size_t total=content.total_length();
 			reply x{fd};
 			if(crem>(size_t)nn){
-				wdgt->on_content(x,buf.ptr(),nn,content.total_length());
-				content.unsafe_inc_pos(nn);
-				buf.unsafe_inc_pi(nn);
+				wdgt->on_content(x,buf.ptr(),nn,total);
+				content.unsafe_skip(nn);
+				buf.unsafe_skip(nn);
 				if(!content.is_done())
 					continue;
 				state=next_request;
 			}else{
-				wdgt->on_content(x,buf.ptr(),crem,content.total_length());
-				content.unsafe_inc_pos(crem);
-				buf.unsafe_inc_pi(crem);
+				wdgt->on_content(x,buf.ptr(),crem,total);
+				content.unsafe_skip(crem);
+				buf.unsafe_skip(crem);
 				state=next_request;
 			}
 		}else if(state==receiving_upload){
@@ -200,7 +197,7 @@ public:
 			const ssize_t nw=write(upload_fd,buf.ptr(),crem>(size_t)nn?(size_t)nn:crem);
 			if(nw<0){sts.errors++;throw"writing upload to file";}
 			if(nw!=nn)throw"writing upload to file 2";
-			content.unsafe_inc_pos(nw);
+			content.unsafe_skip(nw);
 			if(!content.is_done())continue;
 			if(::close(upload_fd)<0)perr("while closing upload file 2");
 			io_send("HTTP/1.1 204\r\n\r\n",16,true);
@@ -369,25 +366,26 @@ read_header_key:
 							send_session_id_in_reply=false;
 						}
 						if(content_length_str){// posting content to widget
+							const size_t total=content.total_length();
 							const char*s=hdrs["expect"];
 							if(s&&!strcmp(s,"100-continue")){
 	//								dbg("client expects 100 continue before sending post");
 								io_send("HTTP/1.1 100\r\n\r\n",16,true);
-								wdgt->on_content(x,nullptr,0,content.total_length());//? begin content scan
+								wdgt->on_content(x,nullptr,0,total);//? begin content scan
 								state=receiving_content;
 								break;
 							}
-							const size_t rem=buf.rem_to_parse();
-							wdgt->on_content(x,nullptr,0,content.total_length());//? begin content scan
-							if(rem>=content.total_length()){// full content is read in buffer
-								wdgt->on_content(x,buf.ptr(),content.total_length(),content.total_length());
-								buf.unsafe_inc_pi(content.total_length());
+							wdgt->on_content(x,nullptr,0,total);//? begin content scan
+							const size_t rem=buf.rem();
+							if(rem>=total){// full content is read in buffer
+								wdgt->on_content(x,buf.ptr(),total,total);
+								buf.unsafe_skip(total);
 								state=next_request;
 								break;
 							}else{
-								wdgt->on_content(x,buf.ptr(),rem,content.total_length());
-								content.unsafe_inc_pos(rem);
-								buf.unsafe_inc_pi(rem);
+								wdgt->on_content(x,buf.ptr(),rem,total);
+								content.unsafe_skip(rem);
+								buf.unsafe_skip(rem);
 								state=receiving_content;
 								break;
 							}
@@ -410,20 +408,21 @@ read_header_key:
 							state=receiving_upload;
 							break;
 						}
-						const size_t rem=buf.rem_to_parse();
+						const size_t rem=buf.rem();
 						if(rem==0){
 							state=receiving_upload;
 							break;
 						}
-						if(rem>=content.total_length()){
-							const ssize_t nn=write(upload_fd,buf.ptr(),(size_t)content.total_length());
+						const size_t total=content.total_length();
+						if(rem>=total){
+							const ssize_t nn=write(upload_fd,buf.ptr(),(size_t)total);
 							if(nn<0){perr("while writing upload to file");throw"err";}
 							sts.input+=(size_t)nn;
-							if((size_t)nn!=content.total_length()){throw"incomplete upload";}
+							if((size_t)nn!=total){throw"incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
 							io_send(resp,sizeof resp-1,true);//. -1 to exclude '\0'
-							buf.unsafe_inc_pi(content.total_length());
+							buf.unsafe_skip(total);
 							state=next_request;
 							break;
 						}
@@ -431,7 +430,7 @@ read_header_key:
 						if(nn<0){perror("while writing upload to file2");throw"err";}
 						sts.input+=(size_t)nn;
 						if((size_t)nn!=rem){throw"upload2";}
-						content.unsafe_inc_pos(nn);
+						content.unsafe_skip(nn);
 						state=receiving_upload;
 						break;
 					}
