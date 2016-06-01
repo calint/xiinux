@@ -11,8 +11,9 @@
 #include<unistd.h>
 #include<sys/sendfile.h>
 #include<sys/stat.h>
+//#include"sessions.hpp"
 namespace xiinux{class sock{
-	static sessions sess;
+//	static sessions sess;
 	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,receiving_content,receiving_upload,next_request};
 	parser_state state{next_request};
 
@@ -128,7 +129,7 @@ namespace xiinux{class sock{
 	}
 public:
 	int fd{0};
-	inline sock(const int f):fd{f}{sts.socks++;}
+	inline sock(const int f=0):fd{f}{sts.socks++;}
 	inline~sock(){
 		sts.socks--;
 		if(!::close(fd))return;
@@ -316,16 +317,16 @@ read_header_key:
 							}
 							*sid_ptr=0;
 							ses=new session(sid);
-							sock::sess.put(ses,false);
+							sess.put(ses,false);
 							send_session_id_in_reply=true;
 						}else{
-							ses=sock::sess.get(session_id);
+							ses=sess.get(session_id);
 							if(!ses){
 								// session not found, reload
 								char* sid{(char*)(malloc(64))};
 								strncpy(sid,session_id,64);
 								ses=new session(sid);
-								sock::sess.put(ses,false);
+								sess.put(ses,false);
 							}
 						}
 						wdgt=ses->get_widget(rline.qs);
@@ -538,6 +539,6 @@ private:
 		}
 		*str++='\0';
 	}
-};
-	sessions sock::sess;
+}srv;
+//	sessions sock::sess;
 }

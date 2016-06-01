@@ -4,7 +4,7 @@
 #include<netinet/tcp.h>
 #include"defines.hpp"
 namespace xiinux{class server final{
-	static sock sck;
+//	static sock sck;
 	inline static void*thdwatchrun(void*arg){
 		if(arg)puts((const char*)arg);
 		sts.printhdr(stdout);
@@ -21,7 +21,7 @@ namespace xiinux{class server final{
 		return nullptr;
 	}
 public:
-	inline static void stop(){sck.close();delete homepage;}
+	inline static void stop(){srv.close();delete homepage;}
 	inline static int start(const int argc,const char**argv){
 		args a(argc,argv);
 		const bool watch_thread=a.hasoption('v');
@@ -35,21 +35,21 @@ public:
 		snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",strlen(application_name)+1,application_name);
 		homepage=new doc(buf);
 
-		struct sockaddr_in srv;
-		const ssize_t srvsz=sizeof(srv);
-		bzero(&srv,srvsz);
-		srv.sin_family=AF_INET;
-		srv.sin_addr.s_addr=INADDR_ANY;
-		srv.sin_port=htons(port);
-		if((sck.fd=socket(AF_INET,SOCK_STREAM,0))==-1){perror("socket");exit(1);}
-		if(bind(sck.fd,(struct sockaddr*)&srv,srvsz)){perror("bind");exit(2);}
-		if(listen(sck.fd,nclients)==-1){perror("listen");exit(3);}
+		struct sockaddr_in sa;
+		const ssize_t sasz=sizeof(sa);
+		bzero(&sa,sasz);
+		sa.sin_family=AF_INET;
+		sa.sin_addr.s_addr=INADDR_ANY;
+		sa.sin_port=htons(port);
+		if((srv.fd=socket(AF_INET,SOCK_STREAM,0))==-1){perror("socket");exit(1);}
+		if(bind(srv.fd,(struct sockaddr*)&sa,sasz)){perror("bind");exit(2);}
+		if(listen(srv.fd,nclients)==-1){perror("listen");exit(3);}
 		epollfd=epoll_create(nclients);
 		if(!epollfd){perror("epollcreate");exit(4);}
 		struct epoll_event ev;
 		ev.events=EPOLLIN;
-		ev.data.ptr=&sck;
-		if(epoll_ctl(epollfd,EPOLL_CTL_ADD,sck.fd,&ev)<0){perror("epolladd");exit(5);}
+		ev.data.ptr=&srv;
+		if(epoll_ctl(epollfd,EPOLL_CTL_ADD,srv.fd,&ev)<0){perror("epolladd");exit(5);}
 		struct epoll_event events[nclients];
 		pthread_t thdwatch;
 		if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
@@ -67,9 +67,9 @@ public:
 			}
 			for(int i=0;i<nn;i++){
 				sock*c=(sock*)events[i].data.ptr;
-				if(c->fd==sck.fd){// new connection
+				if(c->fd==srv.fd){// new connection
 					sts.accepts++;
-					const int fda=accept(sck.fd,0,0);
+					const int fda=accept(srv.fd,0,0);
 					if(fda==-1){
 						perr("accept");
 						continue;
@@ -118,4 +118,6 @@ public:
 			}
 		}
 	}
-};sock server::sck{0};}
+};
+//	sock server::sck{0};
+}
