@@ -88,6 +88,7 @@ namespace xiinux{class sock{
 			ssize_t n=recv(fd,p,free_in_buf(),0);
 			if(n<0)return n;
 			nn=n;
+			sts.input+=(unsigned)nn;
 			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
 			return n;
 		}
@@ -99,19 +100,18 @@ namespace xiinux{class sock{
 
 	size_t meter_requests{0};
 	//-----  - - - --- --- --- - - -- - -- - -- - - ----- - -- -- - -- - - -
-	inline void init_for_new_request(){
-		state=method;
-		file.rst();
-		rline.rst();
-		hdrs.clear();
-		parserstate.rst();
-		content.rst();
-		upload_fd=0;
-//		buf.rst();
-		wdgt=nullptr;
-		ses=nullptr;
-		send_session_id_in_reply=false;
-	}
+//	inline void init_for_new_request(){
+//		file.rst();
+//		rline.rst();
+//		hdrs.clear();
+//		parserstate.rst();
+//		content.rst();
+//		upload_fd=0;
+////		buf.rst();
+//		wdgt=nullptr;
+//		ses=nullptr;
+//		send_session_id_in_reply=false;
+//	}
 	inline void io_request_read(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
@@ -170,7 +170,6 @@ public:
 				sts.errors++;
 				throw"readingcontent";
 			}
-			sts.input+=(unsigned)nn;
 			const size_t crem=content.rem();
 			reply x{fd};
 			if(crem>(size_t)nn){
@@ -196,7 +195,6 @@ public:
 				sts.errors++;
 				throw"upload";
 			}
-			sts.input+=(size_t)nn;
 			const size_t crem=content.rem();
 			const ssize_t nw=write(upload_fd,buf.ptr(),crem>(size_t)nn?(size_t)nn:crem);
 			if(nw<0){sts.errors++;throw"writing upload to file";}
@@ -229,14 +227,21 @@ public:
 		if(state==next_request){
 			sts.requests++;
 			meter_requests++;
-			init_for_new_request();
+			file.rst();
+			rline.rst();
+			hdrs.clear();
+			parserstate.rst();
+			content.rst();
+			upload_fd=0;
+	//		buf.rst();
+			wdgt=nullptr;
+			ses=nullptr;
+//			send_session_id_in_reply=false;
+			state=method;
 		}
 		if(buf.needs_read()){//? assumes request and headers fit in conbufnn and done in one read
-//				if(buf.i>=sockbuf_size_in_bytes)
-//					throw"reqbufoverrun";//? chained requests buf pointers
-			if(state==next_request){//? next_request
-				buf.rst();
-			}
+//			if(buf.i>=sockbuf_size_in_bytes)throw"reqbufoverrun";//? chained requests buf pointers
+			buf.rst();
 			sts.reads++;
 			const ssize_t nn=buf.receive_from(fd);
 			if(nn==0){//closed by client
@@ -249,7 +254,6 @@ public:
 				sts.errors++;
 				throw"err";
 			}
-			sts.input+=(unsigned)nn;
 		}
 		if(state==method){
 			while(buf.more()){
@@ -466,7 +470,7 @@ read_header_key:
 						break;
 					}
 					if(file.open(path)<0){
-						x.http2(404,"cannot open");
+						x.http2(404,"cannot open\n");
 						state=next_request;
 						break;
 					}
@@ -475,7 +479,7 @@ read_header_key:
 					char bb[K];
 					int bb_len;
 					if(range&&*range){
-						off_t rs=0;
+						off_t rs{0};
 						if(EOF==sscanf(range,"bytes=%jd",&rs)){
 							sts.errors++;
 							perr("range");
@@ -489,7 +493,7 @@ read_header_key:
 						file.init_for_send(size_t(fdstat.st_size));
 						bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
 					}
-					if(bb_len<0)throw"err";
+					if(bb_len==sizeof bb)throw"err";
 					io_send(bb,(size_t)bb_len,true);
 					const ssize_t nn=file.resume_send_to(fd);
 					if(nn<0){
