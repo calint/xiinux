@@ -48,9 +48,10 @@ namespace xiinux{
 			return*this;
 		}
 		inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
-		inline reply&http(const int code,const char*content=nullptr,const size_t len=0){
+		inline reply&http(const int code,const char*content=nullptr,size_t len=0){
 			char bb[1024];
 			int n;
+			if(content and !len)len=strnlen(content,K*K*K);
 			if(set_session_id){
 				// Connection: Keep-Alive\r\n  for apache bench
 	//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
@@ -62,17 +63,15 @@ namespace xiinux{
 			}
 			if(n<0)throw"send";
 			io_send(bb,n,true);
-			if(content)
-				io_send(content,len,true);
-//			pk(bb,(size_t)n).pk(content,len);
+			if(content)io_send(content,len,true);
 			return*this;
 		}
 		inline reply&http(const int code,const strb&s){
 			return http(code,s.getbuf(),s.getsize());
 		}
-		inline reply&http2(const int code,const char*content){
-			const size_t nn=strlen(content);
-			return http(code,content,nn);
+		inline reply&http2(const int code,const char*str){
+			const size_t nn=strlen(str);
+			return http(code,str,nn);
 		}
 	};
 }

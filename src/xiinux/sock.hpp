@@ -255,7 +255,6 @@ public:
 		}
 		if(state==method){
 			while(buf.more()){
-//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c==' '){
 					state=uri;
@@ -267,7 +266,6 @@ public:
 		}
 		if(state==uri){
 			while(buf.more()){
-//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c==' '){
 					state=protocol;
@@ -284,7 +282,6 @@ public:
 		}
 		if(state==query){
 			while(buf.more()){
-//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c==' '){
 					state=protocol;
@@ -296,7 +293,6 @@ public:
 		}
 		if(state==protocol){
 			while(buf.more()){
-//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					hdrs.clear();
@@ -309,7 +305,6 @@ public:
 		if(state==header_key){
 read_header_key:
 			while(buf.more()){
-//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){// content or done parsing
 					const char*path=*rline.pth=='/'?rline.pth+1:rline.pth;
@@ -399,9 +394,8 @@ read_header_key:
 					if(content_type&&strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
 						char bf[255];
-						snprintf(bf,sizeof bf,"upload/%s",rline.pth+1);
-						upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod);
-						if(upload_fd<0){perror("while creating file for upload");throw"err";}
+						if(snprintf(bf,sizeof bf,"upload/%s",rline.pth+1)==sizeof bf)throw"pathtrunc";
+						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"err";}
 						const char*s=hdrs["expect"];
 						if(s&&!strcmp(s,"100-continue")){
 							io_send("HTTP/1.1 100\r\n\r\n",16,true);
@@ -417,7 +411,6 @@ read_header_key:
 						if(rem>=total){
 							const ssize_t nn=write(upload_fd,buf.ptr(),(size_t)total);
 							if(nn<0){perr("while writing upload to file");throw"err";}
-							sts.input+=(size_t)nn;
 							if((size_t)nn!=total){throw"incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
@@ -428,7 +421,6 @@ read_header_key:
 						}
 						const ssize_t nn=write(upload_fd,buf.ptr(),rem);
 						if(nn<0){perror("while writing upload to file2");throw"err";}
-						sts.input+=(size_t)nn;
 						if((size_t)nn!=rem){throw"upload2";}
 						content.unsafe_skip(nn);
 						state=receiving_upload;
@@ -442,18 +434,18 @@ read_header_key:
 						break;
 					}
 					if(strstr(path,"..")){
-						x.http(403,"path contains ..\n",sizeof "path contains ..\n");
+						x.http(403,"path contains ..\n",sizeof "path contains ..\n"-1);
 						state=next_request;
 						return;
 					}
 					struct stat fdstat;
 					if(stat(path,&fdstat)){
-						x.http2(404,"not found\n");
+						x.http(404,"not found\n",sizeof "not found\n"-1);
 						state=next_request;
 						return;
 					}
 					if(S_ISDIR(fdstat.st_mode)){
-						x.http2(403,"path is directory\n");
+						x.http(403,"path is directory\n",sizeof "path is directory\n"-1);
 						state=next_request;
 						return;
 					}
@@ -470,7 +462,7 @@ read_header_key:
 						break;
 					}
 					if(file.open(path)<0){
-						x.http2(404,"cannot open\n");
+						x.http(404,"cannot open\n",sizeof "cannot open\n"-1);
 						state=next_request;
 						break;
 					}
@@ -522,7 +514,6 @@ read_header_key:
 		}
 		if(state==header_value){
 			while(buf.more()){
-//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
