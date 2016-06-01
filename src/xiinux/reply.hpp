@@ -18,18 +18,15 @@ public:
 	}
 	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
-		const ssize_t n=send(fd,buf,len,MSG_NOSIGNAL);
+		const ssize_t n{send(fd,buf,len,MSG_NOSIGNAL)};
 		if(n<0){
-			if(errno==EPIPE||errno==ECONNRESET){
-				sts.brkp++;
-				throw signal_connection_reset_by_peer;
-			}
+			if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 			sts.errors++;
 			throw"iosend";
 		}
-		sts.output+=(size_t)n;
+		sts.output+=size_t(n);
 		if(conf::print_trafic)write(conf::print_trafic_fd,buf,n);
-		if(throw_if_send_not_complete&&(size_t)n!=len){
+		if(throw_if_send_not_complete and size_t(n)!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
 		}
@@ -42,8 +39,8 @@ public:
 	inline void send_session_id_at_next_opportunity(const char*id){set_session_id_cookie=id;}
 	inline reply&http(const int code,const char*content=nullptr,size_t len=0){
 		char bb[1024];
+		if(content and !len)len=strnlen(content,K*M);
 		int n;
-		if(content and !len)len=strnlen(content,K*K*K);
 		if(set_session_id_cookie){
 			// Connection: Keep-Alive\r\n  for apache bench
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);

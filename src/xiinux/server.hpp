@@ -106,14 +106,14 @@ public:
 				try{
 					c->run();
 				}catch(const char*msg){
-					if(strcmp(msg,signal_connection_reset_by_peer)){
-//					if(msg!=exception_connection_reset_by_client){
-						printf(" *** exception from %p : %s\n",(void*)c,msg);
-					}
 					delete c;
+					if(msg==signal_connection_reset_by_peer){
+						sts.brkp++;
+						continue;
+					}
+					printf(" *** exception from %p : %s\n",(void*)c,msg);
 				}catch(...){
 					printf(" *** exception from %p\n",(void*)c);
-					delete c;
 				}
 			}
 		}

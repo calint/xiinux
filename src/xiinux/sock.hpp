@@ -111,22 +111,20 @@ namespace xiinux{class sock{
 	}
 	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
-		auto nn{send(fd,buf,len,MSG_NOSIGNAL)};
-		if(nn<0){
-			if(errno==EPIPE or errno==ECONNRESET){
-				sts.brkp++;
-				throw signal_connection_reset_by_peer;
-			}
+		const ssize_t n{send(fd,buf,len,MSG_NOSIGNAL)};
+		if(n<0){
+			if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 			sts.errors++;
 			throw"iosend";
 		}
-		sts.output+=size_t(nn);
-		if(conf::print_trafic)write(conf::print_trafic_fd,buf,(unsigned)nn);
-		if(throw_if_send_not_complete and size_t(nn)!=len){
+		const size_t un=size_t(n);
+		sts.output+=un;
+		if(conf::print_trafic)write(conf::print_trafic_fd,buf,un);
+		if(throw_if_send_not_complete and un!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
 		}
-		return size_t(nn);
+		return un;
 	}
 public:
 	int fd{0};
@@ -433,49 +431,47 @@ read_header_key:
 						return;
 					}
 					const struct tm*tm=gmtime(&fdstat.st_mtime);
-					char lastmod[64];
-					//"Fri, 31 Dec 1999 23:59:59 GMT"
-					strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
-					const char*lastmodstr=hdrs["if-modified-since"];
-					if(lastmodstr and !strcmp(lastmodstr,lastmod)){
-						const char hdr[]="HTTP/1.1 304\r\n\r\n";
-						const size_t hdrnn=sizeof hdr;
-						io_send(hdr,hdrnn,true);
-						state=next_request;
-						break;
-					}
-					if(file.open(path)<0){
-						x.http(404,"cannot open\n",sizeof "cannot open\n"-1);
-						state=next_request;
-						break;
-					}
-					sts.files++;
-					const char*range=hdrs["range"];
-					char bb[K];
-					int bb_len;
-					if(range and *range){
-						off_t rs{0};
-						if(EOF==sscanf(range,"bytes=%jd",&rs)){
-							sts.errors++;
-							perr("range");
-							throw"errrorscanning";
+					{	char lastmod[64];
+						//"Fri, 31 Dec 1999 23:59:59 GMT"
+						strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
+						const char*lastmodstr=hdrs["if-modified-since"];
+						if(lastmodstr and !strcmp(lastmodstr,lastmod)){
+							const char hdr[]="HTTP/1.1 304\r\n\r\n";
+							const size_t hdrnn=sizeof hdr;
+							io_send(hdr,hdrnn,true);
+							state=next_request;
+							break;
 						}
-						file.init_for_send(size_t(fdstat.st_size),rs);
-						const size_t e=file.length();
-						bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
-					}else{
-						// Connection: Keep-Alive\r\n for apache-bench
-						file.init_for_send(size_t(fdstat.st_size));
-						bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
+						if(file.open(path)<0){
+							x.http(404,"cannot open\n",sizeof "cannot open\n"-1);
+							state=next_request;
+							break;
+						}
+						sts.files++;
+						const char*range=hdrs["range"];
+						char bb[K];
+						int bb_len;
+						if(range and *range){
+							off_t rs{0};
+							if(EOF==sscanf(range,"bytes=%jd",&rs)){
+								sts.errors++;
+								perr("range");
+								throw"errrorscanning";
+							}
+							file.init_for_send(size_t(fdstat.st_size),rs);
+							const size_t e=file.length();
+							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
+						}else{
+							// Connection: Keep-Alive\r\n for apache-bench
+							file.init_for_send(size_t(fdstat.st_size));
+							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
+						}
+						if(bb_len==sizeof bb)throw"err";
+						io_send(bb,(size_t)bb_len,true);
 					}
-					if(bb_len==sizeof bb)throw"err";
-					io_send(bb,(size_t)bb_len,true);
 					const ssize_t nn=file.resume_send_to(fd);
 					if(nn<0){
-						if(errno==EPIPE or errno==ECONNRESET){
-							sts.brkp++;
-							throw signal_connection_reset_by_peer;
-						}
+						if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 						sts.errors++;
 						perr("sendingfile");
 						throw"err";

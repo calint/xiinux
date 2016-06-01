@@ -9,22 +9,19 @@ namespace xiinux{class chunky:public xprinter{
 	int sockfd;
 	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
-		const ssize_t n=::send(sockfd,buf,len,MSG_NOSIGNAL);
+		const ssize_t n{send(sockfd,buf,len,MSG_NOSIGNAL)};
 		if(n<0){
-			if(errno==EPIPE||errno==ECONNRESET){
-				sts.brkp++;
-				throw signal_connection_reset_by_peer;
-			}
+			if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 			sts.errors++;
 			throw"iosend";
 		}
-		sts.output+=(size_t)n;
+		sts.output+=size_t(n);
 		if(conf::print_trafic)write(conf::print_trafic_fd,buf,n);
-		if(throw_if_send_not_complete&&(size_t)n!=len){
+		if(throw_if_send_not_complete and size_t(n)!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
 		}
-		return(size_t)n;
+		return size_t(n);
 	}
 public:
 	inline chunky(int sockfd):sockfd{sockfd}{}
