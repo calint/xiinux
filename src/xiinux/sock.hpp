@@ -23,7 +23,7 @@ namespace xiinux{class sock{
 	public:
 		inline void close(){if(::close(fd)<0)perror("closefile");}
 		inline ssize_t resume_send_to(int tofd){
-			const ssize_t n=sendfile(tofd,fd,&pos,len-pos);
+			auto n{sendfile(tofd,fd,&pos,len-pos)};
 			if(n<0)return n;
 			xiinux::sts.output+=n;
 			return n;
@@ -57,10 +57,11 @@ namespace xiinux{class sock{
 		size_t pos{0};
 		size_t len{0};
 	public:
-		inline size_t rem()const{return len-pos;}
-		inline bool is_done()const{return pos==len;}
 		inline void rst(){len=pos=0;}
+		inline bool more()const{return pos!=len;}
+		inline size_t rem()const{return len-pos;}
 		inline void unsafe_skip(const size_t n){pos+=n;}
+
 		inline size_t total_length()const{return len;}
 		inline void init_for_receive(const char*content_length_str){len=(size_t)atoll(content_length_str);pos=0;}
 	}content;
@@ -72,21 +73,20 @@ namespace xiinux{class sock{
 		char*p{d};
 		char*e{d};
 	public:
-		inline bool needs_read()const{return p==e;}
-		inline bool more()const{return p!=e;}
-		inline char unsafe_next_char(){return *p++;}
-		inline void eos(){*(p-1)=0;}
 		inline void rst(){p=e=d;}
-		inline char*ptr()const{return p;}
-//		inline size_t avail_buf()const{return sockbuf_size_in_bytes-(p-d);}
+		inline bool more()const{return p!=e;}
 		inline size_t rem()const{return e-p;}
 		inline void unsafe_skip(const size_t n){p+=n;}
+
+		inline char unsafe_next_char(){return *p++;}
+		inline void eos(){*(p-1)=0;}
+		inline char*ptr()const{return p;}
 		inline ssize_t receive_from(int fd){
-			ssize_t n=recv(fd,p,sockbuf_size_in_bytes-(p-d),0);
+			auto n{recv(fd,p,sockbuf_size_in_bytes-(p-d),0)};
 			if(n<0)return n;
-			e=d+n;
 			sts.input+=(unsigned)n;
-			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
+			e=d+n;
+			if(conf::print_trafic)write(conf::print_trafic_fd,p,(unsigned)n);
 			return n;
 		}
 	}buf;
@@ -97,18 +97,6 @@ namespace xiinux{class sock{
 
 	size_t meter_requests{0};
 	//-----  - - - --- --- --- - - -- - -- - -- - - ----- - -- -- - -- - - -
-//	inline void init_for_new_request(){
-//		file.rst();
-//		rline.rst();
-//		hdrs.clear();
-//		parserstate.rst();
-//		content.rst();
-//		upload_fd=0;
-////		buf.rst();
-//		wdgt=nullptr;
-//		ses=nullptr;
-//		send_session_id_in_reply=false;
-//	}
 	inline void io_request_read(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
@@ -123,7 +111,7 @@ namespace xiinux{class sock{
 	}
 	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
-		const ssize_t nn=send(fd,buf,len,MSG_NOSIGNAL);
+		auto nn{send(fd,buf,len,MSG_NOSIGNAL)};
 		if(nn<0){
 			if(errno==EPIPE or errno==ECONNRESET){
 				sts.brkp++;
@@ -132,8 +120,8 @@ namespace xiinux{class sock{
 			sts.errors++;
 			throw"iosend";
 		}
-		sts.output+=(size_t)nn;
-		if(conf::print_trafic)write(conf::print_trafic_fd,buf,nn);
+		sts.output+=size_t(nn);
+		if(conf::print_trafic)write(conf::print_trafic_fd,buf,(unsigned)nn);
 		if(throw_if_send_not_complete and size_t(nn)!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
@@ -145,11 +133,7 @@ public:
 	inline sock(const int f):fd{f}{sts.socks++;}
 	inline~sock(){
 		sts.socks--;
-//			dbg("sock deleted");
-//		delete[]content.d;
-		if(!::close(fd)){
-			return;
-		}
+		if(!::close(fd))return;
 		sts.errors++;
 		perr("sockdel");
 	}
@@ -159,23 +143,23 @@ public:
 		if(state==receiving_content){
 			sts.reads++;
 			buf.rst();
-			const ssize_t nn=buf.receive_from(fd);
-			if(!nn)throw"brk";
-			if(nn<0){
+			const ssize_t n{buf.receive_from(fd)};
+			if(!n)throw"brk";
+			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw"brk";
 				sts.errors++;
 				throw"readingcontent";
 			}
-			const size_t crem=content.rem();
-			const size_t total=content.total_length();
+			const size_t un{size_t(n)};
+			const size_t crem{content.rem()};
+			const size_t total{content.total_length()};
 			reply x{fd};
-			if(crem>(size_t)nn){
-				wdgt->on_content(x,buf.ptr(),nn,total);
-				content.unsafe_skip(nn);
-				buf.unsafe_skip(nn);
-				if(!content.is_done())
-					continue;
+			if(crem>size_t(n)){
+				wdgt->on_content(x,buf.ptr(),un,total);
+				content.unsafe_skip(un);
+				buf.unsafe_skip(un);
+				if(content.more())continue;
 				state=next_request;
 			}else{
 				wdgt->on_content(x,buf.ptr(),crem,total);
@@ -185,38 +169,38 @@ public:
 			}
 		}else if(state==receiving_upload){
 			sts.reads++;
-			const ssize_t nn=buf.receive_from(fd);
-			if(!nn)throw"brk";
-			if(nn<0){
+			const ssize_t n{buf.receive_from(fd)};
+			if(!n)throw"brk";
+			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw"brk";
 				sts.errors++;
 				throw"upload";
 			}
-			const size_t crem=content.rem();
-			const ssize_t nw=write(upload_fd,buf.ptr(),crem>(size_t)nn?(size_t)nn:crem);
+			const size_t un{size_t(n)};
+			const size_t crem{content.rem()};
+			const ssize_t nw{write(upload_fd,buf.ptr(),crem>un?un:crem)};
 			if(nw<0){sts.errors++;throw"writing upload to file";}
-			if(nw!=nn)throw"writing upload to file 2";
-			content.unsafe_skip(nw);
-			if(!content.is_done())continue;
+			if(nw!=n)throw"writing upload to file 2";
+			content.unsafe_skip((unsigned)nw);
+			if(content.more())continue;
 			if(::close(upload_fd)<0)perr("while closing upload file 2");
 			io_send("HTTP/1.1 204\r\n\r\n",16,true);
 			state=next_request;
 		}else if(state==resume_send_file){
 			sts.writes++;
-			const ssize_t sf=file.resume_send_to(fd);
+			const ssize_t sf{file.resume_send_to(fd)};
 			if(sf<0){//error
 				if(errno==EAGAIN){io_request_write();return;}
 				sts.errors++;
 				throw"err";
 			}
-			if(file.done())
-				continue;
+			if(file.done())continue;
 			file.close();
 			state=next_request;
 		}
 		if(meter_requests){
-			auto connection=hdrs["connection"];
+			const char*connection{hdrs["connection"]};
 			if(connection and !strcmp("close",connection)){
 				delete this;
 				return;
@@ -237,11 +221,11 @@ public:
 //			send_session_id_in_reply=false;
 			state=method;
 		}
-		if(buf.needs_read()){//? assumes request and headers fit in conbufnn and done in one read
+		if(!buf.more()){//? assumes request and headers fit in conbufnn and done in one read
 //			if(buf.i>=sockbuf_size_in_bytes)throw"reqbufoverrun";//? chained requests buf pointers
 			buf.rst();
 			sts.reads++;
-			const ssize_t nn=buf.receive_from(fd);
+			const auto nn{buf.receive_from(fd)};
 			if(nn==0){//closed by client
 				delete this;
 				return;
@@ -255,7 +239,7 @@ public:
 		}
 		if(state==method){
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const auto c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=uri;
 					rline.pth=buf.ptr();
@@ -266,7 +250,7 @@ public:
 		}
 		if(state==uri){
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const auto c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=protocol;
 					buf.eos();
@@ -282,7 +266,7 @@ public:
 		}
 		if(state==query){
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const auto c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=protocol;
 					buf.eos();
@@ -293,7 +277,7 @@ public:
 		}
 		if(state==protocol){
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const auto c{buf.unsafe_next_char()};
 				if(c=='\n'){
 					hdrs.clear();
 					parserstate.hdrk=buf.ptr();
@@ -305,18 +289,17 @@ public:
 		if(state==header_key){
 read_header_key:
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){// content or done parsing
-					const char*path=*rline.pth=='/'?rline.pth+1:rline.pth;
-					const char*content_length_str=hdrs["content-length"];
+					const char*path{*rline.pth=='/'?rline.pth+1:rline.pth};
+					const char*content_length_str{hdrs["content-length"]};
 					content.rst();
 					if(content_length_str)content.init_for_receive(content_length_str);
 					if(!*path and rline.qs){
 						sts.widgets++;
-						const char*cookie=hdrs["cookie"];
+						const char*cookie{hdrs["cookie"]};
 						const char*session_id;
-						if(cookie and strstr(cookie,"i=")){
-							//? parse cookie
+						if(cookie and strstr(cookie,"i=")){//? parse cookie
 							session_id=cookie+sizeof "i="-1;
 						}else{
 							session_id=nullptr;
@@ -324,12 +307,12 @@ read_header_key:
 						if(!session_id){
 							// create session
 							//"Fri, 31 Dec 1999 23:59:59 GMT"
-							time_t timer=time(NULL);
-							struct tm* tm_info=gmtime(&timer);
-							char* sid=(char*)(malloc(24));
+							time_t timer{time(NULL)};
+							struct tm* tm_info{gmtime(&timer)};
+							char* sid{(char*)(malloc(24))};
 							//						 20150411--225519-ieu44d
 							strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
-							char* sid_ptr=sid+16;
+							char* sid_ptr{sid+16};
 							for(int i=0;i<7;i++){
 								*sid_ptr++='a'+(unsigned char)(random())%26;
 							}
@@ -341,16 +324,16 @@ read_header_key:
 							ses=sock::sess.get(session_id);
 							if(!ses){
 								// session not found, reload
-								char* sid=(char*)(malloc(64));
+								char* sid{(char*)(malloc(64))};
 								strncpy(sid,session_id,64);
 								ses=new session(sid);
-								sess.put(ses,false);
+								sock::sess.put(ses,false);
 							}
 						}
 						wdgt=ses->get_widget(rline.qs);
 						if(!wdgt){
 							wdgt=widgetget(rline.qs);
-							const size_t key_len=strlen(rline.qs);
+							const size_t key_len{strlen(rline.qs)};
 							char* key=(char*)(malloc(key_len+1));
 							memcpy(key,rline.qs,key_len+1);
 							ses->put_widget(key,wdgt);
@@ -361,8 +344,8 @@ read_header_key:
 							send_session_id_in_reply=false;
 						}
 						if(content_length_str){// posting content to widget
-							const size_t total=content.total_length();
-							const char*s=hdrs["expect"];
+							const size_t total{content.total_length()};
+							const char*s{hdrs["expect"]};
 							if(s and !strcmp(s,"100-continue")){
 	//								dbg("client expects 100 continue before sending post");
 								io_send("HTTP/1.1 100\r\n\r\n",16,true);
@@ -371,7 +354,7 @@ read_header_key:
 								break;
 							}
 							wdgt->on_content(x,nullptr,0,total);//? begin content scan
-							const size_t rem=buf.rem();
+							const size_t rem{buf.rem()};
 							if(rem>=total){// full content is read in buffer
 								wdgt->on_content(x,buf.ptr(),total,total);
 								buf.unsafe_skip(total);
