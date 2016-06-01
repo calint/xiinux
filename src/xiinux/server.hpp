@@ -2,12 +2,12 @@
 #include"args.hpp"
 #include"sock.hpp"
 #include<netinet/tcp.h>
+#include"defines.hpp"
 namespace xiinux{
 	class server final{
 		static sock sck;
 		inline static void*thdwatchrun(void*arg){
-			if(arg)
-				puts((const char*)arg);
+			if(arg)puts((const char*)arg);
 			sts.printhdr(stdout);
 			while(1){
 				int n=10;
@@ -107,7 +107,7 @@ namespace xiinux{
 					try{
 						c->run();
 					}catch(const char*msg){
-						if(strcmp(msg,"brk")){
+						if(strcmp(msg,signal_connection_reset_by_peer)){
 	//					if(msg!=exception_connection_reset_by_client){
 							printf(" *** exception from %p : %s\n",(void*)c,msg);
 						}

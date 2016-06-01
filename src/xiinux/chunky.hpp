@@ -14,8 +14,7 @@ namespace xiinux{
 			if(n<0){
 				if(errno==EPIPE||errno==ECONNRESET){
 					sts.brkp++;
-					throw"brk";
-//					throw exception_connection_reset_by_client;
+					throw signal_connection_reset_by_peer;
 				}
 				sts.errors++;
 				throw"iosend";

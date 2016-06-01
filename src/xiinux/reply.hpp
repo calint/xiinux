@@ -10,13 +10,7 @@
 namespace xiinux{
 	class reply{
 		int fd;
-		const char*set_session_id{nullptr};
-	//	inline reply&pk(const char*s){
-	//		const size_t snn=strlen(s);
-	//		return pk(s,snn);
-	//	}
-//	static const char*exception_connection_reset_by_client="brk";
-
+		const char*set_session_id_cookie{nullptr};
 	public:
 		inline reply(const int fd=0):fd{fd}{}
 		inline /*gives*/chunky*reply_chunky(){
@@ -29,8 +23,7 @@ namespace xiinux{
 			if(n<0){
 				if(errno==EPIPE||errno==ECONNRESET){
 					sts.brkp++;
-					throw"brk";
-//					throw exception_connection_reset_by_client;
+					throw signal_connection_reset_by_peer;
 				}
 				sts.errors++;
 				throw"iosend";
@@ -47,16 +40,16 @@ namespace xiinux{
 			io_send(s,nn,true);
 			return*this;
 		}
-		inline void send_session_id_at_next_opportunity(const char*id){set_session_id=id;}
+		inline void send_session_id_at_next_opportunity(const char*id){set_session_id_cookie=id;}
 		inline reply&http(const int code,const char*content=nullptr,size_t len=0){
 			char bb[1024];
 			int n;
 			if(content and !len)len=strnlen(content,K*K*K);
-			if(set_session_id){
+			if(set_session_id_cookie){
 				// Connection: Keep-Alive\r\n  for apache bench
 	//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
-				n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
-				set_session_id=nullptr;
+				n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id_cookie);
+				set_session_id_cookie=nullptr;
 			}else{
 	//			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 				n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);

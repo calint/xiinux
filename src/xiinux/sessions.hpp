@@ -4,7 +4,7 @@
 namespace xiinux{
 	class sessions{
 	private:
-		lut<session*>all{1024};
+		lut<session*>all{K};
 	public:
 		inline~sessions(){all.delete_content(false);}
 //		inline void put(char*sid,session*s,bool allow_overwrite=true){all.put(sid,s,allow_overwrite);}

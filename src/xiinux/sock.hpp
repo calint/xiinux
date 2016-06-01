@@ -115,7 +115,7 @@ namespace xiinux{class sock{
 		if(nn<0){
 			if(errno==EPIPE or errno==ECONNRESET){
 				sts.brkp++;
-				throw"brk";
+				throw signal_connection_reset_by_peer;
 			}
 			sts.errors++;
 			throw"iosend";
@@ -144,10 +144,10 @@ public:
 			sts.reads++;
 			buf.rst();
 			const ssize_t n{buf.receive_from(fd)};
-			if(!n)throw"brk";
+			if(!n)throw signal_connection_reset_by_peer;
 			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
-				else if(errno==ECONNRESET)throw"brk";
+				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
 				throw"readingcontent";
 			}
@@ -170,10 +170,10 @@ public:
 		}else if(state==receiving_upload){
 			sts.reads++;
 			const ssize_t n{buf.receive_from(fd)};
-			if(!n)throw"brk";
+			if(!n)throw signal_connection_reset_by_peer;
 			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
-				else if(errno==ECONNRESET)throw"brk";
+				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
 				throw"upload";
 			}
@@ -232,7 +232,7 @@ public:
 			}
 			if(nn<0){//error
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
-				else if(errno==ECONNRESET)throw"brk";
+				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
 				throw"err";
 			}
@@ -474,7 +474,7 @@ read_header_key:
 					if(nn<0){
 						if(errno==EPIPE or errno==ECONNRESET){
 							sts.brkp++;
-							throw"brk";
+							throw signal_connection_reset_by_peer;
 						}
 						sts.errors++;
 						perr("sendingfile");
