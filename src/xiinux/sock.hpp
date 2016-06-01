@@ -19,8 +19,14 @@ namespace xiinux{class sock{
 		int fd{0};
 		off_t pos{0};
 		size_t len{0};
-		inline void close(){::close(fd);}
-		inline ssize_t resume_send_to(int tofd){return sendfile(tofd,fd,&pos,len);}
+		inline void close(){if(::close(fd)<0)perror("closefile");}
+		inline ssize_t resume_send_to(int tofd){
+			const ssize_t n=sendfile(tofd,fd,&pos,len);
+			if(n<0)return n;
+			xiinux::sts.output+=n;
+			return n;
+//			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
+		}
 	}file;
 	int upload_fd{0};
 	struct{
@@ -178,11 +184,8 @@ public:
 			}
 			file.len-=size_t(sf);
 			sts.output+=size_t(sf);
-			if(file.len){
+			if(file.len)
 				continue;
-//				io_request_write();
-//				return;
-			}
 			file.close();
 			state=next_request;
 		}
@@ -311,8 +314,6 @@ read_header_key:
 								buf.unsafe_inc_pi(rem);
 								state=read_content;
 								break;
-//								io_request_read();
-//								return;
 							}
 						}else{// requesting widget
 							wdgt->to(x);
@@ -320,11 +321,6 @@ read_header_key:
 							return;
 						}
 					}
-//					if(!content_length_str){
-//						content.rst();
-//						process();
-//						break;
-//					}
 					const char*content_type=hdrs["content-type"];
 					if(content_type&&strstr(content_type,"file")){// file upload
 //							printf("uploading file: %s   size: %s\n",pth+1,content_length_str);
@@ -366,8 +362,90 @@ read_header_key:
 						state=upload;
 						break;
 					}
-					process();
-					if(state==next_request)break;
+					reply x{fd};
+					if(!*path){
+						sts.cache++;
+						homepage->to(x);
+						state=next_request;
+						break;
+					}
+					if(strstr(path,"..")){
+						x.http(403,"path contains ..\n",sizeof "path contains ..\n");
+						state=next_request;
+						return;
+					}
+					struct stat fdstat;
+					if(stat(path,&fdstat)){
+						x.http2(404,"not found\n");
+						state=next_request;
+						return;
+					}
+					if(S_ISDIR(fdstat.st_mode)){
+						x.http2(403,"path is directory\n");
+						state=next_request;
+						return;
+					}
+					const struct tm*tm=gmtime(&fdstat.st_mtime);
+					char lastmod[64];
+					//"Fri, 31 Dec 1999 23:59:59 GMT"
+					strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
+					const char*lastmodstr=hdrs["if-modified-since"];
+					if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
+						const char hdr[]="HTTP/1.1 304\r\n\r\n";
+						const size_t hdrnn=sizeof hdr;
+						io_send(hdr,hdrnn,true);
+						state=next_request;
+						break;
+					}
+					file.fd=open(path,O_RDONLY);
+					if(file.fd==-1){
+						x.http2(404,"cannot open");
+						state=next_request;
+						break;
+					}
+					sts.files++;
+					file.pos=0;
+					file.len=size_t(fdstat.st_size);
+					const char*range=hdrs["range"];
+					char bb[K];
+					int bb_len;
+					if(range&&*range){
+						off_t rs=0;
+						if(EOF==sscanf(range,"bytes=%jd",&rs)){
+							sts.errors++;
+							perr("range");
+							throw"errrorscanning";
+						}
+						file.pos=rs;
+						const size_t e=file.len;
+						file.len-=(size_t)rs;
+						bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file.len,rs,e,e);
+					}else{
+						// Connection: Keep-Alive\r\n for apache-bench
+						bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.len);
+					}
+					if(bb_len<0)throw"err";
+					io_send(bb,(size_t)bb_len,true);
+					const ssize_t nn=file.resume_send_to(fd);
+					if(nn<0){
+						if(errno==EPIPE||errno==ECONNRESET){
+							sts.brkp++;
+							throw"brk";
+						}
+						sts.errors++;
+						perr("sendingfile");
+						throw"err";
+					}
+					sts.output+=size_t(nn);
+					file.len-=size_t(nn);
+					if(file.len!=0){
+						state=resume_send_file;
+//						io_request_write();
+						break;
+					}
+					file.close();
+					state=next_request;
+					break;
 				}else if(c==':'){
 					buf.eos();
 					hdrv=buf.ptr();
@@ -418,89 +496,88 @@ private:
 //				return;
 //			}
 //		}
-		if(!*path){
-			sts.cache++;
-			homepage->to(x);
-			state=next_request;
-			return;
-		}
-		if(strstr(path,"..")){
-//			x.http2(403,"path contains ..\n");
-			x.http(403,"path contains ..\n",sizeof "path contains ..\n");
-			state=next_request;
-			return;
-		}
-		struct stat fdstat;
-		if(stat(path,&fdstat)){
-			x.http2(404,"not found\n");
-			state=next_request;
-			return;
-		}
-		if(S_ISDIR(fdstat.st_mode)){
-			x.http2(403,"path is directory\n");
-			state=next_request;
-			return;
-		}
-		const struct tm*tm=gmtime(&fdstat.st_mtime);
-		char lastmod[64];
-		//"Fri, 31 Dec 1999 23:59:59 GMT"
-		strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
-		const char*lastmodstr=hdrs["if-modified-since"];
-		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
-			const char hdr[]="HTTP/1.1 304\r\n\r\n";
-			const size_t hdrnn=sizeof hdr;
-			io_send(hdr,hdrnn,true);
-			state=next_request;
-			return;
-		}
-		file.fd=open(path,O_RDONLY);
-		if(file.fd==-1){
-			x.http2(404,"cannot open");
-			state=next_request;
-			return;
-		}
-		sts.files++;
-		file.pos=0;
-		file.len=size_t(fdstat.st_size);
-		const char*range=hdrs["range"];
-		char bb[K];
-		int bb_len;
-		if(range&&*range){
-			off_t rs=0;
-			if(EOF==sscanf(range,"bytes=%jd",&rs)){
-				sts.errors++;
-				perr("range");
-				throw"errrorscanning";
-			}
-			file.pos=rs;
-			const size_t e=file.len;
-			file.len-=(size_t)rs;
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file.len,rs,e,e);
-		}else{
-			// Connection: Keep-Alive\r\n for apache-bench
-			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.len);
-		}
-		if(bb_len<0)throw"err";
-		io_send(bb,(size_t)bb_len,true);
-		const ssize_t nn=file.resume_send_to(fd);
-		if(nn<0){
-			if(errno==EPIPE||errno==ECONNRESET){
-				sts.brkp++;
-				throw"brk";
-			}
-			sts.errors++;
-			perr("sendingfile");
-			throw"err";
-		}
-		sts.output+=size_t(nn);
-		file.len-=size_t(nn);
-		if(file.len!=0){
-			state=resume_send_file;
-			io_request_write();
-			return;
-		}
-		file.close();
-		state=next_request;
+//		if(!*path){
+//			sts.cache++;
+//			homepage->to(x);
+//			state=next_request;
+//			return;
+//		}
+//		if(strstr(path,"..")){
+//			x.http(403,"path contains ..\n",sizeof "path contains ..\n");
+//			state=next_request;
+//			return;
+//		}
+//		struct stat fdstat;
+//		if(stat(path,&fdstat)){
+//			x.http2(404,"not found\n");
+//			state=next_request;
+//			return;
+//		}
+//		if(S_ISDIR(fdstat.st_mode)){
+//			x.http2(403,"path is directory\n");
+//			state=next_request;
+//			return;
+//		}
+//		const struct tm*tm=gmtime(&fdstat.st_mtime);
+//		char lastmod[64];
+//		//"Fri, 31 Dec 1999 23:59:59 GMT"
+//		strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
+//		const char*lastmodstr=hdrs["if-modified-since"];
+//		if(lastmodstr&&!strcmp(lastmodstr,lastmod)){
+//			const char hdr[]="HTTP/1.1 304\r\n\r\n";
+//			const size_t hdrnn=sizeof hdr;
+//			io_send(hdr,hdrnn,true);
+//			state=next_request;
+//			return;
+//		}
+//		file.fd=open(path,O_RDONLY);
+//		if(file.fd==-1){
+//			x.http2(404,"cannot open");
+//			state=next_request;
+//			return;
+//		}
+//		sts.files++;
+//		file.pos=0;
+//		file.len=size_t(fdstat.st_size);
+//		const char*range=hdrs["range"];
+//		char bb[K];
+//		int bb_len;
+//		if(range&&*range){
+//			off_t rs=0;
+//			if(EOF==sscanf(range,"bytes=%jd",&rs)){
+//				sts.errors++;
+//				perr("range");
+//				throw"errrorscanning";
+//			}
+//			file.pos=rs;
+//			const size_t e=file.len;
+//			file.len-=(size_t)rs;
+//			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,file.len,rs,e,e);
+//		}else{
+//			// Connection: Keep-Alive\r\n for apache-bench
+//			bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.len);
+//		}
+//		if(bb_len<0)throw"err";
+//		io_send(bb,(size_t)bb_len,true);
+//		const ssize_t nn=file.resume_send_to(fd);
+//		if(nn<0){
+//			if(errno==EPIPE||errno==ECONNRESET){
+//				sts.brkp++;
+//				throw"brk";
+//			}
+//			sts.errors++;
+//			perr("sendingfile");
+//			throw"err";
+//		}
+//		sts.output+=size_t(nn);
+//		file.len-=size_t(nn);
+//		if(file.len!=0){
+//			state=resume_send_file;
+//			io_request_write();
+//			return;
+//		}
+//		file.close();
+//		state=next_request;
 	}
 	static inline char*strtrm(char*p,char*e){
 		while(p!=e&&isspace(*p))
