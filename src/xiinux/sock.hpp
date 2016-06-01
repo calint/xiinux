@@ -62,6 +62,7 @@ namespace xiinux{class sock{
 			ssize_t n=recv(fd,p,free_in_buf(),0);
 			if(n<0)return n;
 			nn=n;
+			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
 			return n;
 		}
 	}buf;
@@ -96,10 +97,8 @@ namespace xiinux{class sock{
 			sts.errors++;
 			throw"iosend";
 		}
-		if(conf::print_trafic){
-			write(conf::print_trafic_fd,buf,len);
-		}
 		sts.output+=(size_t)nn;
+		if(conf::print_trafic)write(conf::print_trafic_fd,buf,nn);
 		if(throw_if_send_not_complete&&(size_t)nn!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
@@ -134,7 +133,6 @@ public:
 				throw"readingcontent";
 			}
 			sts.input+=(unsigned)nn;
-			if(conf::print_trafic)write(conf::print_trafic_fd,buf.ptr(),nn);
 			const size_t crem=content.rem();
 			reply x{fd};
 			if(crem>(size_t)nn){
@@ -151,11 +149,8 @@ public:
 				state=next_request;
 			}
 		}else if(state==upload){
-//			char upload_buffer[upload_stack_buf_size_in_bytes];
-			const size_t upload_remaining=content.rem();
 			sts.reads++;
 			const ssize_t nn=buf.receive_from(fd);
-//					recv(fd,upload_buffer,upload_remaining>sizeof upload_buffer?sizeof upload_buffer:upload_remaining,0);
 			if(!nn)throw"brk";
 			if(nn<0){
 				if(errno==EAGAIN||errno==EWOULDBLOCK){io_request_read();return;}
@@ -163,10 +158,9 @@ public:
 				sts.errors++;
 				throw"upload";
 			}
-			if(conf::print_trafic)write(conf::print_trafic_fd,buf.ptr(),buf.rem_to_parse());
 			sts.input+=(size_t)nn;
 			const size_t crem=content.rem();
-			const ssize_t nw=write(upload_fd,buf.ptr(),crem>nn?(size_t)nn:crem);
+			const ssize_t nw=write(upload_fd,buf.ptr(),crem>(size_t)nn?(size_t)nn:crem);
 			if(nw<0){sts.errors++;throw"writing upload to file";}
 			if(nw!=nn)throw"writing upload to file 2";
 			content.unsafe_inc_pos(nw);
@@ -217,7 +211,6 @@ public:
 				sts.errors++;
 				throw"err";
 			}
-			if(conf::print_trafic)write(conf::print_trafic_fd,buf.ptr(),nn);
 			sts.input+=(unsigned)nn;
 		}
 		if(state==next_request){
@@ -297,7 +290,16 @@ read_header_key:
 							send_session_id_at_next_opportunity=false;
 						}
 						if(content_length_str){// posting content to widget
+							const char*s=hdrs["expect"];
+							if(s&&!strcmp(s,"100-continue")){
+	//								dbg("client expects 100 continue before sending post");
+								io_send("HTTP/1.1 100\r\n\r\n",16,true);
+								wdgt->on_content(x,nullptr,0,content.len);//? begin content scan
+								state=read_content;
+								break;
+							}
 							const size_t rem=buf.rem_to_parse();
+							wdgt->on_content(x,nullptr,0,content.len);//? begin content scan
 							if(rem>=content.len){// full content is read in buffer
 								wdgt->on_content(x,buf.ptr(),content.len,content.len);
 								buf.unsafe_inc_pi(content.len);

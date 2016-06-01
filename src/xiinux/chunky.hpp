@@ -6,7 +6,7 @@
 namespace xiinux{
 	class chunky:public xprinter{
 		size_t length{0};
-		char buf[4*1024];
+		char buf[chunky_buf_size_in_bytes];
 		int sockfd;
 		inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 			sts.writes++;
@@ -20,10 +20,8 @@ namespace xiinux{
 				sts.errors++;
 				throw"iosend";
 			}
-			if(conf::print_trafic){
-				write(conf::print_trafic_fd,buf,len);
-			}
 			sts.output+=(size_t)n;
+			if(conf::print_trafic)write(conf::print_trafic_fd,buf,n);
 			if(throw_if_send_not_complete&&(size_t)n!=len){
 				sts.errors++;
 				throw"sendnotcomplete";

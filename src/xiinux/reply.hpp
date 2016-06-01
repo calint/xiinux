@@ -35,10 +35,8 @@ namespace xiinux{
 				sts.errors++;
 				throw"iosend";
 			}
-			if(conf::print_trafic){
-				write(conf::print_trafic_fd,buf,len);
-			}
 			sts.output+=(size_t)n;
+			if(conf::print_trafic)write(conf::print_trafic_fd,buf,n);
 			if(throw_if_send_not_complete&&(size_t)n!=len){
 				sts.errors++;
 				throw"sendnotcomplete";
