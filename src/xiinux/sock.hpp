@@ -70,23 +70,28 @@ namespace xiinux{class sock{
 	class{
 		char d[sockbuf_size_in_bytes];
 		char*p{d};
-		size_t i{0};
+		char*eob{d};
+//		size_t i{0};
 		size_t nn{0};
 	public:
-		inline bool needs_read()const{return i==nn;}
-		inline bool more()const{return i<nn;}
-		inline void inci(){i++;}
+//		inline bool needs_read()const{return i==nn;}
+		inline bool needs_read()const{return p==eob;}
+		inline bool more()const{return p!=eob;}
+//		inline void inci(){i++;}
 		inline char unsafe_next_char(){return *p++;}
 		inline void eos(){*(p-1)=0;}
-		inline void rst(){i=nn=0;p=d;}
+//		inline void rst(){i=nn=0;p=d;}
+		inline void rst(){nn=0;p=eob=d;}
 		inline char*ptr()const{return p;}
-		inline size_t free_in_buf()const{return sockbuf_size_in_bytes-i;}
-		inline size_t rem_to_parse()const{return nn-i;}
+		inline size_t free_in_buf()const{return sockbuf_size_in_bytes-(p-d);}
+		inline size_t rem_to_parse()const{return nn-(p-d);}
 		inline void unsafe_inc_len(const size_t n){nn+=n;}
-		inline void unsafe_inc_pi(const size_t n){p+=n;i+=n;}
+//		inline void unsafe_inc_pi(const size_t n){p+=n;i+=n;}
+		inline void unsafe_inc_pi(const size_t n){p+=n;}
 		inline ssize_t receive_from(int fd){
 			ssize_t n=recv(fd,p,free_in_buf(),0);
 			if(n<0)return n;
+			eob=d+n;
 			nn=n;
 			sts.input+=(unsigned)nn;
 			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
@@ -257,7 +262,7 @@ public:
 		}
 		if(state==method){
 			while(buf.more()){
-				buf.inci();
+//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c==' '){
 					state=uri;
@@ -269,7 +274,7 @@ public:
 		}
 		if(state==uri){
 			while(buf.more()){
-				buf.inci();
+//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c==' '){
 					state=protocol;
@@ -286,7 +291,7 @@ public:
 		}
 		if(state==query){
 			while(buf.more()){
-				buf.inci();
+//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c==' '){
 					state=protocol;
@@ -298,7 +303,7 @@ public:
 		}
 		if(state==protocol){
 			while(buf.more()){
-				buf.inci();
+//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					hdrs.clear();
@@ -311,7 +316,7 @@ public:
 		if(state==header_key){
 read_header_key:
 			while(buf.more()){
-				buf.inci();
+//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){// content or done parsing
 					const char*path=*rline.pth=='/'?rline.pth+1:rline.pth;
@@ -522,7 +527,7 @@ read_header_key:
 		}
 		if(state==header_value){
 			while(buf.more()){
-				buf.inci();
+//				buf.inci();
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
