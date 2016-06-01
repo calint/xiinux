@@ -137,7 +137,7 @@ public:
 			if(conf::print_trafic)write(conf::print_trafic_fd,buf.ptr(),nn);
 			const size_t crem=content.rem();
 			reply x{fd};
-			if(crem>nn){
+			if(crem>(size_t)nn){
 				wdgt->on_content(x,buf.ptr(),nn,content.len);
 				content.unsafe_inc_pos(nn);
 				buf.unsafe_inc_pi(nn);
@@ -151,10 +151,11 @@ public:
 				state=next_request;
 			}
 		}else if(state==upload){
-			char upload_buffer[upload_stack_buf_size_in_bytes];
+//			char upload_buffer[upload_stack_buf_size_in_bytes];
 			const size_t upload_remaining=content.rem();
 			sts.reads++;
-			const ssize_t nn=recv(fd,upload_buffer,upload_remaining>sizeof upload_buffer?sizeof upload_buffer:upload_remaining,0);
+			const ssize_t nn=buf.receive_from(fd);
+//					recv(fd,upload_buffer,upload_remaining>sizeof upload_buffer?sizeof upload_buffer:upload_remaining,0);
 			if(!nn)throw"brk";
 			if(nn<0){
 				if(errno==EAGAIN||errno==EWOULDBLOCK){io_request_read();return;}
@@ -162,14 +163,15 @@ public:
 				sts.errors++;
 				throw"upload";
 			}
-			const ssize_t nw=write(upload_fd,upload_buffer,(size_t)nn);
+			if(conf::print_trafic)write(conf::print_trafic_fd,buf.ptr(),buf.rem_to_parse());
+			sts.input+=(size_t)nn;
+			const size_t crem=content.rem();
+			const ssize_t nw=write(upload_fd,buf.ptr(),crem>nn?(size_t)nn:crem);
 			if(nw<0){sts.errors++;throw"writing upload to file";}
 			if(nw!=nn)throw"writing upload to file 2";
-			if(conf::print_trafic)write(conf::print_trafic_fd,upload_buffer,nn);
-			sts.input+=(size_t)nn;
-			content.pos+=(size_t)nn;
+			content.unsafe_inc_pos(nw);
 			if(!content.is_done())continue;
-			if(::close(upload_fd)<0)perr("while closing file");
+			if(::close(upload_fd)<0)perr("while closing upload file 2");
 			io_send("HTTP/1.1 204\r\n\r\n",16,true);
 			state=next_request;
 		}else if(state==resume_send_file){
@@ -284,8 +286,8 @@ read_header_key:
 				if(c=='\n'){// content or done parsing
 					const char*path=*rline.pth=='/'?rline.pth+1:rline.pth;
 					const char*content_length_str=hdrs["content-length"];
-					if(content_length_str)
-						content.len=(size_t)atoll(content_length_str);
+					content.rst();
+					if(content_length_str)content.len=(size_t)atoll(content_length_str);
 					if(!*path and rline.qs){
 						sts.widgets++;
 						init_widget();
@@ -328,10 +330,7 @@ read_header_key:
 						char bf[255];
 						snprintf(bf,sizeof bf,"upload/%s",rline.pth+1);
 						upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod);
-						if(upload_fd<0){
-							perror("while creating file for upload");
-							throw"err";
-						}
+						if(upload_fd<0){perror("while creating file for upload");throw"err";}
 						const char*s=hdrs["expect"];
 						if(s&&!strcmp(s,"100-continue")){
 //								dbg("client expects 100 continue before sending post");
@@ -339,37 +338,29 @@ read_header_key:
 							state=upload;
 							break;
 						}
-						const size_t chars_left_to_read=buf.rem_to_parse();
-						if(chars_left_to_read==0){
+						const size_t rem=buf.rem_to_parse();
+						if(rem==0){
 							state=upload;
 							break;
 						}
-						if(chars_left_to_read>=content.len){
+						if(rem>=content.len){
 //								dbg("upload fits in buffer");
 							const ssize_t nn=write(upload_fd,buf.ptr(),(size_t)content.len);
-							if(nn<0){
-								perr("while writing upload to file");
-								throw"err";
-							}
+							if(nn<0){perr("while writing upload to file");throw"err";}
 							sts.input+=(size_t)nn;
-							if((size_t)nn!=content.len){
-								throw"incomplete upload";
-							}
-							if(::close(upload_fd)<0){
-								perr("while closing file");
-							}
+							if((size_t)nn!=content.len){throw"incomplete upload";}
+							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
-							io_send(resp,sizeof resp-1,true);//. -1 to remove eos
+							io_send(resp,sizeof resp-1,true);//. -1 to exclude '\0'
 							buf.unsafe_inc_pi(content.len);
 							state=next_request;
 							break;
 						}
-						const ssize_t nn=write(fd,buf.ptr(),chars_left_to_read);
-						if(nn<0){
-							perror("while writing upload to file2");
-							throw"err";
-						}
-						content.pos=(size_t)nn;
+						const ssize_t nn=write(upload_fd,buf.ptr(),rem);
+						if(nn<0){perror("while writing upload to file2");throw"err";}
+						sts.input+=(size_t)nn;
+						if((size_t)nn!=rem){throw"upload2";}
+						content.unsafe_inc_pos(nn);
 						state=upload;
 						break;
 					}
