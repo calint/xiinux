@@ -4,7 +4,6 @@
 #include"xiinux.hpp"
 #include"conf.hpp"
 #include"sessions.hpp"
-#include"span.hpp"
 #include"../web/web.hpp"
 #include<sys/socket.h>
 #include<sys/epoll.h>
