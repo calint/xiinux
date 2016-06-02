@@ -3,6 +3,8 @@
 #include"widget.hpp"
 #include"xiinux.hpp"
 #include"conf.hpp"
+#include"sessions.hpp"
+#include"span.hpp"
 #include"../web/web.hpp"
 #include<sys/socket.h>
 #include<sys/epoll.h>
@@ -11,11 +13,8 @@
 #include<unistd.h>
 #include<sys/sendfile.h>
 #include<sys/stat.h>
-//#include"sessions.hpp"
 namespace xiinux{class sock{
-//	static sessions sess;
-	enum parser_state{method,uri,query,protocol,header_key,header_value,resume_send_file,receiving_content,receiving_upload,next_request};
-	parser_state state{next_request};
+	enum{method,uri,query,protocol,header_key,header_value,resume_send_file,receiving_content,receiving_upload,next_request}state{method};
 
 	class{
 		off_t pos{0};
@@ -49,10 +48,10 @@ namespace xiinux{class sock{
 	lut<const char*>hdrs;
 
 	struct{
-		char*hdrk{nullptr};
-		char*hdrv{nullptr};
-		inline void rst(){hdrk=hdrv=nullptr;}
-	}parserstate;
+		char*c{nullptr};
+		char*valuep{nullptr};
+		inline void rst(){c=valuep=nullptr;}
+	}hdrparser;
 
 	class{
 		size_t pos{0};
@@ -97,6 +96,7 @@ namespace xiinux{class sock{
 	bool send_session_id_in_reply{false};
 
 	size_t meter_requests{0};
+
 	//-----  - - - --- --- --- - - -- - -- - -- - - ----- - -- -- - -- - - -
 	inline void io_request_read(){
 		struct epoll_event ev;
@@ -178,10 +178,10 @@ public:
 			}
 			const size_t un{size_t(n)};
 			const size_t crem{content.rem()};
-			const ssize_t nw{write(upload_fd,buf.ptr(),crem>un?un:crem)};
-			if(nw<0){sts.errors++;throw"writing upload to file";}
-			if(nw!=n)throw"writing upload to file 2";
-			content.unsafe_skip((unsigned)nw);
+			const ssize_t m{write(upload_fd,buf.ptr(),crem>un?un:crem)};
+			if(m<0){sts.errors++;throw"writing upload to file";}
+			if(m!=n)throw"writing upload to file 2";
+			content.unsafe_skip((unsigned)m);
 			if(content.more())continue;
 			if(::close(upload_fd)<0)perr("while closing upload file 2");
 			io_send("HTTP/1.1 204\r\n\r\n",16,true);
@@ -211,7 +211,7 @@ public:
 			file.rst();
 			rline.rst();
 			hdrs.clear();
-			parserstate.rst();
+			hdrparser.rst();
 			content.rst();
 			upload_fd=0;
 	//		buf.rst();
@@ -279,7 +279,7 @@ public:
 				const auto c{buf.unsafe_next_char()};
 				if(c=='\n'){
 					hdrs.clear();
-					parserstate.hdrk=buf.ptr();
+					hdrparser.c=buf.ptr();
 					state=header_key;
 					break;
 				}
@@ -288,7 +288,7 @@ public:
 		if(state==header_key){
 read_header_key:
 			while(buf.more()){
-				const char c{buf.unsafe_next_char()};
+				const auto c{buf.unsafe_next_char()};
 				if(c=='\n'){// content or done parsing
 					const char*path{*rline.pth=='/'?rline.pth+1:rline.pth};
 					const char*content_length_str{hdrs["content-length"]};
@@ -391,9 +391,9 @@ read_header_key:
 						}
 						const size_t total=content.total_length();
 						if(rem>=total){
-							const ssize_t nn=write(upload_fd,buf.ptr(),(size_t)total);
-							if(nn<0){perr("while writing upload to file");throw"err";}
-							if((size_t)nn!=total){throw"incomplete upload";}
+							const ssize_t n=write(upload_fd,buf.ptr(),(size_t)total);
+							if(n<0){perr("while writing upload to file");throw"err";}
+							if((size_t)n!=total){throw"incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
 							io_send(resp,sizeof resp-1,true);//. -1 to exclude '\0'
@@ -401,10 +401,10 @@ read_header_key:
 							state=next_request;
 							break;
 						}
-						const ssize_t nn=write(upload_fd,buf.ptr(),rem);
-						if(nn<0){perror("while writing upload to file2");throw"err";}
-						if((size_t)nn!=rem){throw"upload2";}
-						content.unsafe_skip(nn);
+						const ssize_t n=write(upload_fd,buf.ptr(),rem);
+						if(n<0){perror("while writing upload to file2");throw"err";}
+						if((size_t)n!=rem){throw"upload2";}
+						content.unsafe_skip(n);
 						state=receiving_upload;
 						break;
 					}
@@ -468,7 +468,7 @@ read_header_key:
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
 						}
 						if(bb_len==sizeof bb)throw"err";
-						io_send(bb,(size_t)bb_len,true);
+						io_send(bb,size_t(bb_len),true);
 					}
 					const ssize_t nn=file.resume_send_to(fd);
 					if(nn<0){
@@ -486,7 +486,7 @@ read_header_key:
 					break;
 				}else if(c==':'){
 					buf.eos();
-					parserstate.hdrv=buf.ptr();
+					hdrparser.valuep=buf.ptr();
 					state=header_value;
 					break;
 				}
@@ -494,14 +494,14 @@ read_header_key:
 		}
 		if(state==header_value){
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const auto c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
-					parserstate.hdrk=strtrm(parserstate.hdrk,parserstate.hdrv-2);
-					strlwr(parserstate.hdrk);
-					parserstate.hdrv=strtrm(parserstate.hdrv,buf.ptr()-2);
-					hdrs.put(parserstate.hdrk,parserstate.hdrv);
-					parserstate.hdrk=buf.ptr();
+					hdrparser.c=strtrm(hdrparser.c,hdrparser.valuep-2);
+					strlwr(hdrparser.c);
+					hdrparser.valuep=strtrm(hdrparser.valuep,buf.ptr()-2);
+					hdrs.put(hdrparser.c,hdrparser.valuep);
+					hdrparser.c=buf.ptr();
 					state=header_key;
 					goto read_header_key;
 				}
@@ -539,6 +539,4 @@ private:
 		}
 		*str++='\0';
 	}
-}srv;
-//	sessions sock::sess;
-}
+}srv;}

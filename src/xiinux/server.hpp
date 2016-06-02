@@ -4,7 +4,6 @@
 #include<netinet/tcp.h>
 #include"defines.hpp"
 namespace xiinux{class server final{
-//	static sock sck;
 	inline static void*thdwatchrun(void*arg){
 		if(arg)puts((const char*)arg);
 		sts.printhdr(stdout);
@@ -118,6 +117,4 @@ public:
 			}
 		}
 	}
-};
-//	sock server::sck{0};
-}
+};}
