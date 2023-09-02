@@ -1,5 +1,4 @@
 #pragma once
-// todo: rewrite
 namespace xiinux{template<class T>class lut{
 private:
 	unsigned int size;
@@ -18,6 +17,7 @@ private:
 			if(nxt)
 				delete nxt;
 		}
+		// todo: rewrite without recursion
 		inline void delete_content_recurse(bool delete_key){
 //			printf("delete lut data %s @ %p\n",typeid(*data).name(),(void*)this);
 			if(data)
@@ -31,6 +31,7 @@ private:
 	};
 	el**array;
 public:
+	// todo: rewrite without %
 	static inline unsigned int hash(const char*key,const unsigned int roll){
 		unsigned int i=0;
 		const char*p=key;
