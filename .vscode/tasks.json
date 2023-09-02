@@ -18,6 +18,7 @@
                 "-lgcov",
                 "-fdiagnostics-color=always",
                 "-g",
+//                "-O3",
                 "-o",
                 "xiinux",
                 "src/main.cpp",
