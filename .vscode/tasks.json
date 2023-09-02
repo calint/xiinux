@@ -1,0 +1,32 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "xiinux build",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-Wall",
+                "-Wextra",
+                "-Wpedantic",
+                "-Wno-unused-parameter",
+                "-Wfatal-errors",
+                "-pthread",
+                "-lgcov",
+                "-fdiagnostics-color=always",
+                "-g",
+                "-o",
+                "xiinux",
+                "src/main.cpp",
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "xiinux build"
+        }
+    ],
+    "version": "2.0.0"
+}

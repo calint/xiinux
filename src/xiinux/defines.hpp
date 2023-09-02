@@ -10,7 +10,7 @@ namespace xiinux{
 	static const char*signal_connection_reset_by_peer="brk";
 
 	#define loop()while(true)
-	#define perr(str)printf("%s:%d %s   ",__FILE__,__LINE__,__PRETTY_FUNCTION__);perror(str);/*throw"perr";*/
-	#define dbg(str)printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);
+	#define perr(str)do{printf("%s:%d %s   ",__FILE__,__LINE__,__PRETTY_FUNCTION__);perror(str);/*throw"perr";*/}while(0);
+	#define dbg(str)do{printf("%s:%d %s   %s\n",__FILE__,__LINE__,__PRETTY_FUNCTION__,str);}while(0);
 //	#define dbg(str)/*nodebug*/
 }

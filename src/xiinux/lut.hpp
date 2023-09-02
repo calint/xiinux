@@ -1,4 +1,5 @@
 #pragma once
+// todo: rewrite
 namespace xiinux{template<class T>class lut{
 private:
 	unsigned int size;
