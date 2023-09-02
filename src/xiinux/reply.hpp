@@ -44,7 +44,7 @@ public:
 		if(set_session_id_cookie){
 			// Connection: Keep-Alive\r\n  for apache bench
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Wed, 09 Jun 2021 10:18:14 GMT\r\n\r\n",code,len,set_session_id);
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Thu, 02 Sep 2055 12:54:14 GMT\r\n\r\n",code,len,set_session_id_cookie);
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;Expires=Fri, 02 Sep 2055 12:54:14 GMT\r\n\r\n",code,len,set_session_id_cookie);
 			set_session_id_cookie=nullptr;
 		}else{
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
