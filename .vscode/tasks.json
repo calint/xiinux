@@ -5,7 +5,7 @@
             "label": "xiinux build",
             "command": "/usr/bin/g++",
             "args": [
-                "-std=c++17",
+                "-std=c++23",
                 "-Wall",
                 "-Wextra",
                 "-Wpedantic",

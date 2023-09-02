@@ -1,15 +1,14 @@
-#CC="clang++ -std=c++17"
-CC="g++ -std=c++17"
+CC="g++ -std=c++23"
 BIN=xiinux
 SRC=src/main.cpp
-DBG="-O3"
-#DBG="-g -O0"
+DBG=""
+#DBG="-g"
 #DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
-#OPTS=-Os
+OPTS=-Os
+#OPTS=-O3
 #OPTS="-O3 -static"
-OPTS=-O3
 WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
-    -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds -Wno-unused-parameter"
+    -Wno-unused-parameter -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds"
 LIB="-pthread -lgcov"
 
 echo > all.src &&
