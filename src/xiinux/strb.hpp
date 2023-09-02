@@ -67,8 +67,8 @@ public:
 	// html5
 	inline strb&html5(const char*title=""){
 		const char s[]="<!doctype html><script src=/x.js></script><link rel=stylesheet href=/x.css>";
-		return p(sizeof s,s)
-				.p(sizeof "<title>","<title>").p(title).p(sizeof "</title>","</title>");
+		return p(sizeof(s)-1,s) // -1 to not copy the terminator \0
+				.p(7,"<title>").p(title).p(8,"</title>"); // 7 and 8 are the number of bytes to copy
 	}
 	inline strb&to(FILE*f){
 		char fmt[32];
