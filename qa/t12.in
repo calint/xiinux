@@ -1,0 +1,10 @@
+PUT /upl HTTP/1.1
+Connection:Keep-Alive
+Content-Type:file
+Content-Length:1
+
+xPUT /upl2 HTTP/1.1
+Content-Type:file
+Content-Length:1
+
+y

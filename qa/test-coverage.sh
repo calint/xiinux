@@ -49,10 +49,10 @@ curl -s $HTTP/?asdf>cmp&&
 diff -q cmp t04.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-#echo " * chained get  (deprecated)"&&
-#echo -n $'GET / HTTP/1.1\r\n\r\nGET / HTTP/1.1\r\n\r\n'|nc $HOST $PORT>cmp&&
-#diff -q cmp t09.cmp&&
-#rm cmp&&
+echo " * chained get"&&
+nc -w1 $HOST $PORT<t09.in>cmp&&
+diff -q cmp t09.cmp&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * post"&&
 curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ" $HTTP/?typealine>cmp&&
@@ -77,17 +77,17 @@ curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp q02.txt&&
 rm cmp&&
 rm ../upload/upl&&
-#--- - - - - ---  - - - - -- - -- - -- - - -- - 
-#echo " * chained upload  (deprecated)"&&
-#echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\ny'|nc $HOST $PORT>cmp&&
-#diff -q cmp t12.cmp&&
-#curl -s $HTTP/upload/upl>cmp&&
-#diff -q cmp t13.cmp&&
-#curl -s $HTTP/upload/upl2>cmp&&
-#diff -q cmp t14.cmp&&
-#rm cmp&&
-#rm ../upload/upl&&
-#rm ../upload/upl2&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\n
+echo " * chained upload"&&
+nc -w1 $HOST $PORT<t12.in>cmp&&
+diff -q cmp t12.cmp&&
+curl -s $HTTP/upload/upl>cmp&&
+diff -q cmp t13.cmp&&
+curl -s $HTTP/upload/upl2>cmp&&
+diff -q cmp t14.cmp&&
+rm cmp&&
+rm ../upload/upl&&
+rm ../upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chunked small 12B"&&
 curl -s $HTTP/?chunked>cmp&&
