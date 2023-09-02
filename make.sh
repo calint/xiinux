@@ -12,7 +12,7 @@ WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
 LIB="-pthread -lgcov"
 
 echo > all.src &&
-FILES=$(for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done)
+for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
 
 echo &&
 $CC  -o $BIN $SRC $DBG $LIB $OPTS $WARNINGS && 
