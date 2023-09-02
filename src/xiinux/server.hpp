@@ -110,7 +110,8 @@ public:
 						sts.brkp++;
 						continue;
 					}
-					printf(" *** exception from %p : %s\n",(void*)c,msg);
+//					printf(" *** exception from %p : %s\n",(void*)c,msg);
+					printf(" *** exception: %s\n",msg);
 				}catch(...){
 					printf(" *** exception from %p\n",(void*)c);
 				}

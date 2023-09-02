@@ -8,7 +8,8 @@ DBG="-O3"
 #OPTS=-Os
 #OPTS="-O3 -static"
 OPTS=-O3
-WARNINGS="-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wfatal-errors"
+WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
+    -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds -Wno-unused-parameter"
 LIB="-pthread -lgcov"
 
 echo > all.src &&
