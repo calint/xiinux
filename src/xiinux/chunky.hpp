@@ -31,8 +31,8 @@ public:
 		b.p_hex(length).p(2,"\r\n");
 		io_send(b.getbuf(),b.getsize(),true);
 		size_t sent_total=0;
-		loop(){
-			loop(){
+		while(true){
+			while(true){
 				const size_t nsend=length-sent_total;
 				const size_t n=io_send(buf+sent_total,nsend,false);
 				sent_total+=n;
