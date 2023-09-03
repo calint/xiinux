@@ -2,12 +2,14 @@
 
 experimental high performance web application server for linux in c++
 
+abandoned in favor of [bob](https://github.com/calint/bob)
+
 ```
 
              lines  words   chars
-   source:   1447    2756   38748
-   zipped:     35     228   10114
+   source:   1446    2756   38805
+   zipped:     44     242   10101
 
--rwxrwxr-x 1 c 51K sep  2 18:50 xiinux
+-rwxrwxr-x 1 c 51K sep  3 10:13 xiinux
 
 ```
