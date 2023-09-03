@@ -9,7 +9,8 @@ OPTS=-Os
 #OPTS="-O3 -static"
 WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
     -Wno-unused-parameter -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds"
-LIB="-pthread -lgcov"
+#LIB="-pthread -lgcov"
+LIB="-pthread"
 
 echo > all.src &&
 for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done

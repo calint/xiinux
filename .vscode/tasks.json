@@ -15,7 +15,7 @@
                 "-Wno-array-bounds",
                 "-Wfatal-errors",
                 "-pthread",
-                "-lgcov",
+//                "-lgcov",
                 "-fdiagnostics-color=always",
                 "-g",
 //                "-O3",
