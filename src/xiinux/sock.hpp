@@ -22,7 +22,7 @@ namespace xiinux{class sock{
 	public:
 		inline void close(){if(::close(fd)<0)perror("closefile");}
 		inline ssize_t resume_send_to(int tofd){
-			auto n{sendfile(tofd,fd,&pos,len-pos)};
+			const ssize_t n{sendfile(tofd,fd,&pos,len-pos)};
 			if(n<0)return n;
 			xiinux::sts.output+=n;
 			return n;
@@ -81,7 +81,7 @@ namespace xiinux{class sock{
 		inline void eos(){*(p-1)=0;}
 		inline char*ptr()const{return p;}
 		inline ssize_t receive_from(int fd){
-			auto n{recv(fd,p,sockbuf_size_in_bytes-(p-d),0)};
+			const ssize_t n{recv(fd,p,sockbuf_size_in_bytes-(p-d),0)};
 			if(n<0)return n;
 			sts.input+=(unsigned)n;
 			e=d+n;
@@ -223,7 +223,7 @@ public:
 //			if(buf.i>=sockbuf_size_in_bytes)throw"reqbufoverrun";//? chained requests buf pointers
 			buf.rst();
 			sts.reads++;
-			const auto nn{buf.receive_from(fd)};
+			const ssize_t nn{buf.receive_from(fd)};
 			if(nn==0){//closed by client
 				delete this;
 				return;
@@ -237,7 +237,7 @@ public:
 		}
 		if(state==method){
 			while(buf.more()){
-				const auto c{buf.unsafe_next_char()};
+				const char c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=uri;
 					rline.pth=buf.ptr();
@@ -248,7 +248,7 @@ public:
 		}
 		if(state==uri){
 			while(buf.more()){
-				const auto c{buf.unsafe_next_char()};
+				const char c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=protocol;
 					buf.eos();
@@ -264,7 +264,7 @@ public:
 		}
 		if(state==query){
 			while(buf.more()){
-				const auto c{buf.unsafe_next_char()};
+				const char c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=protocol;
 					buf.eos();
@@ -275,7 +275,7 @@ public:
 		}
 		if(state==protocol){
 			while(buf.more()){
-				const auto c{buf.unsafe_next_char()};
+				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){
 					hdrs.clear();
 					hdrparser.c=buf.ptr();
@@ -287,7 +287,7 @@ public:
 		if(state==header_key){
 read_header_key:
 			while(buf.more()){
-				const auto c{buf.unsafe_next_char()};
+				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){// content or done parsing
 					const char*path{*rline.pth=='/'?rline.pth+1:rline.pth};
 					const char*content_length_str{hdrs["content-length"]};
@@ -493,7 +493,7 @@ read_header_key:
 		}
 		if(state==header_value){
 			while(buf.more()){
-				const auto c=buf.unsafe_next_char();
+				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
 					hdrparser.c=strtrm(hdrparser.c,hdrparser.valuep-2);
@@ -536,6 +536,6 @@ private:
 			}
 			*str++=*p++;
 		}
-		*str++='\0';
+		*str='\0';
 	}
 }srv;}

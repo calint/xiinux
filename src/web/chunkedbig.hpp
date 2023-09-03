@@ -12,7 +12,7 @@ namespace web{
 
 
 			xprinter&x=*y;
-			for(auto i=0;i<4*1024;i++){
+			for(unsigned i=0;i<4*1024;i++){
 				x.p("chunked response ");
 			}
 
