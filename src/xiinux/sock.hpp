@@ -292,6 +292,7 @@ read_header_key:
 				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){// content or done parsing
 					const char*path{*reqline.pth=='/'?reqline.pth+1:reqline.pth};
+					// printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
 					const char*content_length_str{hdrs["content-length"]};
 					content.rst();
 					if(content_length_str)content.init_for_receive(content_length_str);
@@ -375,11 +376,11 @@ read_header_key:
 					if(content_type and strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
 						char bf[255];
-						if(snprintf(bf,sizeof bf,"upload/%s",reqline.pth+1)==sizeof bf)throw"sock:pathtrunc";
+						if(snprintf(bf,sizeof bf,"upload/%s",reqline.pth+1)==sizeof bf)throw"sock:pathtrunc";// +1 to skip the leading '/'
 						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
 						const char*s=hdrs["expect"];
 						if(s and !strcmp(s,"100-continue")){
-							io_send("HTTP/1.1 100\r\n\r\n",16,true);
+							io_send("HTTP/1.1 100\r\n\r\n",16,true);// 16 is string length
 							state=receiving_upload;
 							break;
 						}
