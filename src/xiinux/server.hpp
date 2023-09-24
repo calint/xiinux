@@ -30,8 +30,7 @@ public:
 		printf("%s on port %d\n",application_name,port);
 
 		char buf[4*K];
-		// Connection: Keep-Alive for apachebench
-		snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",strlen(application_name)+1,application_name); // +1 because of '\n'
+		snprintf(buf,sizeof buf,"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",strlen(application_name)+1,application_name); // +1 because of '\n' after 'application_name'
 		homepage=new doc(buf);
 
 		struct sockaddr_in sa;

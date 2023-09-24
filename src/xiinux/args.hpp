@@ -19,11 +19,10 @@ public:
 				while(true){
 					const char ch=*p;
 					if(ch==short_name)return true;
-					if(ch==0)break;
-					if(isdigit(ch))break;
+					if(ch==0)return false;
+					if(isdigit(ch))return false;
 					p++;
 				}
-				return false;
 			}
 		}
 	}

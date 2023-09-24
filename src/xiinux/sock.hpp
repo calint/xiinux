@@ -92,8 +92,6 @@ namespace xiinux{class sock{
 	session*ses{nullptr};
 	bool send_session_id_in_reply{false};
 
-	size_t meter_requests{0};
-
 	//-----  - - - --- --- --- - - -- - -- - -- - - ----- - -- -- - -- - - -
 	inline void io_request_read(){
 		struct epoll_event ev;
@@ -199,16 +197,13 @@ public:
 			file.close();
 			state=next_request;
 		}
-		if(meter_requests){
-			const char*connection{hdrs["connection"]};
-			if(connection and !strcmp("close",connection)){
-				delete this;
-				return;
-			}
+		const char*connection{hdrs["connection"]};
+		if(connection and !strcmp("close",connection)){
+			delete this;
+			return;
 		}
 		if(state==next_request){
 			sts.requests++;
-			meter_requests++;
 			file.rst();
 			rline.rst();
 			hdrs.clear();
@@ -466,8 +461,8 @@ read_header_key:
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
 							// puts(bb);
 						}else{
-							// Connection: Keep-Alive\r\n for apache-bench
 							file.init_for_send(size_t(fdstat.st_size));
+							// "Connection: Keep-Alive\r\n" for apache-bench
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
 							// puts(bb);
 						}

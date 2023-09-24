@@ -1,4 +1,5 @@
 [ ] MIME type
+[ ] option for apache-bench compatibility
 [ ] abuse errors, request line length, header count, header name length, etc
 [ ] chained requests or telnet (request line and headers not read in one read)
 [ ]   request line stored as std::string
