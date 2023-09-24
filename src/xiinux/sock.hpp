@@ -212,14 +212,11 @@ public:
 			hdrparser.rst();
 			content.rst();
 			upload_fd=0;
-	//		buf.rst();
 			wdgt=nullptr;
 			ses=nullptr;
-//			send_session_id_in_reply=false;
 			state=method;
 		}
 		if(!buf.more()){// !!! assumes request and headers fit in conbufnn and done in one read
-//			if(buf.i>=sockbuf_size_in_bytes)throw"reqbufoverrun";//? chained requests buf pointers
 			buf.rst();
 			sts.reads++;
 			const ssize_t nn{buf.receive_from(fd)};
@@ -303,11 +300,11 @@ read_header_key:
 						}
 						if(!session_id){
 							// create session
-							//"Fri, 31 Dec 1999 23:59:59 GMT"
+							// "Fri, 31 Dec 1999 23:59:59 GMT"
 							time_t timer{time(NULL)};
 							struct tm* tm_info{gmtime(&timer)};
 							char* sid{(char*)(malloc(24))};
-							//						 20150411--225519-ieu44d
+							// 20150411--225519-ieu44d
 							strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
 							char* sid_ptr{sid+16};
 							for(int i=0;i<7;i++){
