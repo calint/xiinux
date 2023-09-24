@@ -216,7 +216,7 @@ public:
 			ses=nullptr;
 			state=method;
 		}
-		if(!buf.more()){// !!! assumes request and headers fit in conbufnn and done in one read
+		if(!buf.more()){// !!! assumes request line and headers fit in buf and done in one read
 			buf.rst();
 			sts.reads++;
 			const ssize_t nn{buf.receive_from(fd)};

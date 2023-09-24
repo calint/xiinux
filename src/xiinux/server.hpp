@@ -102,6 +102,7 @@ public:
 					}
 					continue;
 				}
+				// read or write available
 				try{
 					c->run();
 				}catch(const char*msg){
