@@ -72,7 +72,7 @@ public:
 	}
 	inline strb&to(FILE*f){
 		char fmt[32];
-		if(snprintf(fmt,sizeof fmt,"%%%zus",length)<1)throw"err";
+		if(snprintf(fmt,sizeof fmt,"%%%zus",length)<1)throw"strb:err1";
 		fprintf(f,fmt,buf);
 	}
 };}

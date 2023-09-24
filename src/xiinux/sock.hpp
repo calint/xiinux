@@ -190,9 +190,10 @@ public:
 			if(sf<0){//error
 				if(errno==EAGAIN){io_request_write();return;}
 				sts.errors++;
-				throw"err";
+				throw"sock:err2";
 			}
-			if(file.done())continue;
+			if(!file.done())
+				continue;
 			file.close();
 			state=next_request;
 		}
@@ -216,7 +217,9 @@ public:
 			ses=nullptr;
 			state=method;
 		}
-		if(!buf.more()){// !!! assumes request line and headers fit in buf and done in one read
+		if(!buf.more()){
+			//?? assumes request header fits in buf and done in one read
+			//   then parsing can be simplified
 			buf.rst();
 			sts.reads++;
 			const ssize_t nn{buf.receive_from(fd)};
@@ -224,11 +227,15 @@ public:
 				delete this;
 				return;
 			}
-			if(nn<0){//error
-				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
-				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
+			if(nn<0){//error or would block
+				if(errno==EAGAIN or errno==EWOULDBLOCK){
+					io_request_read();
+					return;
+				}else if(errno==ECONNRESET){
+					throw signal_connection_reset_by_peer;
+				}
 				sts.errors++;
-				throw"err";
+				throw"sock:err3";
 			}
 		}
 		if(state==method){
@@ -372,7 +379,7 @@ read_header_key:
 						const mode_t mod{0664};
 						char bf[255];
 						if(snprintf(bf,sizeof bf,"upload/%s",rline.pth+1)==sizeof bf)throw"pathtrunc";
-						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"err";}
+						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
 						const char*s=hdrs["expect"];
 						if(s and !strcmp(s,"100-continue")){
 							io_send("HTTP/1.1 100\r\n\r\n",16,true);
@@ -387,7 +394,7 @@ read_header_key:
 						const size_t total=content.total_length();
 						if(rem>=total){
 							const ssize_t n=write(upload_fd,buf.ptr(),(size_t)total);
-							if(n<0){perr("while writing upload to file");throw"err";}
+							if(n<0){perr("while writing upload to file");throw"sock:err4";}
 							if((size_t)n!=total){throw"incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
@@ -397,7 +404,7 @@ read_header_key:
 							break;
 						}
 						const ssize_t n=write(upload_fd,buf.ptr(),rem);
-						if(n<0){perror("while writing upload to file2");throw"err";}
+						if(n<0){perror("while writing upload to file2");throw"sock:err6";}
 						if((size_t)n!=rem){throw"upload2";}
 						content.unsafe_skip(n);
 						state=receiving_upload;
@@ -439,7 +446,7 @@ read_header_key:
 							break;
 						}
 						if(file.open(path)<0){
-							x.http(404,"cannot open\n",sizeof "cannot open\n"-1);
+							x.http(404,"cannot open\n",sizeof "cannot open\n"-1); // -1 ignore the '\0'
 							state=next_request;
 							break;
 						}
@@ -449,7 +456,7 @@ read_header_key:
 						int bb_len;
 						if(range and *range){
 							off_t rs{0};
-							if(EOF==sscanf(range,"bytes=%jd",&rs)){
+							if(EOF==sscanf(range,"bytes=%jd",&rs)){//? is sscanf safe
 								sts.errors++;
 								perr("range");
 								throw"errrorscanning";
@@ -462,7 +469,7 @@ read_header_key:
 							file.init_for_send(size_t(fdstat.st_size));
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
 						}
-						if(bb_len==sizeof bb)throw"err";
+						if(bb_len==sizeof bb)throw"sock:err1";
 						io_send(bb,size_t(bb_len),true);
 					}
 					const ssize_t nn=file.resume_send_to(fd);
@@ -470,7 +477,7 @@ read_header_key:
 						if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 						sts.errors++;
 						perr("sendingfile");
-						throw"err";
+						throw"sock:err5";
 					}
 					if(!file.done()){
 						state=resume_send_file;
@@ -495,6 +502,7 @@ read_header_key:
 					hdrparser.c=strtrm(hdrparser.c,hdrparser.valuep-2);
 					strlwr(hdrparser.c);
 					hdrparser.valuep=strtrm(hdrparser.valuep,buf.ptr()-2);
+					// printf("%s: %s\n",hdrparser.c,hdrparser.valuep);
 					hdrs.put(hdrparser.c,hdrparser.valuep);
 					hdrparser.c=buf.ptr();
 					state=header_key;
