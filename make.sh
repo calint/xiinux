@@ -23,7 +23,7 @@ $CC  -o $BIN $SRC $DBG $LIB $OPTS $WARNINGS &&
 echo    "            lines   words   chars" &&
 echo -n "   source:" &&
 cat all.src|wc &&
-echo -n "   zipped:" &&
+echo -n "  gzipped:" &&
 cat all.src|gzip|wc &&
 echo && ls -ho --color $BIN &&
 echo &&
