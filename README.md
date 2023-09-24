@@ -4,10 +4,11 @@ experimental high performance web application server for linux in c++
 
 intended use:
 * compact web application for IoT
+* runs on one thread
 
 supports:
 * serve file
-* serve in-memory content
+* serve static content
 * serve dynamic content
 * post data using ajax
 * upload file
