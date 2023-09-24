@@ -76,7 +76,6 @@ namespace xiinux{class sock{
 		inline bool more()const{return p!=e;}
 		inline size_t rem()const{return e-p;}
 		inline void unsafe_skip(const size_t n){p+=n;}
-
 		inline char unsafe_next_char(){return *p++;}
 		inline void eos(){*(p-1)=0;}
 		inline char*ptr()const{return p;}
