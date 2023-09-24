@@ -41,14 +41,14 @@ namespace xiinux{class sock{
 		char*pth{nullptr};
 		char*qs{nullptr};
 		inline void rst(){pth=qs=nullptr;}
-	}rline;
+	}reqline;
 
 	lut<const char*>hdrs;
 
 	struct{
-		char*c{nullptr};//? better naming
-		char*valuep{nullptr};
-		inline void rst(){c=valuep=nullptr;}
+		char*key{nullptr};
+		char*value{nullptr};
+		inline void rst(){key=value=nullptr;}
 	}hdrparser;
 
 	class{
@@ -206,7 +206,7 @@ public:
 			}
 			sts.requests++;
 			file.rst();
-			rline.rst();
+			reqline.rst();
 			hdrs.clear();
 			hdrparser.rst();
 			content.rst();
@@ -241,8 +241,8 @@ public:
 				const char c{buf.unsafe_next_char()};
 				if(c==' '){
 					state=uri;
-					rline.pth=buf.ptr();
-					rline.qs=nullptr;
+					reqline.pth=buf.ptr();
+					reqline.qs=nullptr;
 					break;
 				}
 			}
@@ -253,11 +253,11 @@ public:
 				if(c==' '){
 					state=protocol;
 					buf.eos();
-					urldecode(rline.pth);
+					urldecode(reqline.pth);
 					break;
 				}else if(c=='?'){
 					state=query;
-					rline.qs=buf.ptr();
+					reqline.qs=buf.ptr();
 					buf.eos();
 					break;
 				}
@@ -269,7 +269,7 @@ public:
 				if(c==' '){
 					state=protocol;
 					buf.eos();
-					urldecode(rline.qs);
+					urldecode(reqline.qs);
 					break;
 				}
 			}
@@ -279,7 +279,7 @@ public:
 				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){
 					hdrs.clear();
-					hdrparser.c=buf.ptr();
+					hdrparser.key=buf.ptr();
 					state=header_key;
 					break;
 				}
@@ -290,11 +290,11 @@ read_header_key:
 			while(buf.more()){
 				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){// content or done parsing
-					const char*path{*rline.pth=='/'?rline.pth+1:rline.pth};
+					const char*path{*reqline.pth=='/'?reqline.pth+1:reqline.pth};
 					const char*content_length_str{hdrs["content-length"]};
 					content.rst();
 					if(content_length_str)content.init_for_receive(content_length_str);
-					if(!*path and rline.qs){
+					if(!*path and reqline.qs){
 						sts.widgets++;
 						const char*cookie{hdrs["cookie"]};
 						const char*session_id{nullptr};
@@ -327,12 +327,12 @@ read_header_key:
 								sess.put(/*give*/ses,false);
 							}
 						}
-						wdgt=ses->get_widget(rline.qs);
+						wdgt=ses->get_widget(reqline.qs);
 						if(!wdgt){
-							wdgt=widgetget(rline.qs);
-							const size_t key_len{strlen(rline.qs)};
+							wdgt=widgetget(reqline.qs);
+							const size_t key_len{strlen(reqline.qs)};
 							char* key=(char*)(malloc(key_len+1)); // +1 for the \0 terminator
-							memcpy(key,rline.qs,key_len+1);
+							memcpy(key,reqline.qs,key_len+1);
 							ses->put_widget(/*give*/key,/*give*/wdgt);
 						}
 						reply x=reply(fd);
@@ -374,7 +374,7 @@ read_header_key:
 					if(content_type and strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
 						char bf[255];
-						if(snprintf(bf,sizeof bf,"upload/%s",rline.pth+1)==sizeof bf)throw"sock:pathtrunc";
+						if(snprintf(bf,sizeof bf,"upload/%s",reqline.pth+1)==sizeof bf)throw"sock:pathtrunc";
 						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
 						const char*s=hdrs["expect"];
 						if(s and !strcmp(s,"100-continue")){
@@ -486,7 +486,7 @@ read_header_key:
 					break;
 				}else if(c==':'){
 					buf.eos();
-					hdrparser.valuep=buf.ptr();
+					hdrparser.value=buf.ptr();
 					state=header_value;
 					break;
 				}
@@ -497,12 +497,12 @@ read_header_key:
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
-					hdrparser.c=strtrm(hdrparser.c,hdrparser.valuep-2);//? why -2
-					strlwr(hdrparser.c);
-					hdrparser.valuep=strtrm(hdrparser.valuep,buf.ptr()-2);//? why -2
-					// printf("%s: %s\n",hdrparser.c,hdrparser.valuep);
-					hdrs.put(hdrparser.c,hdrparser.valuep);
-					hdrparser.c=buf.ptr();
+					hdrparser.key=strtrm(hdrparser.key,hdrparser.value-2);//? why -2
+					strlwr(hdrparser.key);
+					hdrparser.value=strtrm(hdrparser.value,buf.ptr()-2);//? why -2
+					// printf("%s: %s\n",hdrparser.c,hdrparser.value);
+					hdrs.put(hdrparser.key,hdrparser.value);
+					hdrparser.key=buf.ptr();
 					state=header_key;
 					goto read_header_key;
 				}
