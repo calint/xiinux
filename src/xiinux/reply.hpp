@@ -32,8 +32,8 @@ public:
 		}
 		return(size_t)n;
 	}
-	inline reply&pk(const char*s,const size_t nn){
-		io_send(s,nn,true);
+	inline reply&pk(const char*data,const size_t len){
+		io_send(data,len,true);
 		return*this;
 	}
 	inline void send_session_id_at_next_opportunity(const char*id){set_session_id_cookie=id;}
