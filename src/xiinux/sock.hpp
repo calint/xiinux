@@ -197,12 +197,13 @@ public:
 			file.close();
 			state=next_request;
 		}
-		const char*connection{hdrs["connection"]};
-		if(connection and !strcmp("close",connection)){
-			delete this;
-			return;
-		}
 		if(state==next_request){
+			// if previous request had header 'Connection: close'
+			const char*connection{hdrs["connection"]};
+			if(connection and !strcmp("close",connection)){
+				delete this;
+				return;
+			}
 			sts.requests++;
 			file.rst();
 			rline.rst();
