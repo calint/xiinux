@@ -1,3 +1,6 @@
+# tools:
+#   g++ (Ubuntu 12.3.0-1ubuntu1~23.04) 12.3.0
+
 CC="g++ -std=c++23"
 BIN=xiinux
 SRC=src/main.cpp
@@ -7,8 +10,8 @@ DBG=""
 OPTS=-Os
 #OPTS=-O3
 #OPTS="-O3 -static"
-WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
-    -Wno-unused-parameter -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds"
+WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors -Wno-unused-parameter \
+    -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds"
 #LIB="-pthread -lgcov"
 LIB="-pthread"
 
@@ -24,8 +27,7 @@ echo -n "   zipped:" &&
 cat all.src|gzip|wc &&
 echo && ls -ho --color $BIN &&
 echo &&
-rm all.src &&
-echo
+rm all.src
 #valgrind --leak-check=yes --leak-check=full --show-leak-kinds=all ./$BIN -bv
 #valgrind --leak-check=yes ./$BIN
 #valgrind --tool=callgrind --collect-jumps=yes ./$BIN
