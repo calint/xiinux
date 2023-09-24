@@ -184,7 +184,7 @@ public:
 		}else if(state==resume_send_file){
 			sts.writes++;
 			const ssize_t sf{file.resume_send_to(fd)};
-			if(sf<0){//error or send buffer full
+			if(sf<0){// error or send buffer full
 				if(errno==EAGAIN){
 					io_request_write();
 					return;
@@ -221,11 +221,11 @@ public:
 			buf.rst();
 			sts.reads++;
 			const ssize_t nn{buf.receive_from(fd)};
-			if(nn==0){//closed by client
+			if(nn==0){// closed by client
 				delete this;
 				return;
 			}
-			if(nn<0){//error or would block
+			if(nn<0){// error or would block
 				if(errno==EAGAIN or errno==EWOULDBLOCK){
 					io_request_read();
 					return;
@@ -394,7 +394,7 @@ read_header_key:
 							if((size_t)n!=total){throw"sock:incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
-							io_send(resp,sizeof resp-1,true);//. -1 to exclude '\0'
+							io_send(resp,sizeof resp-1,true);// -1 to exclude '\0'
 							buf.unsafe_skip(total);
 							state=next_request;
 							break;
@@ -431,7 +431,7 @@ read_header_key:
 					}
 					const struct tm*tm=gmtime(&fdstat.st_mtime);
 					{	char lastmod[64];
-						//"Fri, 31 Dec 1999 23:59:59 GMT"
+						// "Fri, 31 Dec 1999 23:59:59 GMT"
 						strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
 						const char*lastmodstr=hdrs["if-modified-since"];
 						if(lastmodstr and !strcmp(lastmodstr,lastmod)){
