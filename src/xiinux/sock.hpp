@@ -328,9 +328,9 @@ read_header_key:
 						if(!wdgt){
 							wdgt=widgetget(rline.qs);
 							const size_t key_len{strlen(rline.qs)};
-							char* key=(char*)(malloc(key_len+1));
+							char* key=(char*)(malloc(key_len+1)); // +1 for the \0 terminator
 							memcpy(key,rline.qs,key_len+1);
-							ses->put_widget(key,wdgt);
+							ses->put_widget(/*gives*/key,/*gives*/wdgt);
 						}
 						reply x=reply(fd);
 						if(send_session_id_in_reply){

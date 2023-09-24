@@ -10,6 +10,7 @@
 #include"notfound.hpp"
 namespace xiinux{
 	static inline widget*widgetget(const char*qs){
+		// todo: "/?hello"  vs "/?hello&a=1"
 		if(!strcmp("hello",qs))return new web::hello();
 		if(!strcmp("typealine",qs))return new web::typealine();
 		if(!strcmp("counter",qs))return new web::counter();
