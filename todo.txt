@@ -1,7 +1,9 @@
 [ ] MIME type
 [ ] abuse errors, request line length, header count, header name length, etc
-[ ] ? chained requests or telnet (request line and headers not in one read)
+[ ] chained requests or telnet (request line and headers not read in one read)
 [ ]   request line stored as std::string
 [ ]   headers as std::string in std::unordered_map
+[ ] if request line and headers must be read in on read then the parsing of
+    that part of the request can be done in a simpler way
 [ ] valgrind
 [ ] hierarchial widgets
