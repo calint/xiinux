@@ -251,14 +251,15 @@ public:
 			while(buf.more()){
 				const char c{buf.unsafe_next_char()};
 				if(c==' '){
-					state=protocol;
 					buf.eos();
 					urldecode(reqline.pth);
+					state=protocol;
 					break;
 				}else if(c=='?'){
-					state=query;
-					reqline.qs=buf.ptr();
 					buf.eos();
+					urldecode(reqline.pth);
+					reqline.qs=buf.ptr();
+					state=query;
 					break;
 				}
 			}
@@ -267,9 +268,9 @@ public:
 			while(buf.more()){
 				const char c{buf.unsafe_next_char()};
 				if(c==' '){
-					state=protocol;
 					buf.eos();
-					urldecode(reqline.qs);
+					// urldecode(reqline.qs);//? does not work i key contains encoded '='
+					state=protocol;
 					break;
 				}
 			}
@@ -278,7 +279,7 @@ public:
 			while(buf.more()){
 				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){
-					hdrs.clear();
+					// hdrs.clear();//? headers clear at 'next_request' or empty if first request on this connection
 					hdrparser.key=buf.ptr();
 					state=header_key;
 					break;
