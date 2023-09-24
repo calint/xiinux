@@ -2,13 +2,16 @@
 
 experimental high performance web application server for linux in c++
 
+intended use:
+* compact web application for IoT
+
 supports:
 * serve file
 * serve in-memory content
 * serve dynamic content
-* post data using ajax 
+* post data using ajax
 * upload file
-* resumable downloads
+* resumable download
 
 abandoned in favor of [bob](https://github.com/calint/bob)
 
