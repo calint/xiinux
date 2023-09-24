@@ -526,11 +526,16 @@ private:
 	static inline void urldecode(char*str){
 		const char*p=str;
 		while(*p){
+			if(*p=='+'){
+				*str++=' ';
+				p++;
+				continue;
+			}
 			char a,b;
 			if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
-				if(a>='a')a-=(char)('a'-'A');//?
+				if(a>='a')a-='a'-'A';
 				if(a>='A')a-='A'-10;else a-='0';
-				if(b>='a')b-='a'-'A';//?
+				if(b>='a')b-='a'-'A';
 				if(b>='A')b-='A'-10;else b-='0';
 				*str++=16*a+b;
 				p+=3;
