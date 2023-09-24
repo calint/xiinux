@@ -5,7 +5,7 @@ namespace xiinux{class session{
 	lut<char*>kvp;
 	lut<widget*>widgets;
 public:
-	inline session(/*takes*/char*session_id):key{session_id}{sts.sessions++;}
+	inline session(/*take*/char*session_id):key{session_id}{sts.sessions++;}
 	inline~session(){
 		sts.sessions--;
 		free(key);
@@ -14,7 +14,7 @@ public:
 	}
 	inline const char*id()const{return key;}
 	inline void*operator[](const char*key){return kvp[key];}
-	inline void put(/*takes*/char*key,/*takes*/char*data){kvp.put(key,data);}
+	inline void put(/*take*/char*key,/*take*/char*data){kvp.put(key,data);}
 	inline widget*get_widget(const char*key){return widgets[key];}
-	inline void put_widget(/*takes*/char*key,/*takes*/widget*o){widgets.put(key,o);}
+	inline void put_widget(/*take*/char*key,/*take*/widget*o){widgets.put(key,o);}
 };}

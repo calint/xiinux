@@ -12,7 +12,7 @@ namespace xiinux{class reply{
 	const char*set_session_id_cookie{nullptr};
 public:
 	inline reply(const int fd=0):fd{fd}{}
-	inline /*gives*/chunky*reply_chunky(){
+	inline /*give*/chunky*reply_chunky(){
 		chunky*c=new chunky(fd);
 		return c;
 	}

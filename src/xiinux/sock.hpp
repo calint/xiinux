@@ -301,26 +301,24 @@ read_header_key:
 					if(!*path and rline.qs){
 						sts.widgets++;
 						const char*cookie{hdrs["cookie"]};
-						const char*session_id;
+						const char*session_id{nullptr};
 						if(cookie and strstr(cookie,"i=")){//? parse cookie
 							session_id=cookie+sizeof "i="-1;
-						}else{
-							session_id=nullptr;
 						}
 						if(!session_id){
 							// create session
 							// "Fri, 31 Dec 1999 23:59:59 GMT"
 							time_t timer{time(NULL)};
-							struct tm* tm_info{gmtime(&timer)};
-							char* sid{(char*)(malloc(24))};
+							struct tm*tm_info{gmtime(&timer)};
+							char*sid{(char*)(malloc(24))};
 							// 20150411--225519-ieu44d
 							strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
-							char* sid_ptr{sid+16};
+							char*sid_ptr{sid+16};
 							for(int i=0;i<7;i++){
 								*sid_ptr++='a'+(unsigned char)(random())%26;
 							}
 							*sid_ptr=0;
-							ses=new session(sid);
+							ses=new session(/*give*/sid);
 							sess.put(ses,false);
 							send_session_id_in_reply=true;
 						}else{
@@ -330,7 +328,7 @@ read_header_key:
 								char* sid{(char*)(malloc(64))};
 								strncpy(sid,session_id,64);
 								ses=new session(sid);
-								sess.put(ses,false);
+								sess.put(/*give*/ses,false);
 							}
 						}
 						wdgt=ses->get_widget(rline.qs);
@@ -339,7 +337,7 @@ read_header_key:
 							const size_t key_len{strlen(rline.qs)};
 							char* key=(char*)(malloc(key_len+1)); // +1 for the \0 terminator
 							memcpy(key,rline.qs,key_len+1);
-							ses->put_widget(/*gives*/key,/*gives*/wdgt);
+							ses->put_widget(/*give*/key,/*give*/wdgt);
 						}
 						reply x=reply(fd);
 						if(send_session_id_in_reply){
