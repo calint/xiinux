@@ -2,5 +2,6 @@
 [ ] valgrind
 [ ] abuse errors, request line length, header count, header name length, etc
 [ ] ? chained requests (request line and headers not in read in one read)
+[ ] hierarchial widgets
 
 
