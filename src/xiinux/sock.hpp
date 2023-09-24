@@ -499,9 +499,9 @@ read_header_key:
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
-					hdrparser.key=strtrm(hdrparser.key,hdrparser.value-2);//? why -2
+					hdrparser.key=strtrm(hdrparser.key,hdrparser.value-2);// -2 to skip '\0' and place pointer on last character in the key
 					strlwr(hdrparser.key);
-					hdrparser.value=strtrm(hdrparser.value,buf.ptr()-2);//? why -2
+					hdrparser.value=strtrm(hdrparser.value,buf.ptr()-2);//? -2 to skip '\0' and place pointer on last character in the value
 					// printf("%s: %s\n",hdrparser.c,hdrparser.value);
 					hdrs.put(hdrparser.key,hdrparser.value);
 					hdrparser.key=buf.ptr();
