@@ -49,6 +49,7 @@ curl -s $HTTP/?asdf>cmp&&
 diff -q cmp t04.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
+# !!! not fully supported. breaks when request bigger than buffer
 echo " * chained get"&&
 nc -w1 $HOST $PORT<t09.in>cmp&&
 diff -q cmp t09.cmp&&
@@ -77,7 +78,8 @@ curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp q02.txt&&
 rm cmp&&
 rm ../upload/upl&&
-#--- - - - - ---  - - - - -- - -- - -- - - -- - echo $'PUT /upl HTTP/1.1\r\nConnection:Keep-Alive\r\nContent-Type:file\r\nContent-Length:1\r\n\r\nxPUT /upl2 HTTP/1.1\r\nContent-Type:file\r\nContent-Length:1\r\n\r\n
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+# !!! not fully supported. breaks when request bigger than buffer
 echo " * chained upload"&&
 nc -w1 $HOST $PORT<t12.in>cmp&&
 diff -q cmp t12.cmp&&

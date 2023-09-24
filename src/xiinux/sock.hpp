@@ -218,7 +218,7 @@ public:
 //			send_session_id_in_reply=false;
 			state=method;
 		}
-		if(!buf.more()){//? assumes request and headers fit in conbufnn and done in one read
+		if(!buf.more()){// !!! assumes request and headers fit in conbufnn and done in one read
 //			if(buf.i>=sockbuf_size_in_bytes)throw"reqbufoverrun";//? chained requests buf pointers
 			buf.rst();
 			sts.reads++;
