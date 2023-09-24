@@ -26,7 +26,6 @@ namespace xiinux{class sock{
 			if(n<0)return n;
 			xiinux::sts.output+=n;
 			return n;
-//			if(conf::print_trafic)write(conf::print_trafic_fd,p,n);
 		}
 		inline void init_for_send(const size_t size_in_bytes,const off_t seek_pos=0){
 			pos=seek_pos;
@@ -47,7 +46,7 @@ namespace xiinux{class sock{
 	lut<const char*>hdrs;
 
 	struct{
-		char*c{nullptr};
+		char*c{nullptr};//? better naming
 		char*valuep{nullptr};
 		inline void rst(){c=valuep=nullptr;}
 	}hdrparser;
@@ -100,13 +99,13 @@ namespace xiinux{class sock{
 		struct epoll_event ev;
 		ev.data.ptr=this;
 		ev.events=EPOLLIN;
-		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev))throw"epollmodread";
+		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev))throw"sock:epollmodread";
 	}
 	inline void io_request_write(){
 		struct epoll_event ev;
 		ev.data.ptr=this;
 		ev.events=EPOLLOUT;
-		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev))throw"epollmodwrite";
+		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev))throw"sock:epollmodwrite";
 	}
 	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
@@ -114,14 +113,14 @@ namespace xiinux{class sock{
 		if(n<0){
 			if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 			sts.errors++;
-			throw"iosend";
+			throw"sock:iosend";
 		}
 		const size_t un=size_t(n);
 		sts.output+=un;
 		if(conf::print_trafic)write(conf::print_trafic_fd,buf,un);
 		if(throw_if_send_not_complete and un!=len){
 			sts.errors++;
-			throw"sendnotcomplete";
+			throw"sock:sendnotcomplete";
 		}
 		return un;
 	}
@@ -146,7 +145,7 @@ public:
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
-				throw"readingcontent";
+				throw"sock:readingcontent";
 			}
 			const size_t un{size_t(n)};
 			const size_t crem{content.rem()};
@@ -172,13 +171,13 @@ public:
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
-				throw"upload";
+				throw"sock:upload";
 			}
 			const size_t un{size_t(n)};
 			const size_t crem{content.rem()};
 			const ssize_t m{write(upload_fd,buf.ptr(),crem>un?un:crem)};
-			if(m<0){sts.errors++;throw"writing upload to file";}
-			if(m!=n)throw"writing upload to file 2";
+			if(m<0){sts.errors++;throw"sock:writing upload to file";}
+			if(m!=n)throw"sock:writing upload to file 2";
 			content.unsafe_skip((unsigned)m);
 			if(content.more())continue;
 			if(::close(upload_fd)<0)perr("while closing upload file 2");
@@ -187,8 +186,11 @@ public:
 		}else if(state==resume_send_file){
 			sts.writes++;
 			const ssize_t sf{file.resume_send_to(fd)};
-			if(sf<0){//error
-				if(errno==EAGAIN){io_request_write();return;}
+			if(sf<0){//error or send buffer full
+				if(errno==EAGAIN){
+					io_request_write();
+					return;
+				}
 				sts.errors++;
 				throw"sock:err2";
 			}
@@ -378,7 +380,7 @@ read_header_key:
 					if(content_type and strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
 						char bf[255];
-						if(snprintf(bf,sizeof bf,"upload/%s",rline.pth+1)==sizeof bf)throw"pathtrunc";
+						if(snprintf(bf,sizeof bf,"upload/%s",rline.pth+1)==sizeof bf)throw"sock:pathtrunc";
 						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
 						const char*s=hdrs["expect"];
 						if(s and !strcmp(s,"100-continue")){
@@ -395,7 +397,7 @@ read_header_key:
 						if(rem>=total){
 							const ssize_t n=write(upload_fd,buf.ptr(),(size_t)total);
 							if(n<0){perr("while writing upload to file");throw"sock:err4";}
-							if((size_t)n!=total){throw"incomplete upload";}
+							if((size_t)n!=total){throw"sock:incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
 							const char resp[]="HTTP/1.1 204\r\n\r\n";
 							io_send(resp,sizeof resp-1,true);//. -1 to exclude '\0'
@@ -451,7 +453,7 @@ read_header_key:
 							break;
 						}
 						sts.files++;
-						const char*range=hdrs["range"];
+						const char*range{hdrs["range"]};
 						char bb[K];
 						int bb_len;
 						if(range and *range){
@@ -459,15 +461,17 @@ read_header_key:
 							if(EOF==sscanf(range,"bytes=%jd",&rs)){//? is sscanf safe
 								sts.errors++;
 								perr("range");
-								throw"errrorscanning";
+								throw"sock:errrorscanning";
 							}
 							file.init_for_send(size_t(fdstat.st_size),rs);
 							const size_t e=file.length();
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
+							// puts(bb);
 						}else{
 							// Connection: Keep-Alive\r\n for apache-bench
 							file.init_for_send(size_t(fdstat.st_size));
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
+							// puts(bb);
 						}
 						if(bb_len==sizeof bb)throw"sock:err1";
 						io_send(bb,size_t(bb_len),true);
@@ -499,9 +503,9 @@ read_header_key:
 				const char c=buf.unsafe_next_char();
 				if(c=='\n'){
 					buf.eos();
-					hdrparser.c=strtrm(hdrparser.c,hdrparser.valuep-2);
+					hdrparser.c=strtrm(hdrparser.c,hdrparser.valuep-2);//? why -2
 					strlwr(hdrparser.c);
-					hdrparser.valuep=strtrm(hdrparser.valuep,buf.ptr()-2);
+					hdrparser.valuep=strtrm(hdrparser.valuep,buf.ptr()-2);//? why -2
 					// printf("%s: %s\n",hdrparser.c,hdrparser.valuep);
 					hdrs.put(hdrparser.c,hdrparser.valuep);
 					hdrparser.c=buf.ptr();
