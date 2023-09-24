@@ -1,4 +1,4 @@
-[ ] MIME type
+[ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
 [ ] abuse errors: request line length, header count, header name length, etc
 [ ] chained requests or telnet (request line and headers not read in one read)
