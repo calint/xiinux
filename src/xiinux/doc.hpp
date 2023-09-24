@@ -7,7 +7,10 @@ namespace xiinux{class doc{
 public:
 	inline doc(const char*data,const char*lastmod=nullptr){//:lastmod(lastmod){
 //		printf("new doc %p\n",(void*)this);
-		len=strnlen(data,1024*1024*1024); //? overrun
+		const size_t maxlen=K*M;
+		len=strnlen(data,maxlen);
+		if(len==maxlen)
+			throw"overrun";
 		buf=(char*)malloc(len);
 		memcpy(buf,data,len);
 	}
