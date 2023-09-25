@@ -1,22 +1,5 @@
 
-mån 25 sep 2023 19:20:09 CEST
+mån 25 sep 2023 19:34:59 CEST
 coverage tests on http://localhost:8088
  * small file
  * larger file 16k
- * if-modified-since
- * dynamic document
- * resumable download
- * cached document
- * illegal path
- * page not found
- * widget not found
- * post
- * bigger post >4K
- * upload small file
- * upload bigger file
- * chunked small 12B
- * chunked many small to larger than chunk size >4K 
- * chunked reply data larger than buffers >256K 
- * abuse request >1K 
-mån 25 sep 2023 19:20:10 CEST
-

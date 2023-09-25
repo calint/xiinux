@@ -23,7 +23,6 @@ namespace xiinux{class sock final{
 		inline void close(){if(::close(fd_)<0)perror("closefile");}
 		inline ssize_t resume_send_to(const int to_fd){
 			sts.writes++;
-//			sleep(5);
 			const ssize_t n{sendfile(to_fd,fd_,&pos_,len_-pos_)};
 			if(n<0)return n;
 			xiinux::sts.output+=n;
@@ -487,7 +486,8 @@ read_header_key:
 					}
 					const ssize_t nn{file.resume_send_to(fd_)};
 					if(nn<0){
-						if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
+						if(errno==EPIPE or errno==ECONNRESET)
+							throw signal_connection_reset_by_peer;
 						sts.errors++;
 						perr("sendingfile");
 						throw"sock:err5";

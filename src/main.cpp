@@ -7,6 +7,7 @@ static void sigint(int i){
 }
 int main(const int c,const char**a){
 	signal(SIGINT,sigint);
+	signal(SIGPIPE,SIG_IGN);// if not ignored 'sendfile' aborts program when 'Broken pipe'
 	return xiinux::server::start(c,a);
 }
 

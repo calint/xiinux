@@ -110,7 +110,7 @@ public:
 				try{
 					c->run();
 				}catch(const char*msg){
-					// todo: print session id
+					// todo: print session id, ip
 					delete c;
 					if(msg==signal_connection_reset_by_peer){
 						sts.brkp++;
