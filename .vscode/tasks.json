@@ -11,8 +11,6 @@
                 "-Wpedantic",
                 "-Wno-unused-parameter",
                 "-Wno-unused-result",
-                "-Wno-stringop-truncation",
-                "-Wno-array-bounds",
                 "-Wfatal-errors",
                 "-pthread",
 //                "-lgcov",

@@ -10,8 +10,8 @@ OPTS=-Os
 #DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
 #OPTS=-O3
 #OPTS="-O3 -static"
-WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors -Wno-unused-parameter \
-    -Wno-unused-result -Wno-stringop-truncation -Wno-array-bounds"
+WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
+          -Wno-unused-parameter -Wno-unused-result"
 #LIB="-pthread -lgcov"
 LIB="-pthread"
 

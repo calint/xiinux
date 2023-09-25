@@ -12,7 +12,7 @@ public:
 		kvp.delete_content(true);
 		widgets.delete_content(true);
 	}
-	inline const char*id()const{return key;}
+	inline char*id()const{return key;}
 	inline void*operator[](const char*key){return kvp[key];}
 	inline void put(/*take*/char*key,/*take*/char*data){kvp.put(key,data);}
 	inline widget*get_widget(const char*key){return widgets[key];}
