@@ -1,14 +1,14 @@
-[ ] bug: sock::buf gets overwritten when content is sent thrashing the pointers
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
 [ ] change malloc to new where possible
 [ ] examine whether functions such as 'unsafe_*' get inlined although -Os
+[ ] ? headers in std::unordered_map
 [ ] qa: abuse
-[ ] ? chained requests
-[ ]   path, query string as std::string
-[ ]   headers as std::string in std::unordered_map
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] bug: sock::buf gets overwritten when content is sent thrashing the pointers
+[-] ? chained requests: path, query string as std::string
+    -> not supported
 [x] sock: receive content -> use different buffer than the buffer used by request
 [x] support for telnet with partial reads of the request
     -> chained request no longer supported
