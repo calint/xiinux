@@ -1,5 +1,5 @@
 
-mån 25 sep 2023 03:40:33 CEST
+mån 25 sep 2023 03:52:04 CEST
 coverage tests on http://localhost:8088
  * small file
  * larger file 16k
@@ -19,5 +19,5 @@ coverage tests on http://localhost:8088
  * chunked small 12B
  * chunked many small to larger than chunk size >4K 
  * chunked reply data larger than buffers >256K 
-mån 25 sep 2023 03:40:36 CEST
+mån 25 sep 2023 03:52:07 CEST
 

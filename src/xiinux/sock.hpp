@@ -252,12 +252,10 @@ public:
 				const char c{buf.unsafe_next_char()};
 				if(c==' '){
 					buf.eos();
-					urldecode(reqline.pth);
 					state=protocol;
 					break;
 				}else if(c=='?'){
 					buf.eos();
-					urldecode(reqline.pth);
 					reqline.qs=buf.ptr();
 					state=query;
 					break;
@@ -495,7 +493,7 @@ read_header_key:
 		}
 		if(state==header_value){
 			while(buf.more()){
-				const char c=buf.unsafe_next_char();
+				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){
 					buf.eos();
 					hdrparser.key=strtrm(hdrparser.key,hdrparser.value-2);// -2 to skip '\0' and place pointer on last character in the key
@@ -523,27 +521,5 @@ private:
 			*p=(char)tolower(*p);
 			p++;
 		}
-	}
-	static inline void urldecode(char*str){
-		const char*p=str;
-		while(*p){
-			if(*p=='+'){
-				*str++=' ';
-				p++;
-				continue;
-			}
-			char a,b;
-			if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
-				if(a>='a')a-='a'-'A';
-				if(a>='A')a-='A'-10;else a-='0';
-				if(b>='a')b-='a'-'A';
-				if(b>='A')b-='A'-10;else b-='0';
-				*str++=16*a+b;
-				p+=3;
-				continue;
-			}
-			*str++=*p++;
-		}
-		*str='\0';
 	}
 }srv;}

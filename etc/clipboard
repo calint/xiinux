@@ -20,3 +20,29 @@ sudo sysctl net.ipv4.tcp_fin_timeout=5
 #vi /etc/security/limits.conf
 #c                soft    nofile          20000
 #c                hard    nofile          40000
+
+
+	static inline void urldecode(char*str){
+		const char*p{str};
+		while(*p){
+			if(*p=='+'){
+				*str++=' ';
+				p++;
+				continue;
+			}
+			char a,b;
+			if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
+				if(a>='a')a-='a'-'A';
+				if(a>='A')a-='A'-10;else a-='0';
+				if(b>='a')b-='a'-'A';
+				if(b>='A')b-='A'-10;else b-='0';
+				*str++=16*a+b;
+				p+=3;
+				continue;
+			}
+			*str++=*p++;
+		}
+		*str='\0';
+	}
+
+    
