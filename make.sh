@@ -2,17 +2,17 @@
 #      g++: (Ubuntu 12.3.0-1ubuntu1~23.04) 12.3.0
 # valgrind: 3.19.0
 
-#CC="g++ -std=c++23"
-#WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
-#          -Wno-unused-parameter -Wno-unused-result"
+CC="g++ -std=c++23"
+WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
+          -Wno-unused-parameter -Wno-unused-result"
 
-CC="clang++ -std=c++20"
-WARNINGS="-Weverything -Wfatal-errors \
-          -Wno-unused-parameter -Wno-unused-result \
-          -Wno-weak-vtables -Wno-old-style-cast -Wno-c++98-compat \
-          -Wno-missing-noreturn -Wno-padded \
-          -Wno-global-constructors -Wno-exit-time-destructors \
-          -Wno-sign-conversion -Wno-format-nonliteral"
+#CC="clang++ -std=c++20"
+#WARNINGS="-Weverything -Wfatal-errors \
+#          -Wno-unused-parameter -Wno-unused-result \
+#          -Wno-c++98-compat -Wno-weak-vtables -Wno-old-style-cast \
+#          -Wno-missing-noreturn -Wno-padded \
+#          -Wno-global-constructors -Wno-exit-time-destructors \
+#          -Wno-sign-conversion -Wno-format-nonliteral"
 BIN=xiinux
 SRC=src/main.cpp
 DBG=""
