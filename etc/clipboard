@@ -47,4 +47,52 @@ sudo sysctl net.ipv4.tcp_fin_timeout=5
 		*str='\0';
 	}
 
-    
+To pause a pthread and wait for a notify from a different thread in Linux using C++, you can make use of condition variables. Condition variables are synchronization primitives that allow a thread to wait until it is notified by another thread.
+
+Here's a general outline of how you can achieve this:
+
+    Define a condition variable and a mutex that will be used to synchronize access to the shared variable and coordinate between threads.
+
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
+
+    In the thread that you want to pause:
+
+
+    Acquire the mutex.
+    Check a condition using a while loop. If the condition is not met, wait on the condition variable.
+    When the condition is met, proceed with the desired task.
+    Release the mutex.
+
+
+pthread_mutex_lock(&mutex);
+while (!condition) {
+    pthread_cond_wait(&cond, &mutex);
+}
+// Perform the task when the condition is met
+pthread_mutex_unlock(&mutex);
+
+
+    In the other thread that will notify:
+
+
+    Acquire the mutex.
+    Update the shared variable or perform the necessary action.
+    Signal or broadcast the condition variable to wake up the waiting thread.
+    Release the mutex.
+
+
+pthread_mutex_lock(&mutex);
+// Update the shared variable or perform the necessary action
+pthread_cond_signal(&cond); // or pthread_cond_broadcast(&cond) to wake up multiple threads
+pthread_mutex_unlock(&mutex);
+
+
+This way, the first thread will pause and wait until the condition is met and it receives a notification from the other thread.
+
+Remember to properly handle error conditions and ensure that the mutex and condition variable are destroyed when they are no longer needed.
+
+Note: The code provided is a general outline and may need to be adapted to your specific use case.
+
