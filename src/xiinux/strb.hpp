@@ -12,15 +12,15 @@ public:
 	inline size_t getsize()const{return len_;}
 	inline strb&rst(){len_=0;return*this;}
 	inline strb&p(/*copies*/const char*str)override{
-		const size_t len=strnlen(str,sizeof buf_+1);//. togetbufferoverrun
-		const ssize_t rem=sizeof buf_-len_-len;
+		const size_t len=strnlen(str,sizeof(buf_)+1);//? togetbufferoverrun
+		const ssize_t rem=sizeof(buf_)-len_-len;
 		if(rem<0)throw"bufferoverrun";
 		strncpy(buf_+len_,str,len);
 		len_+=len;
 		return*this;
 	}
 	inline strb&p(const size_t len,/*copies*/const char*str)override{
-		const ssize_t rem=sizeof buf_-len_-len;
+		const ssize_t rem=sizeof(buf_)-len_-len;
 		if(rem<0)throw"bufferoverrun";
 		strncpy(buf_+len_,str,len);
 		len_+=len;
@@ -28,36 +28,36 @@ public:
 	}
 	inline strb&p(const int i)override{
 		char str[32];
-		const int len=snprintf(str,sizeof str,"%d",i);
+		const int len=snprintf(str,sizeof(str),"%d",i);
 		if(len<0)throw"snprintf";
 		return p(len,str);
 	}
 	inline strb&p(const size_t i)override{
 		char str[32];
-		const int len=snprintf(str,sizeof str,"%zu",i);
+		const int len=snprintf(str,sizeof(str),"%zu",i);
 		if(len<0)throw"snprintf";
 		return p(len,str);
 	}
 	inline strb&p_ptr(const void*ptr)override{
 		char str[32];
-		const int len=snprintf(str,sizeof str,"%p",ptr);
+		const int len=snprintf(str,sizeof(str),"%p",ptr);
 		if(len<0)throw"p_ptr:1";
 		return p(len,str);
 	}
 	inline strb&p_hex(const unsigned long i)override{
 		char str[32];
-		const int len=snprintf(str,sizeof str,"%lx",i);
+		const int len=snprintf(str,sizeof(str),"%lx",i);
 		if(len<0)throw"snprintf";
 		return p(len,str);
 	}
 	inline strb&p(char ch)override{
-		if(sizeof buf_-len_==0)flush();
+		if(sizeof(buf_)-len_==0)flush();
 		*(buf_+len_++)=ch;
 		return*this;
 	}
 	inline strb&nl()override{return p('\n');}
 	inline strb&p(const strb&sb){
-		const ssize_t rem=sizeof buf_-len_-sb.len_;
+		const ssize_t rem=sizeof(buf_)-len_-sb.len_;
 		if(rem<0)throw"bufferoverrun";
 		strncpy(buf_+len_,sb.buf_,sb.len_);
 		len_+=sb.len_;
@@ -72,7 +72,7 @@ public:
 	}
 	inline strb&to(FILE*f){
 		char fmt[32];
-		if(snprintf(fmt,sizeof fmt,"%%%zus",len_)<1)throw"strb:err1";
+		if(snprintf(fmt,sizeof(fmt),"%%%zus",len_)<1)throw"strb:err1";
 		fprintf(f,fmt,buf_);
 		return*this;
 	}

@@ -44,11 +44,11 @@ public:
 		if(set_session_id_cookie_){
 			// Connection: Keep-Alive\r\n  for apache bench
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n",code,len,set_session_id);
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n",code,len,set_session_id_cookie_);
+			n=snprintf(bb,sizeof(bb),"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n",code,len,set_session_id_cookie_);
 			set_session_id_cookie_=nullptr;
 		}else{
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
+			n=snprintf(bb,sizeof(bb),"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
 		if(n<0)throw"send";
 		io_send(bb,n,true);

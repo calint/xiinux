@@ -198,7 +198,7 @@ public:
 			content.unsafe_skip(crem);
 			state=next_request;
 		}else if(state==receiving_upload){
-			const ssize_t n{buf.receive_from(fd_)};//?? thrashes pointers used in request line and headers
+			const ssize_t n{buf.receive_from(fd_)};
 			if(!n)throw signal_connection_reset_by_peer;
 			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
@@ -207,11 +207,11 @@ public:
 				throw"sock:receiving_upload";
 			}
 			const size_t un{size_t(n)};
-			const size_t crem{content.rem()};
-			const ssize_t m{write(upload_fd_,buf.ptr(),crem>un?un:crem)};
+			const size_t rem{content.rem()};
+			const ssize_t m{write(upload_fd_,buf.ptr(),rem>un?un:rem)};
 			if(m<0){sts.errors++;throw"sock:writing upload to file";}
 			if(m!=n)throw"sock:writing upload to file 2";
-			content.unsafe_skip((unsigned)m);
+			content.unsafe_skip(unsigned(m));
 			if(content.more())continue;
 			if(::close(upload_fd_)<0)perr("while closing upload file 2");
 			io_send("HTTP/1.1 204\r\n\r\n",16,true);// 16 is the length of string
@@ -237,8 +237,6 @@ public:
 			state=method;
 		}
 		if(!buf.more()){
-			//?? assumes request header fits in buf and done in one read
-			//   then parsing can be simplified
 			const ssize_t nn{buf.receive_from(fd_)};
 			if(nn==0){// closed by client
 				delete this;
@@ -315,7 +313,7 @@ read_header_key:
 						const char*cookie{hdrs_["cookie"]};
 						const char*session_id{nullptr};
 						if(cookie and strstr(cookie,"i=")){//? parse cookie
-							session_id=cookie+sizeof "i="-1;
+							session_id=cookie+sizeof("i=")-1;
 						}
 						if(!session_id){
 							// create session
@@ -327,7 +325,7 @@ read_header_key:
 							strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
 							char*sid_ptr{sid+16};
 							for(int i=0;i<7;i++){
-								*sid_ptr++='a'+(unsigned char)(random())%26;
+								*sid_ptr++='a'+char((random())%26);
 							}
 							*sid_ptr=0;
 							ses_=new session(/*give*/sid);
@@ -336,7 +334,6 @@ read_header_key:
 						}else{
 							ses_=sess.get(session_id);
 							if(!ses_){
-								// session not found, reload
 								char* sid{new char[64]};
 								strncpy(sid,session_id,64);
 								ses_=new session(/*give*/sid);
@@ -388,7 +385,7 @@ read_header_key:
 					if(content_type and strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
 						char bf[256];
-						if(snprintf(bf,sizeof bf,"upload/%s",reqline.pth_+1)==sizeof bf)throw"sock:pathtrunc";// +1 to skip the leading '/'
+						if(snprintf(bf,sizeof(bf),"upload/%s",reqline.pth_+1)==sizeof(bf))throw"sock:pathtrunc";// +1 to skip the leading '/'
 						if((upload_fd_=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
 						const char*s{hdrs_["expect"]};
 						if(s and !strcmp(s,"100-continue")){
@@ -405,10 +402,10 @@ read_header_key:
 						if(rem>=total){
 							const ssize_t n{write(upload_fd_,buf.ptr(),(size_t)total)};
 							if(n<0){perr("while writing upload to file");throw"sock:err4";}
-							if((size_t)n!=total){throw"sock:incomplete upload";}
+							if(size_t(n)!=total){throw"sock:incomplete upload";}
 							if(::close(upload_fd_)<0){perr("while closing upload file");}
 							const char resp[]{"HTTP/1.1 204\r\n\r\n"};
-							io_send(resp,sizeof resp-1,true);// -1 to exclude '\0'
+							io_send(resp,sizeof(resp)-1,true);// -1 to exclude '\0'
 							buf.unsafe_skip(total);
 							state=next_request;
 							break;
@@ -428,35 +425,35 @@ read_header_key:
 						break;
 					}
 					if(strstr(path,"..")){
-						x.http(403,"path contains ..\n",sizeof "path contains ..\n"-1);
+						x.http(403,"path contains ..\n",sizeof("path contains ..\n")-1);
 						state=next_request;
 						return;
 					}
 					struct stat fdstat;
 					if(stat(path,&fdstat)){
-						x.http(404,"not found\n",sizeof "not found\n"-1);
+						x.http(404,"not found\n",sizeof("not found\n")-1);
 						state=next_request;
 						return;
 					}
 					if(S_ISDIR(fdstat.st_mode)){
-						x.http(403,"path is directory\n",sizeof "path is directory\n"-1);
+						x.http(403,"path is directory\n",sizeof("path is directory\n")-1);
 						state=next_request;
 						return;
 					}
 					const struct tm*tm{gmtime(&fdstat.st_mtime)};
 					{	char lastmod[64];
 						// "Fri, 31 Dec 1999 23:59:59 GMT"
-						strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
+						strftime(lastmod,sizeof(lastmod),"%a, %d %b %y %H:%M:%S %Z",tm);
 						const char*lastmodstr{hdrs_["if-modified-since"]};
 						if(lastmodstr and !strcmp(lastmodstr,lastmod)){
 							const char hdr[]{"HTTP/1.1 304\r\n\r\n"};
-							const size_t hdrnn{sizeof hdr};
+							const size_t hdrnn{sizeof(hdr)};
 							io_send(hdr,hdrnn,true);
 							state=next_request;
 							break;
 						}
 						if(file.open(path)<0){
-							x.http(404,"cannot open\n",sizeof "cannot open\n"-1); // -1 ignore the '\0'
+							x.http(404,"cannot open\n",sizeof("cannot open\n")-1); // -1 ignore the '\0'
 							state=next_request;
 							break;
 						}
@@ -473,15 +470,12 @@ read_header_key:
 							}
 							file.init_for_send(size_t(fdstat.st_size),rs);
 							const size_t e{file.length()};
-							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
-							// puts(bb);
+							bb_len=snprintf(bb,sizeof(bb),"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
 						}else{
 							file.init_for_send(size_t(fdstat.st_size));
-							// "Connection: Keep-Alive\r\n" for apache-bench
-							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
-							// puts(bb);
+							bb_len=snprintf(bb,sizeof(bb),"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
 						}
-						if(bb_len==sizeof bb or bb_len<0)throw"sock:err1";
+						if(bb_len==sizeof(bb) or bb_len<0)throw"sock:err1";
 						io_send(bb,size_t(bb_len),true);
 					}
 					const ssize_t nn{file.resume_send_to(fd_)};
