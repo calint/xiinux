@@ -1,11 +1,12 @@
+[ ] review the messy ssize_t size_t ops in chunky
 [ ] MIME type for ".js" files (warning in Firefox when absent)
-[-] option for apache-bench compatibility
-    -> use other benchmarking tool 'hey'
 [ ] multi-threaded clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
 [ ] qa: performance comparisons
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[-] option for apache-bench compatibility
+    -> use other benchmarking tool 'hey'
 [x] append '_' to class members
 [x] examine whether functions such as 'unsafe_*' get inlined although -Os
     -> using flag -Winline shows that 'unsafe_' not found. non-inlined functions seems ok.
