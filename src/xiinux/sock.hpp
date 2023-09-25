@@ -331,7 +331,7 @@ read_header_key:
 						if(!wdgt){
 							wdgt=widgetget(reqline.qs);
 							const size_t key_len{strlen(reqline.qs)};
-							char* key=(char*)(malloc(key_len+1)); // +1 for the \0 terminator
+							char* key{(char*)(malloc(key_len+1))}; // +1 for the \0 terminator
 							memcpy(key,reqline.qs,key_len+1);
 							ses->put_widget(/*give*/key,/*give*/wdgt);
 						}
@@ -372,7 +372,7 @@ read_header_key:
 					const char*content_type=hdrs["content-type"];
 					if(content_type and strstr(content_type,"file")){// file upload
 						const mode_t mod{0664};
-						char bf[255];
+						char bf[256];
 						if(snprintf(bf,sizeof bf,"upload/%s",reqline.pth+1)==sizeof bf)throw"sock:pathtrunc";// +1 to skip the leading '/'
 						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
 						const char*s{hdrs["expect"]};
