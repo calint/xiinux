@@ -8,8 +8,8 @@ public:
 	inline strb(){}
 	inline strb(const char*str){p(str);}
 	inline strb&flush()override{return*this;}
-	inline const char*getbuf()const{return buf_;}
-	inline size_t getsize()const{return len_;}
+	inline const char*buf()const{return buf_;}
+	inline size_t size()const{return len_;}
 	inline strb&rst(){len_=0;return*this;}
 	inline strb&p(/*copies*/const char*str)override{
 		const size_t len=strnlen(str,sizeof(buf_)+1);//? togetbufferoverrun

@@ -13,7 +13,7 @@ namespace web{
 			x.p("my counter ").p(my_counter).nl();
 			x.p("counter for this page ").p(counter::page_counter).nl();
 			x.p("sessions ").p(int(sts.sessions)).nl();
-			r.http(200,sb.getbuf(),sb.getsize());
+			r.http(200,sb.buf(),sb.size());
 		}
 	};
 	std::atomic_int counter::page_counter{0};

@@ -9,6 +9,8 @@
                 "-Wall",
                 "-Wextra",
                 "-Wpedantic",
+                "-Wsign-conversion",
+                "-Wold-style-cast", 
                 "-Wno-unused-parameter",
                 "-Wno-unused-result",
                 "-Wfatal-errors",

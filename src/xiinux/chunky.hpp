@@ -28,8 +28,8 @@ public:
 	inline chunky&flush()override{
 		if(len_==0)return*this;
 		strb b;
-		b.p_hex(len_).p(2,"\r\n");
-		io_send(b.getbuf(),b.getsize(),true);
+		b.p_hex(len_).p(2,"\r\n");// 2 is size of string
+		io_send(b.buf(),b.size(),true);
 		size_t sent_total=0;
 		while(true){
 			while(true){
@@ -116,7 +116,7 @@ public:
 		return*this;
 	}
 	inline chunky&nl()override{return p('\n');}
-	inline chunky&p(const strb&sb){return p(sb.getsize(),sb.getbuf());}
+	inline chunky&p(const strb&sb){return p(sb.size(),sb.buf());}
 
 	// html5
 	inline chunky&html5(const char*title="")override{

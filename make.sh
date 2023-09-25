@@ -3,7 +3,7 @@
 # valgrind: 3.19.0
 
 CC="g++ -std=c++23"
-WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors -Wsign-conversion -Wold-style-cast\
+WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors -Wsign-conversion -Wold-style-cast \
           -Wno-unused-parameter -Wno-unused-result"
 
 #CC="clang++ -std=c++20"
