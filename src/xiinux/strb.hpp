@@ -2,28 +2,28 @@
 #include"xprinter.hpp"
 #include<string.h>
 namespace xiinux{class strb final:public xprinter{
-	size_t length{0};
-	char buf[4096];
+	size_t len_{0};
+	char buf_[4096];
 public:
 	inline strb(){}
 	inline strb(const char*str){p(str);}
 	inline strb&flush()override{return*this;}
-	inline const char*getbuf()const{return buf;}
-	inline size_t getsize()const{return length;}
-	inline strb&rst(){length=0;return*this;}
+	inline const char*getbuf()const{return buf_;}
+	inline size_t getsize()const{return len_;}
+	inline strb&rst(){len_=0;return*this;}
 	inline strb&p(/*copies*/const char*str)override{
-		const size_t len=strnlen(str,sizeof buf+1);//. togetbufferoverrun
-		const ssize_t rem=sizeof buf-length-len;
+		const size_t len=strnlen(str,sizeof buf_+1);//. togetbufferoverrun
+		const ssize_t rem=sizeof buf_-len_-len;
 		if(rem<0)throw"bufferoverrun";
-		strncpy(buf+length,str,len);
-		length+=len;
+		strncpy(buf_+len_,str,len);
+		len_+=len;
 		return*this;
 	}
 	inline strb&p(const size_t len,/*copies*/const char*str)override{
-		const ssize_t rem=sizeof buf-length-len;
+		const ssize_t rem=sizeof buf_-len_-len;
 		if(rem<0)throw"bufferoverrun";
-		strncpy(buf+length,str,len);
-		length+=len;
+		strncpy(buf_+len_,str,len);
+		len_+=len;
 		return*this;
 	}
 	inline strb&p(const int i)override{
@@ -51,16 +51,16 @@ public:
 		return p(len,str);
 	}
 	inline strb&p(char ch)override{
-		if(sizeof buf-length==0)flush();
-		*(buf+length++)=ch;
+		if(sizeof buf_-len_==0)flush();
+		*(buf_+len_++)=ch;
 		return*this;
 	}
 	inline strb&nl()override{return p('\n');}
 	inline strb&p(const strb&sb){
-		const ssize_t rem=sizeof buf-length-sb.length;
+		const ssize_t rem=sizeof buf_-len_-sb.len_;
 		if(rem<0)throw"bufferoverrun";
-		strncpy(buf+length,sb.buf,sb.length);
-		length+=sb.length;
+		strncpy(buf_+len_,sb.buf_,sb.len_);
+		len_+=sb.len_;
 		return*this;
 	}
 
@@ -72,8 +72,8 @@ public:
 	}
 	inline strb&to(FILE*f){
 		char fmt[32];
-		if(snprintf(fmt,sizeof fmt,"%%%zus",length)<1)throw"strb:err1";
-		fprintf(f,fmt,buf);
+		if(snprintf(fmt,sizeof fmt,"%%%zus",len_)<1)throw"strb:err1";
+		fprintf(f,fmt,buf_);
 		return*this;
 	}
 };}

@@ -1,14 +1,14 @@
 #pragma once
 #include<ctype.h>
 namespace xiinux{class args final{
-	const int argc;
-	const char**argv;
+	const int argc_;
+	const char**argv_;
 public:
-	inline args(const int argc,const char*argv[]):argc{argc},argv{argv}{}
+	inline args(const int argc,const char*argv[]):argc_{argc},argv_{argv}{}
 	inline bool hasoption(const char short_name){
-		if(argc==1)return false;
-		const char**vv=argv;
-		int i=argc;
+		if(argc_==1)return false;
+		const char**vv=argv_;
+		int i=argc_;
 		while(true){
 			if(i==1)return false;
 			vv++;
@@ -27,9 +27,9 @@ public:
 		}
 	}
 	inline const char*getoptionvalue(const char short_name,const char*default_value){
-		int i=argc-1;
+		int i=argc_-1;
 		if(i==0)return default_value;
-		const char**vv=argv;
+		const char**vv=argv_;
 		while(true){
 			vv++;
 			const char*p=*vv;
@@ -55,8 +55,8 @@ public:
 		return default_value;
 	}
 	inline const char*getarg(int n,const char*default_value){
-		const char**vv=argv;
-		int i=argc;
+		const char**vv=argv_;
+		int i=argc_;
 		while(true){
 			if(i==1)return default_value;
 			vv++;

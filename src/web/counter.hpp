@@ -1,11 +1,9 @@
 #pragma once
 #include<atomic>
-using namespace xiinux;
-using namespace std;
 namespace web{
 	class counter final:public widget{
 	public:
-		static atomic_int page_counter;
+		static std::atomic_int page_counter;
 		int my_counter{0};
 		void to(reply&r)override{
 			my_counter++;
@@ -18,5 +16,5 @@ namespace web{
 			r.http(200,sb.getbuf(),sb.getsize());
 		}
 	};
-	atomic_int counter::page_counter{0};
+	std::atomic_int counter::page_counter{0};
 }

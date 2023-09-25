@@ -8,17 +8,17 @@
 #include"conf.hpp"
 #include<unistd.h>
 namespace xiinux{class reply final{
-	int fd;
-	const char*set_session_id_cookie{nullptr};
+	int fd_;
+	const char*set_session_id_cookie_{nullptr};
 public:
-	inline reply(const int fd=0):fd{fd}{}
+	inline reply(const int fd=0):fd_{fd}{}
 	inline /*give*/chunky*reply_chunky(){
-		chunky*c=new chunky(fd);
+		chunky*c=new chunky(fd_);
 		return c;
 	}
 	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
-		const ssize_t n{send(fd,buf,len,MSG_NOSIGNAL)};
+		const ssize_t n{send(fd_,buf,len,MSG_NOSIGNAL)};
 		if(n<0){
 			if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 			sts.errors++;
@@ -36,16 +36,16 @@ public:
 		io_send(data,len,true);
 		return*this;
 	}
-	inline void send_session_id_at_next_opportunity(const char*id){set_session_id_cookie=id;}
+	inline void send_session_id_at_next_opportunity(const char*id){set_session_id_cookie_=id;}
 	inline reply&http(const int code,const char*content=nullptr,size_t len=0){
 		char bb[1024];
 		if(content and !len)len=strnlen(content,K*M);
 		int n;
-		if(set_session_id_cookie){
+		if(set_session_id_cookie_){
 			// Connection: Keep-Alive\r\n  for apache bench
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n",code,len,set_session_id);
-			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n",code,len,set_session_id_cookie);
-			set_session_id_cookie=nullptr;
+			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n",code,len,set_session_id_cookie_);
+			set_session_id_cookie_=nullptr;
 		}else{
 //			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nConnection: Keep-Alive\r\nContent-Length: %zu\r\n\r\n",code,len);
 			n=snprintf(bb,sizeof bb,"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);

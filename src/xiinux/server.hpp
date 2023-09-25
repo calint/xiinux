@@ -45,15 +45,15 @@ public:
 		sa.sin_family=AF_INET;
 		sa.sin_addr.s_addr=INADDR_ANY;
 		sa.sin_port=htons(port);
-		if((srv.fd=socket(AF_INET,SOCK_STREAM,0))==-1){perror("socket");exit(1);}
-		if(bind(srv.fd,(struct sockaddr*)&sa,sasz)){perror("bind");exit(2);}
-		if(listen(srv.fd,nclients)==-1){perror("listen");exit(3);}
+		if((srv.fd_=socket(AF_INET,SOCK_STREAM,0))==-1){perror("socket");exit(1);}
+		if(bind(srv.fd_,(struct sockaddr*)&sa,sasz)){perror("bind");exit(2);}
+		if(listen(srv.fd_,nclients)==-1){perror("listen");exit(3);}
 		epollfd=epoll_create(nclients);
 		if(!epollfd){perror("epollcreate");exit(4);}
 		struct epoll_event ev;
 		ev.events=EPOLLIN;
 		ev.data.ptr=&srv;
-		if(epoll_ctl(epollfd,EPOLL_CTL_ADD,srv.fd,&ev)<0){perror("epolladd");exit(5);}
+		if(epoll_ctl(epollfd,EPOLL_CTL_ADD,srv.fd_,&ev)<0){perror("epolladd");exit(5);}
 		struct epoll_event events[nclients];
 		if(thdwatch_on)if(pthread_create(&thdwatch,nullptr,&thdwatch_run,nullptr)){perror("threadcreate");exit(6);}
 		while(true){
@@ -70,9 +70,9 @@ public:
 			}
 			for(int i=0;i<nn;i++){
 				sock*c=(sock*)events[i].data.ptr;
-				if(c->fd==srv.fd){// new connection
+				if(c->fd_==srv.fd_){// new connection
 					sts.accepts++;
-					const int fda=accept(srv.fd,nullptr,nullptr);
+					const int fda=accept(srv.fd_,nullptr,nullptr);
 					if(fda==-1){
 						perr("accept");
 						continue;

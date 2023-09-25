@@ -6,6 +6,7 @@
 [ ] qa: performance comparisons
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] append '_' to class members
 [x] examine whether functions such as 'unsafe_*' get inlined although -Os
     -> using flag -Winline shows that 'unsafe_' not found. non-inlined functions seems ok.
 [x] lut: delete without recursion
