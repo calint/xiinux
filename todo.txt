@@ -1,3 +1,4 @@
+[ ] lut: delete without recursion
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
 [ ] multi-threaded clients, chunky pause and resume when write would block
