@@ -428,11 +428,11 @@ read_header_key:
 						state=next_request;
 						return;
 					}
-					const struct tm*tm=gmtime(&fdstat.st_mtime);
+					const struct tm*tm{gmtime(&fdstat.st_mtime)};
 					{	char lastmod[64];
 						// "Fri, 31 Dec 1999 23:59:59 GMT"
 						strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
-						const char*lastmodstr=hdrs["if-modified-since"];
+						const char*lastmodstr{hdrs["if-modified-since"]};
 						if(lastmodstr and !strcmp(lastmodstr,lastmod)){
 							const char hdr[]{"HTTP/1.1 304\r\n\r\n"};
 							const size_t hdrnn{sizeof hdr};
