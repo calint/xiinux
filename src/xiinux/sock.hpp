@@ -131,7 +131,6 @@ public:
 		sts.errors++;
 		perr("sockdel");
 	}
-	inline void close(){if(::close(fd)<0)perror("sockclosefd");}
 	inline void run(){while(true){
 		//printf(" state %d\n",state);
 		if(state==receiving_content){

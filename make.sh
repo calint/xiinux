@@ -5,9 +5,9 @@ CC="g++ -std=c++23"
 BIN=xiinux
 SRC=src/main.cpp
 DBG=""
+OPTS=-Os
 #DBG="-g"
 #DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
-OPTS=-Os
 #OPTS=-O3
 #OPTS="-O3 -static"
 WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors -Wno-unused-parameter \
@@ -28,6 +28,7 @@ cat all.src|gzip|wc &&
 echo && ls -ho --color $BIN &&
 echo &&
 rm all.src
-#valgrind --leak-check=yes --leak-check=full --show-leak-kinds=all ./$BIN -bv
-#valgrind --leak-check=yes ./$BIN
-#valgrind --tool=callgrind --collect-jumps=yes ./$BIN
+#valgrind ./$BIN
+#valgrind --leak-check=full ./$BIN
+#valgrind --leak-check=full --show-leak-kinds=all ./$BIN
+#valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bv

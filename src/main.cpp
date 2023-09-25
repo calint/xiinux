@@ -3,8 +3,7 @@
 static void sigint(int i){
 	puts("exiting");
 	xiinux::server::stop();
-	signal(SIGINT,SIG_DFL);
-	kill(getpid(),SIGINT);
+	exit(0);
 }
 int main(const int c,const char**a){
 	signal(SIGINT,sigint);

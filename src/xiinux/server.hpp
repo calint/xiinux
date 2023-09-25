@@ -20,7 +20,10 @@ namespace xiinux{class server final{
 		return nullptr;
 	}
 public:
-	inline static void stop(){srv.close();delete homepage;}
+	inline static void stop(){
+		delete homepage;
+		//? stop the 'watch_thread'
+	}
 	inline static int start(const int argc,const char**argv){
 		args a(argc,argv);
 		const bool watch_thread=a.hasoption('v');
