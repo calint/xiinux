@@ -1,7 +1,7 @@
 #pragma once
 #include<stdlib.h>
 #include<stdio.h>
-namespace xiinux{class stats{
+namespace xiinux{class stats final{
 public:
 	size_t ms{0};
 	size_t socks{0};

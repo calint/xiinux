@@ -1,6 +1,6 @@
 #pragma once
 #include"widget.hpp"
-namespace xiinux{class session{
+namespace xiinux{class session final{
 	char*key;
 	lut<char*>kvp;
 	lut<widget*>widgets;

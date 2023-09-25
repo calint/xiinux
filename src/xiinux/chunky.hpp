@@ -3,7 +3,7 @@
 #include<errno.h>
 #include"conf.hpp"
 #include<unistd.h>
-namespace xiinux{class chunky:public xprinter{
+namespace xiinux{class chunky final:public xprinter{
 	size_t length{0};
 	char buf[chunky_buf_size_in_bytes];
 	int sockfd;

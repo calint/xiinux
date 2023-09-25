@@ -1,7 +1,7 @@
 #pragma once
 #include"xprinter.hpp"
 #include<string.h>
-namespace xiinux{class strb:public xprinter{
+namespace xiinux{class strb final:public xprinter{
 	size_t length{0};
 	char buf[4096];
 public:

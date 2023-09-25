@@ -1,6 +1,6 @@
 #pragma once
 #include"reply.hpp"
-namespace xiinux{class doc{
+namespace xiinux{class doc final{
 	size_t len;
 	char*buf;
 //	const char*lastmod;

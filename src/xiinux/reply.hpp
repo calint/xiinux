@@ -7,7 +7,7 @@
 #include"chunky.hpp"
 #include"conf.hpp"
 #include<unistd.h>
-namespace xiinux{class reply{
+namespace xiinux{class reply final{
 	int fd;
 	const char*set_session_id_cookie{nullptr};
 public:

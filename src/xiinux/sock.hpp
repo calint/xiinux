@@ -12,7 +12,7 @@
 #include<unistd.h>
 #include<sys/sendfile.h>
 #include<sys/stat.h>
-namespace xiinux{class sock{
+namespace xiinux{class sock final{
 	enum{method,uri,query,protocol,header_key,header_value,resume_send_file,receiving_content,receiving_upload,next_request}state{method};
 
 	class{

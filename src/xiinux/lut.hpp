@@ -1,6 +1,6 @@
 #pragma once
 //? replace use with std::unordered_map
-namespace xiinux{template<class T>class lut{
+namespace xiinux{template<class T>class lut final{
 private:
 	unsigned size;
 	class el{

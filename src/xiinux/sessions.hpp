@@ -1,7 +1,7 @@
 #pragma once
 #include"lut.hpp"
 #include"session.hpp"
-namespace xiinux{class sessions{
+namespace xiinux{class sessions final{
 	lut<session*>all{K};
 public:
 	inline~sessions(){all.delete_content(false);}
