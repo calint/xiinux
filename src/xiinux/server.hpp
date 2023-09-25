@@ -32,7 +32,7 @@ public:
 		thdwatch_on=a.hasoption('v');
 		const int port=atoi(a.getoptionvalue('p',"8088"));
 		const bool option_benchmark_mode=a.hasoption('b');
-		conf::print_trafic=a.hasoption('t');
+		conf::print_traffic=a.hasoption('t');
 		printf("%s on port %d\n",application_name,port);
 
 		char buf[4*K];
@@ -110,6 +110,7 @@ public:
 				try{
 					c->run();
 				}catch(const char*msg){
+					// todo: print session id
 					delete c;
 					if(msg==signal_connection_reset_by_peer){
 						sts.brkp++;

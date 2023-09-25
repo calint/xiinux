@@ -5,7 +5,8 @@ namespace xiinux{
 	static const int K=1024;
 	static const int M=K*K;
 	static const int nclients=K;
-	static const size_t sockbuf_size_in_bytes=K;
+	static const size_t sock_req_buf_size_in_bytes=K;
+	static const size_t sock_content_buf_size_in_bytes=4*K;
 	static const size_t chunky_buf_size_in_bytes=4*K;
 	static const char*signal_connection_reset_by_peer="brk";
 

@@ -54,8 +54,15 @@ namespace xiinux{class sock{
 	class{
 		size_t pos{0};
 		size_t len{0};
+		char*buf{nullptr};
 	public:
-		inline void rst(){len=pos=0;}
+		inline void rst(){pos=len=0;}
+		inline void cleanup(){
+			if(!buf)
+				return;
+			delete[]buf;
+			buf=nullptr;
+		}
 		inline bool more()const{return pos!=len;}
 		inline size_t rem()const{return len-pos;}
 		inline void unsafe_skip(const size_t n){pos+=n;}
@@ -63,14 +70,22 @@ namespace xiinux{class sock{
 		inline size_t total_length()const{return len;}
 		inline void init_for_receive(const char*content_length_str){
 			len=(size_t)atoll(content_length_str);
+			buf=new char[len];
 			pos=0;
+		}
+		inline char*ptr()const{return buf;}
+		inline ssize_t receive_from(int fd){
+			sts.reads++;
+			const ssize_t n{recv(fd,buf,sock_content_buf_size_in_bytes,0)};
+			if(n<0)return n;
+			sts.input+=(unsigned)n;
+			if(conf::print_traffic)write(conf::print_traffic_fd,buf,(unsigned)n);
+			return n;
 		}
 	}content;
 
-	int upload_fd{0};
-
 	class{
-		char d[sockbuf_size_in_bytes];
+		char d[sock_req_buf_size_in_bytes];
 		char*p{d};
 		char*e{d};
 	public:
@@ -82,18 +97,20 @@ namespace xiinux{class sock{
 		inline void eos(){*(p-1)=0;}
 		inline char*ptr()const{return p;}
 		inline ssize_t receive_from(int fd){
-			const unsigned nbytes_to_read=sockbuf_size_in_bytes-(p-d);
+			const unsigned nbytes_to_read=sock_req_buf_size_in_bytes-(p-d);
 			if(nbytes_to_read==0)
 				throw"sock:buf:full";
+			sts.reads++;
 			const ssize_t n{recv(fd,p,nbytes_to_read,0)};
 			if(n<0)return n;
 			sts.input+=(unsigned)n;
 			e=p+n;
-			if(conf::print_trafic)write(conf::print_trafic_fd,p,(unsigned)n);
+			if(conf::print_traffic)write(conf::print_traffic_fd,p,(unsigned)n);
 			return n;
 		}
 	}buf;
 
+	int upload_fd{0};
 	widget*wdgt{nullptr};
 	session*ses{nullptr};
 	bool send_session_id_in_reply{false};
@@ -121,7 +138,7 @@ namespace xiinux{class sock{
 		}
 		const size_t un{size_t(n)};
 		sts.output+=un;
-		if(conf::print_trafic)write(conf::print_trafic_fd,buf,un);
+		if(conf::print_traffic)write(conf::print_traffic_fd,buf,un);
 		if(throw_if_send_not_complete and un!=len){
 			sts.errors++;
 			throw"sock:sendnotcomplete";
@@ -132,6 +149,7 @@ public:
 	int fd{0};
 	inline sock(const int f=0):fd{f}{sts.socks++;}
 	inline~sock(){
+		content.cleanup();
 		sts.socks--;
 		if(!::close(fd))return;
 		sts.errors++;
@@ -140,10 +158,8 @@ public:
 	inline void run(){while(true){
 		//printf(" state %d\n",state);
 		if(state==receiving_content){
-			sts.reads++;
-			buf.rst();
-			const ssize_t n{buf.receive_from(fd)};//?? thrashes pointers used in request line and headers
-			if(!n)throw signal_connection_reset_by_peer;
+			const ssize_t n{content.receive_from(fd)};//?? thrashes pointers used in request line and headers
+			if(n==0)throw signal_connection_reset_by_peer;
 			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
@@ -155,17 +171,14 @@ public:
 			const size_t total{content.total_length()};
 			reply x{fd};
 			if(crem>un){
-				wdgt->on_content(x,buf.ptr(),un,total);
+				wdgt->on_content(x,content.ptr(),un,total);
 				content.unsafe_skip(un);
-				buf.unsafe_skip(un);
 				continue;
 			}
-			wdgt->on_content(x,buf.ptr(),crem,total);
+			wdgt->on_content(x,content.ptr(),crem,total);
 			content.unsafe_skip(crem);
-			buf.unsafe_skip(crem);
 			state=next_request;
 		}else if(state==receiving_upload){
-			sts.reads++;
 			const ssize_t n{buf.receive_from(fd)};//?? thrashes pointers used in request line and headers
 			if(!n)throw signal_connection_reset_by_peer;
 			if(n<0){
@@ -222,7 +235,6 @@ public:
 		if(!buf.more()){
 			//?? assumes request header fits in buf and done in one read
 			//   then parsing can be simplified
-			sts.reads++;
 			const ssize_t nn{buf.receive_from(fd)};
 			if(nn==0){// closed by client
 				delete this;
@@ -351,15 +363,14 @@ read_header_key:
 								break;
 							}
 							const size_t rem{buf.rem()};
-							if(rem>=total){// full content is read in buffer
+							if(rem>=total){// full content is in 'buf'
 								wdgt->on_content(x,buf.ptr(),total,total);
-								buf.unsafe_skip(total);
 								state=next_request;
 								break;
 							}else{
+								// part of the content is in 'buf'
 								wdgt->on_content(x,buf.ptr(),rem,total);
 								content.unsafe_skip(rem);
-								buf.unsafe_skip(rem);
 								state=receiving_content;
 								break;
 							}
