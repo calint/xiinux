@@ -61,7 +61,10 @@ namespace xiinux{class sock{
 		inline void unsafe_skip(const size_t n){pos+=n;}
 
 		inline size_t total_length()const{return len;}
-		inline void init_for_receive(const char*content_length_str){len=(size_t)atoll(content_length_str);pos=0;}
+		inline void init_for_receive(const char*content_length_str){
+			len=(size_t)atoll(content_length_str);
+			pos=0;
+		}
 	}content;
 
 	int upload_fd{0};
@@ -136,7 +139,7 @@ public:
 		if(state==receiving_content){
 			sts.reads++;
 			buf.rst();
-			const ssize_t n{buf.receive_from(fd)};
+			const ssize_t n{buf.receive_from(fd)};//?? thrashes pointers used in request line and headers
 			if(!n)throw signal_connection_reset_by_peer;
 			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}

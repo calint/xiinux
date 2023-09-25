@@ -1,3 +1,4 @@
+[ ] bug: sock::buf gets overwritten when content is sent thrashing the pointers
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
 [ ] abuse errors: request line length, header count, header name length, etc
@@ -6,5 +7,6 @@
 [ ]   headers as std::string in std::unordered_map
 [ ] if request line and headers must be read in one read then parsing that part
     of the request can be done in a simpler way
-[ ] valgrind
 [ ] hierarchial widgets
+--------------------------------------------------------------------------------
+[x] valgrind
