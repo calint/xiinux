@@ -1,5 +1,6 @@
 # tools:
-#   g++ (Ubuntu 12.3.0-1ubuntu1~23.04) 12.3.0
+#      g++: (Ubuntu 12.3.0-1ubuntu1~23.04) 12.3.0
+# valgrind: 3.19.0
 
 CC="g++ -std=c++23"
 BIN=xiinux
@@ -30,5 +31,5 @@ echo &&
 rm all.src
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
-valgrind --leak-check=full --show-leak-kinds=all ./$BIN
+#valgrind --leak-check=full --show-leak-kinds=all ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bv
