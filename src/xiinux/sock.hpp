@@ -145,7 +145,7 @@ public:
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
-				throw"sock:readingcontent";
+				throw"sock:receiving_content";
 			}
 			const size_t un{size_t(n)};
 			const size_t crem{content.rem()};
@@ -169,7 +169,7 @@ public:
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
 				else if(errno==ECONNRESET)throw signal_connection_reset_by_peer;
 				sts.errors++;
-				throw"sock:upload";
+				throw"sock:receiving_upload";
 			}
 			const size_t un{size_t(n)};
 			const size_t crem{content.rem()};
