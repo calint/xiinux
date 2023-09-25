@@ -151,18 +151,16 @@ public:
 			const size_t crem{content.rem()};
 			const size_t total{content.total_length()};
 			reply x{fd};
-			if(crem>size_t(n)){
+			if(crem>un){
 				wdgt->on_content(x,buf.ptr(),un,total);
 				content.unsafe_skip(un);
 				buf.unsafe_skip(un);
-				if(content.more())continue;
-				state=next_request;
-			}else{
-				wdgt->on_content(x,buf.ptr(),crem,total);
-				content.unsafe_skip(crem);
-				buf.unsafe_skip(crem);
-				state=next_request;
+				continue;
 			}
+			wdgt->on_content(x,buf.ptr(),crem,total);
+			content.unsafe_skip(crem);
+			buf.unsafe_skip(crem);
+			state=next_request;
 		}else if(state==receiving_upload){
 			sts.reads++;
 			const ssize_t n{buf.receive_from(fd)};//?? thrashes pointers used in request line and headers
@@ -346,15 +344,14 @@ read_header_key:
 						}
 						if(content_length_str){// posting content to widget
 							const size_t total{content.total_length()};
+							wdgt->on_content(x,nullptr,0,total);
 							const char*s{hdrs["expect"]};
 							if(s and !strcmp(s,"100-continue")){
 	//								dbg("client expects 100 continue before sending post");
 								io_send("HTTP/1.1 100\r\n\r\n",16,true);
-								wdgt->on_content(x,nullptr,0,total);//? begin content scan
 								state=receiving_content;
 								break;
 							}
-							wdgt->on_content(x,nullptr,0,total);//? begin content scan
 							const size_t rem{buf.rem()};
 							if(rem>=total){// full content is read in buffer
 								wdgt->on_content(x,buf.ptr(),total,total);
