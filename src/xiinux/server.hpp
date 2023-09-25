@@ -4,15 +4,17 @@
 #include<netinet/tcp.h>
 #include"defines.hpp"
 namespace xiinux{class server final{
-	inline static void*thdwatchrun(void*arg){
+	inline static bool thdwatch_on{false};
+	inline static pthread_t thdwatch;
+	inline static void*thdwatch_run(void*arg){
 		if(arg)puts((const char*)arg);
 		sts.printhdr(stdout);
-		while(1){
+		while(thdwatch_on){
 			int n=10;
 			while(n--){
-				const int sleep=100000;
-				usleep(sleep);
-				sts.ms+=sleep/1000;//? not really
+				const int sleep_us=100'000;
+				usleep(sleep_us);
+				sts.ms+=sleep_us/1'000;//? not really
 				sts.print(stdout);
 			}
 			fprintf(stdout,"\n");
@@ -22,11 +24,12 @@ namespace xiinux{class server final{
 public:
 	inline static void stop(){
 		delete homepage;
-		//? stop the 'watch_thread'
+		thdwatch_on=false;
+		pthread_join(thdwatch,nullptr);
 	}
 	inline static int start(const int argc,const char**argv){
 		args a(argc,argv);
-		const bool watch_thread=a.hasoption('v');
+		thdwatch_on=a.hasoption('v');
 		const int port=atoi(a.getoptionvalue('p',"8088"));
 		const bool option_benchmark_mode=a.hasoption('b');
 		conf::print_trafic=a.hasoption('t');
@@ -52,8 +55,7 @@ public:
 		ev.data.ptr=&srv;
 		if(epoll_ctl(epollfd,EPOLL_CTL_ADD,srv.fd,&ev)<0){perror("epolladd");exit(5);}
 		struct epoll_event events[nclients];
-		pthread_t thdwatch;
-		if(watch_thread)if(pthread_create(&thdwatch,nullptr,&thdwatchrun,nullptr)){perror("threadcreate");exit(6);}
+		if(thdwatch_on)if(pthread_create(&thdwatch,nullptr,&thdwatch_run,nullptr)){perror("threadcreate");exit(6);}
 		while(true){
 			const int nn=epoll_wait(epollfd,events,nclients,-1);
 //				if(nn==0){
