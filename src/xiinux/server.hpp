@@ -11,7 +11,7 @@ namespace xiinux{class server final{
 		sts.printhdr(stdout);
 		while(thdwatch_on){
 			int n=10;
-			while(n--){
+			while(thdwatch_on and n--){
 				const int sleep_us=100'000;
 				usleep(sleep_us);
 				sts.ms+=sleep_us/1'000;//? not really
