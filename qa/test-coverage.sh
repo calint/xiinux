@@ -112,5 +112,10 @@ rm cmp t17.cmp&&
 #gunzip -fk t17.cmp.gz &&
 #diff -q cmp t17.cmp&&
 #rm cmp t17.cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * abuse request >1K "&&
+nc -w1 $HOST $PORT<t18.in>cmp&&
+diff -q cmp t18.cmp&&
+rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date&&echo
