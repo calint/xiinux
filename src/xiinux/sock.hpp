@@ -69,9 +69,11 @@ namespace xiinux{class sock{
 
 		inline size_t total_length()const{return len;}
 		inline void init_for_receive(const char*content_length_str){
-			len=(size_t)atoll(content_length_str);
-			buf=new char[len];
 			pos=0;
+			len=(size_t)atoll(content_length_str);
+			if(!buf){
+				buf=new char[sock_content_buf_size_in_bytes];
+			}
 		}
 		inline char*ptr()const{return buf;}
 		inline ssize_t receive_from(int fd){
