@@ -1,7 +1,7 @@
+[ ] examine whether functions such as 'unsafe_*' get inlined although -Os
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
 [ ] multi-threaded clients, chunky pause and resume when write would block
-[ ] examine whether functions such as 'unsafe_*' get inlined although -Os
 [ ] ? headers in std::unordered_map
 [ ] qa: performance comparisons
 [ ] hierarchial widgets
