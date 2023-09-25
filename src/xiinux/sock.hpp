@@ -116,7 +116,7 @@ namespace xiinux{class sock{
 			sts.errors++;
 			throw"sock:iosend";
 		}
-		const size_t un=size_t(n);
+		const size_t un{size_t(n)};
 		sts.output+=un;
 		if(conf::print_trafic)write(conf::print_trafic_fd,buf,un);
 		if(throw_if_send_not_complete and un!=len){
@@ -375,30 +375,30 @@ read_header_key:
 						char bf[255];
 						if(snprintf(bf,sizeof bf,"upload/%s",reqline.pth+1)==sizeof bf)throw"sock:pathtrunc";// +1 to skip the leading '/'
 						if((upload_fd=open(bf,O_CREAT|O_WRONLY|O_TRUNC,mod))<0){perror("while creating file for upload");throw"sock:err7";}
-						const char*s=hdrs["expect"];
+						const char*s{hdrs["expect"]};
 						if(s and !strcmp(s,"100-continue")){
 							io_send("HTTP/1.1 100\r\n\r\n",16,true);// 16 is string length
 							state=receiving_upload;
 							break;
 						}
-						const size_t rem=buf.rem();
+						const size_t rem{buf.rem()};
 						if(rem==0){
 							state=receiving_upload;
 							break;
 						}
-						const size_t total=content.total_length();
+						const size_t total{content.total_length()};
 						if(rem>=total){
-							const ssize_t n=write(upload_fd,buf.ptr(),(size_t)total);
+							const ssize_t n{write(upload_fd,buf.ptr(),(size_t)total)};
 							if(n<0){perr("while writing upload to file");throw"sock:err4";}
 							if((size_t)n!=total){throw"sock:incomplete upload";}
 							if(::close(upload_fd)<0){perr("while closing upload file");}
-							const char resp[]="HTTP/1.1 204\r\n\r\n";
+							const char resp[]{"HTTP/1.1 204\r\n\r\n"};
 							io_send(resp,sizeof resp-1,true);// -1 to exclude '\0'
 							buf.unsafe_skip(total);
 							state=next_request;
 							break;
 						}
-						const ssize_t n=write(upload_fd,buf.ptr(),rem);
+						const ssize_t n{write(upload_fd,buf.ptr(),rem)};
 						if(n<0){perror("while writing upload to file2");throw"sock:err6";}
 						if((size_t)n!=rem){throw"upload2";}
 						content.unsafe_skip(n);
@@ -434,8 +434,8 @@ read_header_key:
 						strftime(lastmod,sizeof lastmod,"%a, %d %b %y %H:%M:%S %Z",tm);
 						const char*lastmodstr=hdrs["if-modified-since"];
 						if(lastmodstr and !strcmp(lastmodstr,lastmod)){
-							const char hdr[]="HTTP/1.1 304\r\n\r\n";
-							const size_t hdrnn=sizeof hdr;
+							const char hdr[]{"HTTP/1.1 304\r\n\r\n"};
+							const size_t hdrnn{sizeof hdr};
 							io_send(hdr,hdrnn,true);
 							state=next_request;
 							break;
