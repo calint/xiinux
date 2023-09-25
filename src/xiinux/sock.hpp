@@ -179,7 +179,7 @@ public:
 			content.unsafe_skip((unsigned)m);
 			if(content.more())continue;
 			if(::close(upload_fd)<0)perr("while closing upload file 2");
-			io_send("HTTP/1.1 204\r\n\r\n",16,true);
+			io_send("HTTP/1.1 204\r\n\r\n",16,true);// 16 is the length of string
 			state=next_request;
 		}else if(state==resume_send_file){
 			sts.writes++;
@@ -459,7 +459,7 @@ read_header_key:
 								throw"sock:errrorscanning";
 							}
 							file.init_for_send(size_t(fdstat.st_size),rs);
-							const size_t e=file.length();
+							const size_t e{file.length()};
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
 							// puts(bb);
 						}else{
@@ -471,7 +471,7 @@ read_header_key:
 						if(bb_len==sizeof bb)throw"sock:err1";
 						io_send(bb,size_t(bb_len),true);
 					}
-					const ssize_t nn=file.resume_send_to(fd);
+					const ssize_t nn{file.resume_send_to(fd)};
 					if(nn<0){
 						if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 						sts.errors++;
