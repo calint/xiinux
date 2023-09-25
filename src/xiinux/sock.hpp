@@ -165,7 +165,7 @@ public:
 			}
 		}else if(state==receiving_upload){
 			sts.reads++;
-			const ssize_t n{buf.receive_from(fd)};
+			const ssize_t n{buf.receive_from(fd)};//?? thrashes pointers used in request line and headers
 			if(!n)throw signal_connection_reset_by_peer;
 			if(n<0){
 				if(errno==EAGAIN or errno==EWOULDBLOCK){io_request_read();return;}
