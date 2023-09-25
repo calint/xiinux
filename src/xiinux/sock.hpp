@@ -23,19 +23,19 @@ namespace xiinux{class sock final{
 		inline void close(){if(::close(fd_)<0)perror("closefile");}
 		inline ssize_t resume_send_to(const int to_fd){
 			sts.writes++;
-			const ssize_t n{sendfile(to_fd,fd_,&pos_,len_-pos_)};
+			const ssize_t n{sendfile(to_fd,fd_,&pos_,len_-size_t(pos_))};
 			if(n<0)return n;
-			xiinux::sts.output+=n;
+			xiinux::sts.output+=unsigned(n);
 			return n;
 		}
 		inline void init_for_send(const size_t size_in_bytes,const off_t seek_pos=0){
 			pos_=seek_pos;
 			len_=size_in_bytes;
 		}
-		inline bool done()const{return (size_t)pos_==len_;}
+		inline bool done()const{return size_t(pos_)==len_;}
 		inline size_t length()const{return len_;}
 		inline int open(const char*path){fd_=::open(path,O_RDONLY);return fd_;}
-		inline void rst(){fd_=pos_=len_=0;}
+		inline void rst(){fd_=0;pos_=0;len_=0;}
 	}file;
 
 	struct{
@@ -71,7 +71,7 @@ namespace xiinux{class sock final{
 		inline size_t total_length()const{return len_;}
 		inline void init_for_receive(const char*content_length_str){
 			pos_=0;
-			len_=(size_t)atoll(content_length_str);
+			len_=size_t(atoll(content_length_str));
 			if(!buf_){
 				buf_=new char[sock_content_buf_size_in_bytes];
 			}
@@ -81,8 +81,8 @@ namespace xiinux{class sock final{
 			sts.reads++;
 			const ssize_t n{recv(fd_in,buf_,sock_content_buf_size_in_bytes,0)};
 			if(n<0)return n;
-			sts.input+=(unsigned)n;
-			if(conf::print_traffic)write(conf::print_traffic_fd,buf_,(unsigned)n);
+			sts.input+=size_t(n);
+			if(conf::print_traffic)write(conf::print_traffic_fd,buf_,size_t(n));
 			return n;
 		}
 	}content;
@@ -94,21 +94,21 @@ namespace xiinux{class sock final{
 	public:
 		inline void rst(){p_=e_=buf_;}
 		inline bool more()const{return p_!=e_;}
-		inline size_t rem()const{return e_-p_;}
+		inline size_t rem()const{return size_t(e_-p_);}
 		inline void unsafe_skip(const size_t n){p_+=n;}
 		inline char unsafe_next_char(){return *p_++;}
 		inline void eos(){*(p_-1)=0;}
 		inline char*ptr()const{return p_;}
 		inline ssize_t receive_from(int fd_in){
-			const size_t nbytes_to_read=sock_req_buf_size_in_bytes-(p_-buf_);
+			const size_t nbytes_to_read=sock_req_buf_size_in_bytes-size_t(p_-buf_);
 			if(nbytes_to_read==0)
 				throw"sock:buf:full";
 			sts.reads++;
 			const ssize_t n{recv(fd_in,p_,nbytes_to_read,0)};
 			if(n<0)return n;
-			sts.input+=(unsigned)n;
+			sts.input+=size_t(n);
 			e_=p_+n;
-			if(conf::print_traffic)write(conf::print_traffic_fd,p_,(unsigned)n);
+			if(conf::print_traffic)write(conf::print_traffic_fd,p_,size_t(n));
 			return n;
 		}
 	}buf;
@@ -400,7 +400,7 @@ read_header_key:
 						}
 						const size_t total{content.total_length()};
 						if(rem>=total){
-							const ssize_t n{write(upload_fd_,buf.ptr(),(size_t)total)};
+							const ssize_t n{write(upload_fd_,buf.ptr(),size_t(total))};
 							if(n<0){perr("while writing upload to file");throw"sock:err4";}
 							if(size_t(n)!=total){throw"sock:incomplete upload";}
 							if(::close(upload_fd_)<0){perr("while closing upload file");}
@@ -412,8 +412,8 @@ read_header_key:
 						}
 						const ssize_t n{write(upload_fd_,buf.ptr(),rem)};
 						if(n<0){perror("while writing upload to file2");throw"sock:err6";}
-						if((size_t)n!=rem){throw"upload2";}
-						content.unsafe_skip(n);
+						if(size_t(n)!=rem){throw"upload2";}
+						content.unsafe_skip(size_t(n));
 						state=receiving_upload;
 						break;
 					}
@@ -470,7 +470,7 @@ read_header_key:
 							}
 							file.init_for_send(size_t(fdstat.st_size),rs);
 							const size_t e{file.length()};
-							bb_len=snprintf(bb,sizeof(bb),"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-rs,rs,e,e);
+							bb_len=snprintf(bb,sizeof(bb),"HTTP/1.1 206\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",lastmod,e-size_t(rs),rs,e,e);
 						}else{
 							file.init_for_send(size_t(fdstat.st_size));
 							bb_len=snprintf(bb,sizeof(bb),"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
@@ -528,7 +528,7 @@ private:
 	}
 	static inline void strlwr(char*p){
 		while(*p){
-			*p=(char)tolower(*p);
+			*p=char(tolower(*p));
 			p++;
 		}
 	}

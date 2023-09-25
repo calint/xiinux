@@ -12,7 +12,7 @@ namespace web{
 			xprinter&x=sb;
 			x.p("my counter ").p(my_counter).nl();
 			x.p("counter for this page ").p(counter::page_counter).nl();
-			x.p("sessions ").p((int)sts.sessions).nl();
+			x.p("sessions ").p(int(sts.sessions)).nl();
 			r.http(200,sb.getbuf(),sb.getsize());
 		}
 	};

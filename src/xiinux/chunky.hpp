@@ -16,7 +16,7 @@ namespace xiinux{class chunky final:public xprinter{
 			throw"iosend";
 		}
 		sts.output+=size_t(n);
-		if(conf::print_traffic)write(conf::print_traffic_fd,buf_,n);
+		if(conf::print_traffic)write(conf::print_traffic_fd,buf_,size_t(n));
 		if(throw_if_send_not_complete and size_t(n)!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
@@ -62,53 +62,53 @@ public:
 	}
 	inline chunky&p(const size_t len,/*copies*/const char*str)override{
 		const ssize_t sizeofbuf=sizeof(buf_);
-		const ssize_t bufrem=sizeofbuf-len_;
-		ssize_t rem=bufrem-len;
+		const ssize_t bufrem=sizeofbuf-ssize_t(len_);
+		ssize_t rem=bufrem-ssize_t(len);
 		if(rem>=0){
 			strncpy(buf_+len_,str,len);
 			len_+=len;
 			return*this;
 		}
-		strncpy(buf_+len_,str,bufrem);
-		len_+=bufrem;
+		strncpy(buf_+len_,str,size_t(bufrem));
+		len_+=size_t(bufrem);
 		flush();
 		const char*s=str+bufrem;
 		rem=-rem;
 		while(true){
-			const ssize_t n=sizeofbuf-len_;
-			const size_t nn=rem<=n?rem:n;
-			strncpy(buf_+len_,s,nn);
-			len_+=nn;
+			const size_t n=sizeofbuf-len_;
+			const size_t m=size_t(rem)<=n?size_t(rem):n;
+			strncpy(buf_+len_,s,m);
+			len_+=m;
 			flush();
-			rem-=nn;
+			rem-=ssize_t(m);
 			if(rem==0)
 				return*this;
-			s+=nn;
+			s+=m;
 		}
 	}
 	inline chunky&p(const int i)override{
 		char str[32];
-		const size_t n=snprintf(str,sizeof(str),"%d",i);
-		if(n>sizeof(str))throw"snprintf";
-		return p(n,str);
+		const int n=snprintf(str,sizeof(str),"%d",i);
+		if(n<0)throw"chunky:1";
+		return p(size_t(n),str);
 	}
 	inline chunky&p(const size_t i)override{
 		char str[32];
-		const size_t n=snprintf(str,sizeof(str),"%zd",i);
-		if(n>sizeof(str))throw"snprintf";
-		return p(n,str);
+		const int n=snprintf(str,sizeof(str),"%zd",i);
+		if(n<0)throw"chunky:2";
+		return p(size_t(n),str);
 	}
 	inline chunky&p_ptr(const void*ptr)override{
 		char str[32];
 		const int n=snprintf(str,sizeof(str),"%p",ptr);
-		if(unsigned(n)>sizeof(str))throw"p_ptr:1";
-		return p(n,str);
+		if(n<0)throw"chunky:3";
+		return p(size_t(n),str);
 	}
 	inline chunky&p_hex(const unsigned long i)override{
 		char str[32];
-		const int len=snprintf(str,sizeof(str),"%lx",i);
-		if(len<0)throw"snprintf";
-		return p(len,str);
+		const int n=snprintf(str,sizeof(str),"%lx",i);
+		if(n<0)throw"chunky:4";
+		return p(size_t(n),str);
 	}
 	inline chunky&p(char ch)override{
 		if(sizeof(buf_)-len_==0)flush();

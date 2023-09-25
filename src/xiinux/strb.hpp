@@ -13,14 +13,14 @@ public:
 	inline strb&rst(){len_=0;return*this;}
 	inline strb&p(/*copies*/const char*str)override{
 		const size_t len=strnlen(str,sizeof(buf_)+1);//? togetbufferoverrun
-		const ssize_t rem=sizeof(buf_)-len_-len;
+		const ssize_t rem=ssize_t(sizeof(buf_))-ssize_t(len_)-ssize_t(len);
 		if(rem<0)throw"bufferoverrun";
 		strncpy(buf_+len_,str,len);
 		len_+=len;
 		return*this;
 	}
 	inline strb&p(const size_t len,/*copies*/const char*str)override{
-		const ssize_t rem=sizeof(buf_)-len_-len;
+		const ssize_t rem=ssize_t(sizeof(buf_))-ssize_t(len_)-ssize_t(len);
 		if(rem<0)throw"bufferoverrun";
 		strncpy(buf_+len_,str,len);
 		len_+=len;
@@ -29,26 +29,26 @@ public:
 	inline strb&p(const int i)override{
 		char str[32];
 		const int len=snprintf(str,sizeof(str),"%d",i);
-		if(len<0)throw"snprintf";
-		return p(len,str);
+		if(len<0)throw"strb:1";
+		return p(size_t(len),str);
 	}
 	inline strb&p(const size_t i)override{
 		char str[32];
 		const int len=snprintf(str,sizeof(str),"%zu",i);
-		if(len<0)throw"snprintf";
-		return p(len,str);
+		if(len<0)throw"strb:2";
+		return p(size_t(len),str);
 	}
 	inline strb&p_ptr(const void*ptr)override{
 		char str[32];
 		const int len=snprintf(str,sizeof(str),"%p",ptr);
-		if(len<0)throw"p_ptr:1";
-		return p(len,str);
+		if(len<0)throw"strb:3";
+		return p(size_t(len),str);
 	}
 	inline strb&p_hex(const unsigned long i)override{
 		char str[32];
 		const int len=snprintf(str,sizeof(str),"%lx",i);
-		if(len<0)throw"snprintf";
-		return p(len,str);
+		if(len<0)throw"strb:4";
+		return p(size_t(len),str);
 	}
 	inline strb&p(char ch)override{
 		if(sizeof(buf_)-len_==0)flush();
@@ -57,7 +57,7 @@ public:
 	}
 	inline strb&nl()override{return p('\n');}
 	inline strb&p(const strb&sb){
-		const ssize_t rem=sizeof(buf_)-len_-sb.len_;
+		const ssize_t rem=ssize_t(sizeof(buf_))-ssize_t(len_)-ssize_t(sb.len_);
 		if(rem<0)throw"bufferoverrun";
 		strncpy(buf_+len_,sb.buf_,sb.len_);
 		len_+=sb.len_;

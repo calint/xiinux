@@ -20,14 +20,14 @@ private:
 		unsigned i=0;
 		const char*p=key;
 		while(*p)
-			i+=(unsigned)*p++;
+			i+=unsigned(*p++);
 		i&=size-1;
 		return i;
 	}
 public:
 	// note. size must be 2^n because size-1 will be used for bitwise 'and'
 	inline lut(const unsigned size=8):size_(size){
-		array_=(el**)calloc(size_t(size),sizeof(el*));
+		array_=static_cast<el**>(calloc(size_t(size),sizeof(el*)));
 	}
 	inline~lut(){
 		clear();

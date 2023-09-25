@@ -7,7 +7,6 @@ namespace xiinux{class server final{
 	inline static bool thdwatch_on{false};
 	inline static pthread_t thdwatch;
 	inline static void*thdwatch_run(void*arg){
-		if(arg)puts((const char*)arg);
 		sts.printhdr(stdout);
 		while(thdwatch_on){
 			int n=10;
@@ -46,7 +45,7 @@ public:
 		sa.sin_addr.s_addr=INADDR_ANY;
 		sa.sin_port=htons(port);
 		if((srv.fd_=socket(AF_INET,SOCK_STREAM,0))==-1){perror("socket");exit(1);}
-		if(bind(srv.fd_,(struct sockaddr*)&sa,sasz)){perror("bind");exit(2);}
+		if(bind(srv.fd_,reinterpret_cast<struct sockaddr*>(&sa),sasz)){perror("bind");exit(2);}
 		if(listen(srv.fd_,nclients)==-1){perror("listen");exit(3);}
 		epollfd=epoll_create(nclients);
 		if(!epollfd){perror("epollcreate");exit(4);}
@@ -69,7 +68,7 @@ public:
 				continue;
 			}
 			for(int i=0;i<nn;i++){
-				sock*c=(sock*)events[i].data.ptr;
+				sock*c=static_cast<sock*>(events[i].data.ptr);
 				if(c->fd_==srv.fd_){// new connection
 					sts.accepts++;
 					const int fda=accept(srv.fd_,nullptr,nullptr);
@@ -98,7 +97,7 @@ public:
 					}
 					if(option_benchmark_mode){
 						int flag=1;
-						if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,(void*)&flag,sizeof(int))<0){//? for performance tests
+						if(setsockopt(fda,IPPROTO_TCP,TCP_NODELAY,static_cast<void*>(&flag),sizeof(int))<0){//? for performance tests
 							perror("optsetTCP_NODELAY");
 							puts("optsetTCP_NODELAY");
 							return 8;
@@ -119,7 +118,7 @@ public:
 //					printf(" *** exception from %p : %s\n",(void*)c,msg);
 					printf(" *** exception: %s\n",msg);
 				}catch(...){
-					printf(" *** exception from %p\n",(void*)c);
+					printf(" *** exception from %p\n",static_cast<void*>(c));
 				}
 			}
 		}

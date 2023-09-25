@@ -25,12 +25,12 @@ public:
 			throw"iosend";
 		}
 		sts.output+=size_t(n);
-		if(conf::print_traffic)write(conf::print_traffic_fd,buf,n);
+		if(conf::print_traffic)write(conf::print_traffic_fd,buf,size_t(n));
 		if(throw_if_send_not_complete and size_t(n)!=len){
 			sts.errors++;
 			throw"sendnotcomplete";
 		}
-		return(size_t)n;
+		return size_t(n);
 	}
 	inline reply&pk(const char*data,const size_t len){
 		io_send(data,len,true);
@@ -51,7 +51,7 @@ public:
 			n=snprintf(bb,sizeof(bb),"HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n",code,len);
 		}
 		if(n<0)throw"send";
-		io_send(bb,n,true);
+		io_send(bb,size_t(n),true);
 		if(content)io_send(content,len,true);
 		return*this;
 	}
