@@ -320,7 +320,7 @@ read_header_key:
 							// "Fri, 31 Dec 1999 23:59:59 GMT"
 							time_t timer{time(NULL)};
 							struct tm*tm_info{gmtime(&timer)};
-							char*sid{(char*)(malloc(24))};
+							char*sid{new char[24]};
 							// 20150411--225519-ieu44d
 							strftime(sid,size_t(24),"%Y%m%d-%H%M%S-",tm_info);
 							char*sid_ptr{sid+16};
@@ -335,9 +335,9 @@ read_header_key:
 							ses=sess.get(session_id);
 							if(!ses){
 								// session not found, reload
-								char* sid{(char*)(malloc(64))};
+								char* sid{new char[64]};
 								strncpy(sid,session_id,64);
-								ses=new session(sid);
+								ses=new session(/*give*/sid);
 								sess.put(/*give*/ses,false);
 							}
 						}
@@ -345,7 +345,7 @@ read_header_key:
 						if(!wdgt){
 							wdgt=widgetget(reqline.qs);
 							const size_t key_len{strlen(reqline.qs)};
-							char* key{(char*)(malloc(key_len+1))}; // +1 for the \0 terminator
+							char* key{new char[key_len+1]}; // +1 for the \0 terminator
 							memcpy(key,reqline.qs,key_len+1);
 							ses->put_widget(/*give*/key,/*give*/wdgt);
 						}

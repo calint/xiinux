@@ -11,13 +11,12 @@ public:
 		len=strnlen(data,maxlen);
 		if(len==maxlen)
 			throw"overrun";
-		buf=(char*)malloc(len);
+		buf=new char[len];
 		memcpy(buf,data,len);
 	}
 	inline~doc(){
 //		printf(" * delete doc %p\n",(void*)this);
-		free(buf);
-//		delete buf;
+		delete[]buf;
 	}
 	inline const char*buffer()const{return buf;}
 	inline size_t size_in_bytes()const{return len;}

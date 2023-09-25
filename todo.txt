@@ -1,11 +1,13 @@
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
-[ ] change malloc to new where possible
+[ ] multi-threaded clients, chunky pause and resume when write available
 [ ] examine whether functions such as 'unsafe_*' get inlined although -Os
 [ ] ? headers in std::unordered_map
 [ ] qa: abuse
+[ ] qa: performance comparisons
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] change malloc to new where possible
 [x] bug: sock::buf gets overwritten when content is sent thrashing the pointers
 [-] ? chained requests: path, query string as std::string
     -> not supported

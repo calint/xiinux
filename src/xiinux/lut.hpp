@@ -24,7 +24,7 @@ private:
 			if(data)
 				delete data;
 			if(delete_key)
-				free(key);
+				delete[]key;
 			if(!nxt)
 				return;
 			nxt->delete_content_recurse(delete_key);

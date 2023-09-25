@@ -8,7 +8,7 @@ public:
 	inline session(/*take*/char*session_id):key{session_id}{sts.sessions++;}
 	inline~session(){
 		sts.sessions--;
-		free(key);
+		delete[]key;
 		kvp.delete_content(true);
 		widgets.delete_content(true);
 	}
