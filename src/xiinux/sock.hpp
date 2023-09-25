@@ -82,10 +82,13 @@ namespace xiinux{class sock{
 		inline void eos(){*(p-1)=0;}
 		inline char*ptr()const{return p;}
 		inline ssize_t receive_from(int fd){
-			const ssize_t n{recv(fd,p,sockbuf_size_in_bytes-(p-d),0)};
+			const unsigned nbytes_to_read=sockbuf_size_in_bytes-(p-d);
+			if(nbytes_to_read==0)
+				throw"sock:buf:full";
+			const ssize_t n{recv(fd,p,nbytes_to_read,0)};
 			if(n<0)return n;
 			sts.input+=(unsigned)n;
-			e=d+n;
+			e=p+n;
 			if(conf::print_trafic)write(conf::print_trafic_fd,p,(unsigned)n);
 			return n;
 		}
@@ -213,12 +216,12 @@ public:
 			upload_fd=0;
 			wdgt=nullptr;
 			ses=nullptr;
+			buf.rst();
 			state=method;
 		}
 		if(!buf.more()){
 			//?? assumes request header fits in buf and done in one read
 			//   then parsing can be simplified
-			buf.rst();
 			sts.reads++;
 			const ssize_t nn{buf.receive_from(fd)};
 			if(nn==0){// closed by client
@@ -242,7 +245,6 @@ public:
 				if(c==' '){
 					state=uri;
 					reqline.pth=buf.ptr();
-					reqline.qs=nullptr;
 					break;
 				}
 			}
@@ -267,7 +269,6 @@ public:
 				const char c{buf.unsafe_next_char()};
 				if(c==' '){
 					buf.eos();
-					// urldecode(reqline.qs);//? does not work i key contains encoded '='
 					state=protocol;
 					break;
 				}
@@ -277,7 +278,6 @@ public:
 			while(buf.more()){
 				const char c{buf.unsafe_next_char()};
 				if(c=='\n'){
-					// hdrs.clear();//? headers clear at 'next_request' or empty if first request on this connection
 					hdrparser.key=buf.ptr();
 					state=header_key;
 					break;
@@ -499,7 +499,7 @@ read_header_key:
 					hdrparser.key=strtrm(hdrparser.key,hdrparser.value-2);// -2 to skip '\0' and place pointer on last character in the key
 					strlwr(hdrparser.key);
 					hdrparser.value=strtrm(hdrparser.value,buf.ptr()-2);//? -2 to skip '\0' and place pointer on last character in the value
-					// printf("%s: %s\n",hdrparser.c,hdrparser.value);
+					// printf("%s: %s\n",hdrparser.key,hdrparser.value);
 					hdrs.put(hdrparser.key,hdrparser.value);
 					hdrparser.key=buf.ptr();
 					state=header_key;

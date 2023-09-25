@@ -1,12 +1,18 @@
 [ ] bug: sock::buf gets overwritten when content is sent thrashing the pointers
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] option for apache-bench compatibility
-[ ] abuse errors: request line length, header count, header name length, etc
-[ ] chained requests or telnet (request line and headers not read in one read)
+[ ] qa: abuse
+[ ] ? chained requests
 [ ]   path, query string as std::string
 [ ]   headers as std::string in std::unordered_map
-[ ] if request line and headers must be read in one read then parsing that part
-    of the request can be done in a simpler way
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] support for telnet with partial reads of the request
+    -> chained request no longer supported
+[-] if request line and headers must be read in one read then parsing that part
+    of the request can be done in a simpler way
+    -> multiple reads ber request
 [x] valgrind
+[x] abuse errors: request line length, header count, header name length, etc
+    -> if total size of request (not including content) is larger than the buffer
+       then exception
