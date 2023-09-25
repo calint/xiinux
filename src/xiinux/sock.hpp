@@ -21,8 +21,10 @@ namespace xiinux{class sock final{
 		int fd{0};
 	public:
 		inline void close(){if(::close(fd)<0)perror("closefile");}
-		inline ssize_t resume_send_to(int tofd){
-			const ssize_t n{sendfile(tofd,fd,&pos,len-pos)};
+		inline ssize_t resume_send_to(const int to_fd){
+			sts.writes++;
+			sleep(5);
+			const ssize_t n{sendfile(to_fd,fd,&pos,len-pos)};
 			if(n<0)return n;
 			xiinux::sts.output+=n;
 			return n;
@@ -76,9 +78,9 @@ namespace xiinux{class sock final{
 			}
 		}
 		inline char*ptr()const{return buf;}
-		inline ssize_t receive_from(int fd){
+		inline ssize_t receive_from(int fd_in){
 			sts.reads++;
-			const ssize_t n{recv(fd,buf,sock_content_buf_size_in_bytes,0)};
+			const ssize_t n{recv(fd_in,buf,sock_content_buf_size_in_bytes,0)};
 			if(n<0)return n;
 			sts.input+=(unsigned)n;
 			if(conf::print_traffic)write(conf::print_traffic_fd,buf,(unsigned)n);
@@ -98,12 +100,12 @@ namespace xiinux{class sock final{
 		inline char unsafe_next_char(){return *p++;}
 		inline void eos(){*(p-1)=0;}
 		inline char*ptr()const{return p;}
-		inline ssize_t receive_from(int fd){
-			const unsigned nbytes_to_read=sock_req_buf_size_in_bytes-(p-d);
+		inline ssize_t receive_from(int fd_in){
+			const size_t nbytes_to_read=sock_req_buf_size_in_bytes-(p-d);
 			if(nbytes_to_read==0)
 				throw"sock:buf:full";
 			sts.reads++;
-			const ssize_t n{recv(fd,p,nbytes_to_read,0)};
+			const ssize_t n{recv(fd_in,p,nbytes_to_read,0)};
 			if(n<0)return n;
 			sts.input+=(unsigned)n;
 			e=p+n;
@@ -130,9 +132,9 @@ namespace xiinux{class sock final{
 		ev.events=EPOLLOUT;
 		if(epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&ev))throw"sock:epollmodwrite";
 	}
-	inline size_t io_send(const void*buf,size_t len,bool throw_if_send_not_complete=false){
+	inline size_t io_send(const void*ptr,size_t len,bool throw_if_send_not_complete=false){
 		sts.writes++;
-		const ssize_t n{send(fd,buf,len,MSG_NOSIGNAL)};
+		const ssize_t n{send(fd,ptr,len,MSG_NOSIGNAL)};
 		if(n<0){
 			if(errno==EPIPE or errno==ECONNRESET)throw signal_connection_reset_by_peer;
 			sts.errors++;
@@ -140,7 +142,7 @@ namespace xiinux{class sock final{
 		}
 		const size_t un{size_t(n)};
 		sts.output+=un;
-		if(conf::print_traffic)write(conf::print_traffic_fd,buf,un);
+		if(conf::print_traffic)write(conf::print_traffic_fd,ptr,un);
 		if(throw_if_send_not_complete and un!=len){
 			sts.errors++;
 			throw"sock:sendnotcomplete";
@@ -159,7 +161,23 @@ public:
 	}
 	inline void run(){while(true){
 		//printf(" state %d\n",state);
-		if(state==receiving_content){
+		if(state==resume_send_file){
+			const ssize_t n{file.resume_send_to(fd)};
+			if(n<0){// error or send buffer full
+				if(errno==EAGAIN){
+					io_request_write();
+					return;
+				}
+				if(errno==EPIPE or errno==ECONNRESET)
+					throw signal_connection_reset_by_peer;
+				sts.errors++;
+				throw"sock:err2";
+			}
+			if(!file.done())
+				continue;
+			file.close();
+			state=next_request;
+		}else if(state==receiving_content){
 			const ssize_t n{content.receive_from(fd)};//?? thrashes pointers used in request line and headers
 			if(n==0)throw signal_connection_reset_by_peer;
 			if(n<0){
@@ -198,21 +216,6 @@ public:
 			if(content.more())continue;
 			if(::close(upload_fd)<0)perr("while closing upload file 2");
 			io_send("HTTP/1.1 204\r\n\r\n",16,true);// 16 is the length of string
-			state=next_request;
-		}else if(state==resume_send_file){
-			sts.writes++;
-			const ssize_t sf{file.resume_send_to(fd)};
-			if(sf<0){// error or send buffer full
-				if(errno==EAGAIN){
-					io_request_write();
-					return;
-				}
-				sts.errors++;
-				throw"sock:err2";
-			}
-			if(!file.done())
-				continue;
-			file.close();
 			state=next_request;
 		}
 		if(state==next_request){
@@ -318,7 +321,7 @@ read_header_key:
 						if(!session_id){
 							// create session
 							// "Fri, 31 Dec 1999 23:59:59 GMT"
-							time_t timer{time(NULL)};
+							time_t timer{time(nullptr)};
 							struct tm*tm_info{gmtime(&timer)};
 							char*sid{new char[24]};
 							// 20150411--225519-ieu44d
@@ -479,7 +482,7 @@ read_header_key:
 							bb_len=snprintf(bb,sizeof bb,"HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: %s\r\nContent-Length: %zu\r\n\r\n",lastmod,file.length());
 							// puts(bb);
 						}
-						if(bb_len==sizeof bb)throw"sock:err1";
+						if(bb_len==sizeof bb or bb_len<0)throw"sock:err1";
 						io_send(bb,size_t(bb_len),true);
 					}
 					const ssize_t nn{file.resume_send_to(fd)};
@@ -535,4 +538,4 @@ private:
 			p++;
 		}
 	}
-}srv;}
+}static srv;}

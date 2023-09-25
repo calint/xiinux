@@ -104,9 +104,9 @@ public:
 		if((unsigned)n>sizeof str)throw"p_ptr:1";
 		return p(n,str);
 	}
-	inline chunky&p_hex(const long long i)override{
+	inline chunky&p_hex(const unsigned long i)override{
 		char str[32];
-		const int len=snprintf(str,sizeof str,"%llx",i);
+		const int len=snprintf(str,sizeof str,"%lx",i);
 		if(len<0)throw"snprintf";
 		return p(len,str);
 	}
@@ -119,7 +119,7 @@ public:
 	inline chunky&p(const strb&sb){return p(sb.getsize(),sb.getbuf());}
 
 	// html5
-	inline chunky&html5(const char*title=""){
+	inline chunky&html5(const char*title="")override{
 		const char s[]="<!doctype html><script src=/x.js></script><link rel=stylesheet href=/x.css>";
 		return p(sizeof s,s)
 				.p(sizeof "<title>","<title>").p(title).p(sizeof "</title>","</title>");
@@ -128,5 +128,6 @@ public:
 		char fmt[32];
 		if(snprintf(fmt,sizeof fmt,"%%%zus",length)<1)throw"chunky:err1";
 		fprintf(f,fmt,buf);
+		return*this;
 	}
 };}

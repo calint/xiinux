@@ -25,4 +25,4 @@ public:
 		fprintf(f,"\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",ms,input,output,socks,requests,sessions,accepts,reads,writes,files,widgets,cache,errors,brkp);
 		fflush(f);
 	}
-}sts;}
+}static sts;}

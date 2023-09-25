@@ -72,7 +72,7 @@ public:
 				sock*c=(sock*)events[i].data.ptr;
 				if(c->fd==srv.fd){// new connection
 					sts.accepts++;
-					const int fda=accept(srv.fd,0,0);
+					const int fda=accept(srv.fd,nullptr,nullptr);
 					if(fda==-1){
 						perr("accept");
 						continue;

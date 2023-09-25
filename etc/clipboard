@@ -23,6 +23,8 @@ sudo sysctl net.ipv4.tcp_fin_timeout=5
 #c                soft    nofile          20000
 #c                hard    nofile          40000
 
+hey -n 10000 -c 1 http://localhost:8088/qa/files/far_side_dog_ok.jpg
+
 
 	static inline void urldecode(char*str){
 		const char*p{str};

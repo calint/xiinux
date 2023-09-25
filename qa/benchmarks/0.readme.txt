@@ -1,0 +1,5 @@
+uri 'homepage':
+* xiinux has homepage in memory while nginx is not configured to cache
+
+example:
+hey -n 1 -c 1 http://localhost:8088/

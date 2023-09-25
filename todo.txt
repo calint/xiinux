@@ -1,5 +1,6 @@
 [ ] MIME type for ".js" files (warning in Firefox when absent)
-[ ] option for apache-bench compatibility
+[-] option for apache-bench compatibility
+    -> use other benchmarking tool 'hey'
 [ ] multi-threaded clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
 [ ] qa: performance comparisons
