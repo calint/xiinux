@@ -1,4 +1,5 @@
 #pragma once
+// used in qa/test-coverage.sh
 namespace web{
 	using namespace xiinux;
 	class typealine:public widget{

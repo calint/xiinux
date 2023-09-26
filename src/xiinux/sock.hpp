@@ -137,7 +137,7 @@ class sock final {
         throw "sock:buf:full";
       stats.reads++;
       const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
-      if (n < 0)
+      if (n == -1)
         return n;
       stats.input += size_t(n);
       e_ = p_ + n;
@@ -308,18 +308,19 @@ public:
         state = method;
       }
       if (!buf.more()) {
-        const ssize_t nn = buf.receive_from(fd_);
-        if (nn == 0) { // closed by client
+        const ssize_t n = buf.receive_from(fd_);
+        if (n == 0) { // closed by client
           delete this;
           return;
         }
-        if (nn < 0) { // error or would block
+        if (n == -1) { // error or would block
           if (errno == EAGAIN or errno == EWOULDBLOCK) {
             io_request_read();
             return;
           } else if (errno == ECONNRESET) {
             throw signal_connection_reset_by_peer;
           }
+          perror("sock:run:io_request_read");
           stats.errors++;
           throw "sock:err3";
         }

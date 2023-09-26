@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+// used in qa/test-coverage.sh
 namespace web {
 using namespace xiinux;
 class chunkedbig final : public widget {

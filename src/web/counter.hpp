@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+// used in qa/test-coverage.sh
 namespace web {
 using namespace xiinux;
 class counter final : public widget {
@@ -10,9 +11,8 @@ public:
     my_counter++;
     counter::page_counter++;
     strb<> sb;
-    sb.p("my counter ").p(my_counter).nl();
-    sb.p("counter for this page ").p(counter::page_counter).nl();
-    sb.p("sessions ").p(int(stats.sessions)).nl();
+    sb.p("counter in this instance: ").p(my_counter).nl();
+    sb.p("counter in this class: ").p(counter::page_counter).nl();
     r.http(200, sb.buf(), sb.size());
   }
 };

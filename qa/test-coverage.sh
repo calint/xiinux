@@ -113,6 +113,12 @@ rm cmp t17.cmp&&
 #diff -q cmp t17.cmp&&
 #rm cmp t17.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * widget counter "&&
+curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/?counter>cmp&&
+diff -q cmp t19_1.cmp&&
+curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/?counter>cmp&&
+diff -q cmp t19_2.cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * abuse request >1K "&&
 nc -w1 $HOST $PORT<t18.in>cmp&&
 diff -q cmp t18.cmp&&

@@ -1,6 +1,7 @@
 #pragma once
 #include "../xiinux/widget.hpp"
 #include <memory>
+// used in qa/test-coverage.sh
 namespace web {
 using namespace xiinux;
 class chunked final : public widget {
