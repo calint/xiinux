@@ -5,44 +5,7 @@
 #include <netinet/tcp.h>
 namespace xiinux {
 class server final {
-  inline static pthread_t thdwatch{};
-  inline static bool thdwatch_on = false;
-  inline static void *thdwatch_run(void *arg) {
-    stats.print_headers(stdout);
-    while (thdwatch_on) {
-      int n = 10;
-      while (thdwatch_on and n--) {
-        const int sleep_us = 100'000;
-        usleep(sleep_us);
-        stats.ms += sleep_us / 1'000; //? not really
-        stats.print_stats(stdout);
-      }
-      fprintf(stdout, "\n");
-    }
-    return nullptr;
-  }
-
-  inline static void init_homepage() {
-    char buf[4 * K];
-    // +1 because of '\n' after 'application_name'
-    //? check return value
-    const int res = snprintf(
-        buf, sizeof(buf), "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
-        strlen(conf::application_name) + 1, conf::application_name);
-    if (res < 0 or size_t(res) >= sizeof(buf)) {
-      puts("homepage does not fit buffer");
-      exit(7);
-    }
-    homepage = new doc(buf);
-  }
-
 public:
-  inline static void stop() {
-    delete homepage;
-    thdwatch_on = false;
-    pthread_join(thdwatch, nullptr);
-  }
-
   inline static int start(const int argc, const char **argv) {
     args a(argc, argv);
     thdwatch_on = a.has_option('v');
@@ -104,7 +67,8 @@ public:
 
     struct epoll_event events[conf::epoll_event_array_size];
     while (true) {
-      const int n = epoll_wait(epollfd, events, conf::epoll_event_array_size, -1);
+      const int n =
+          epoll_wait(epollfd, events, conf::epoll_event_array_size, -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok
@@ -164,6 +128,44 @@ public:
         }
       }
     }
+  }
+
+  inline static void stop() {
+    delete homepage;
+    thdwatch_on = false;
+    pthread_join(thdwatch, nullptr);
+  }
+
+private:
+  inline static void init_homepage() {
+    char buf[4 * K];
+    // +1 because of '\n' after 'application_name'
+    //? check return value
+    const int res = snprintf(
+        buf, sizeof(buf), "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
+        strlen(conf::application_name) + 1, conf::application_name);
+    if (res < 0 or size_t(res) >= sizeof(buf)) {
+      puts("homepage does not fit buffer");
+      exit(7);
+    }
+    homepage = new doc(buf);
+  }
+
+  inline static pthread_t thdwatch{};
+  inline static bool thdwatch_on = false;
+  inline static void *thdwatch_run(void *arg) {
+    stats.print_headers(stdout);
+    while (thdwatch_on) {
+      int n = 10;
+      while (thdwatch_on and n--) {
+        const int sleep_us = 100'000;
+        usleep(sleep_us);
+        stats.ms += sleep_us / 1'000; //? not really
+        stats.print_stats(stdout);
+      }
+      fprintf(stdout, "\n");
+    }
+    return nullptr;
   }
 };
 } // namespace xiinux

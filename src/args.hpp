@@ -1,6 +1,6 @@
 #pragma once
 #include <ctype.h>
-// todo: review messy code
+// todo: review messy but simple code
 namespace xiinux {
 class args final {
   const int argc_;
@@ -8,41 +8,41 @@ class args final {
 
 public:
   inline args(const int argc, const char *argv[]) : argc_{argc}, argv_{argv} {}
+
   inline bool has_option(const char short_name) {
     if (argc_ == 1)
       return false;
-    const char **vv = argv_;
-    int i = argc_;
+    const char **argv = argv_;
+    int argc = argc_;
     while (true) {
-      if (i == 1)
+      if (argc == 1)
         return false;
-      vv++;
-      i--;
-      const char *p = *vv;
+      argv++;
+      argc--;
+      const char *p = *argv;
       if (*p == '-') {
         p++;
         while (true) {
           const char ch = *p;
           if (ch == short_name)
             return true;
-          if (ch == 0)
-            return false;
-          if (isdigit(ch))
+          if (!ch)
             return false;
           p++;
         }
       }
     }
   }
+
   inline const char *get_option_value(const char short_name,
-                                    const char *default_value) {
-    int i = argc_ - 1;
-    if (i == 0)
+                                      const char *default_value) {
+    int argc = argc_ - 1;
+    if (!argc)
       return default_value;
-    const char **vv = argv_;
+    const char **argv = argv_;
     while (true) {
-      vv++;
-      const char *p = *vv;
+      argv++;
+      const char *p = *argv;
       if (*p == '-') {
         p++;
         while (true) {
@@ -51,35 +51,35 @@ public:
             break;
           if (ch == short_name) {
             p++;
-            if (!*p) { //? secondparametervaluestartswith
-              if (i > 1)
-                return *(vv + 1);
+            if (!*p) { // e.g. "-p 8080"
+              if (argc > 1)
+                return *(argv + 1);
               return default_value;
             }
-            return p;
+            return p; // e.g. "-p8080"
           }
           p++;
         }
       }
-      i--;
-      if (i == 0)
+      argc--;
+      if (!argc)
         break;
     }
     return default_value;
   }
   inline const char *getarg(int n, const char *default_value) {
-    const char **vv = argv_;
-    int i = argc_;
+    const char **argv = argv_;
+    int argc = argc_;
     while (true) {
-      if (i == 1)
+      if (argc == 1)
         return default_value;
-      vv++;
-      i--;
-      const char *p = *vv;
+      argv++;
+      argc--;
+      const char *p = *argv;
       if (*p == '-')
         continue;
       n--;
-      if (n == 0)
+      if (!n)
         return p;
     }
   }
