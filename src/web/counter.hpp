@@ -1,8 +1,7 @@
 #pragma once
 #include <atomic>
 // used in qa/test-coverage.sh
-namespace web {
-using namespace xiinux;
+namespace xiinux::web {
 class counter final : public widget {
 public:
   static inline std::atomic_int page_counter{0};
@@ -16,4 +15,4 @@ public:
     r.http(200, sb.buf(), sb.size());
   }
 };
-} // namespace web
+} // namespace xiinux::web

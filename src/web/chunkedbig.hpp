@@ -1,8 +1,7 @@
 #pragma once
 #include <memory>
 // used in qa/test-coverage.sh
-namespace web {
-using namespace xiinux;
+namespace xiinux::web {
 class chunkedbig final : public widget {
 public:
   void to(reply &r) override {
@@ -20,4 +19,4 @@ public:
     y->finish();
   }
 };
-} // namespace web
+} // namespace xiinux::web

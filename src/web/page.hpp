@@ -1,6 +1,5 @@
 #pragma once
-namespace web {
-using namespace xiinux;
+namespace xiinux::web {
 class page final : public widget {
   strb<> txt;
 
@@ -24,7 +23,7 @@ public:
                   const size_t content_len,
                   const size_t total_content_len) override {
     txt.rst().p(content, content_len);
-    x.http2(200, "location.reload();");
+    x.http(200, "location.reload();");
   }
 };
-} // namespace web
+} // namespace xiinux::web

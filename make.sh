@@ -15,12 +15,13 @@ WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
 #          -Wno-c++98-compat -Wno-weak-vtables \
 #          -Wno-padded -Wno-global-constructors \
 #          -Wno-exit-time-destructors -Wno-format-nonliteral"
+
 BIN=xiinux
 SRC=src/main.cpp
 DBG=""
-OPTS=-Os
 #DBG="-g"
 #DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
+OPTS=-Os
 #OPTS=-O3
 #OPTS="-O3 -static"
 #LIB="-pthread -lgcov"
