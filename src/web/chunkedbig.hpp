@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 // used in qa/test-coverage.sh
-namespace xiinux::web {
+namespace xiinux::web::qa {
 class chunkedbig final : public widget {
 public:
   void to(reply &r) override {

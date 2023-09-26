@@ -1,11 +1,11 @@
 #pragma once
-namespace xiinux::web {
+namespace xiinux::web::qa {
 class page final : public widget {
-  strb<> txt;
+  strb<32 * K> txt;
 
 public:
   void to(reply &x) override {
-    strb<> s;
+    strb<32 * K> s;
     s.html5("page")
         .p("<input id=_btn type=button value=update "
            "onclick=\"this.disabled=true;ajax_post('/"
@@ -22,8 +22,17 @@ public:
   void on_content(reply &x, /*scan*/ const char *content,
                   const size_t content_len,
                   const size_t total_content_len) override {
-    txt.rst().p(content, content_len);
-    x.http(200, "location.reload();");
+
+    if (content == nullptr) {
+      txt.rst();
+      return;
+    }
+
+    txt.p(content, content_len);
+    
+    if (txt.size() == total_content_len) {
+      x.http(200, "location.reload();");
+    }
   }
 };
-} // namespace xiinux::web
+} // namespace xiinux::web::qa

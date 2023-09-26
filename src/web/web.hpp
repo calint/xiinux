@@ -12,19 +12,19 @@ namespace xiinux {
 static inline widget *widget_new(const char *qs) {
   //?? "/?hello"  vs "/?hello&a=1"
   if (!strcmp("hello", qs))
-    return new web::hello();
+    return new web::qa::hello();
   if (!strcmp("typealine", qs))
-    return new web::typealine();
+    return new web::qa::typealine();
   if (!strcmp("counter", qs))
-    return new web::counter();
+    return new web::qa::counter();
   if (!strcmp("page", qs))
-    return new web::page();
+    return new web::qa::page();
   if (!strcmp("chunked", qs))
-    return new web::chunked();
+    return new web::qa::chunked();
   if (!strcmp("chunkedbig", qs))
-    return new web::chunkedbig();
+    return new web::qa::chunkedbig();
   if (!strcmp("chunkedbigger", qs))
-    return new web::chunkedbigger();
+    return new web::qa::chunkedbigger();
   return new web::notfound();
 }
 } // namespace xiinux

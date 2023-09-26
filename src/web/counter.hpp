@@ -1,17 +1,17 @@
 #pragma once
 #include <atomic>
 // used in qa/test-coverage.sh
-namespace xiinux::web {
+namespace xiinux::web::qa {
 class counter final : public widget {
 public:
-  static inline std::atomic_int page_counter{0};
-  int my_counter = 0;
+  static inline std::atomic_int atomic_counter{0};
+  int counter_ = 0;
   void to(reply &r) override {
-    my_counter++;
-    counter::page_counter++;
+    counter_++;
+    counter::atomic_counter++;
     strb<> sb;
-    sb.p("counter in this instance: ").p(my_counter).nl();
-    sb.p("counter in this class: ").p(counter::page_counter).nl();
+    sb.p("counter in this instance: ").p(counter_).nl();
+    sb.p("counter in this class: ").p(counter::atomic_counter).nl();
     r.http(200, sb.buf(), sb.size());
   }
 };

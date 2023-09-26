@@ -38,6 +38,7 @@ class chunky final : public xprinter {
 
 public:
   inline chunky(int sockfd) : sockfd_{sockfd} {}
+
   inline chunky &flush() override {
     if (len_ == 0)
       return *this;
@@ -45,7 +46,7 @@ public:
     // send header
     char buf[32];
     const int len = snprintf(buf, sizeof(buf), "%lx\r\n", len_);
-    if (len < 0)
+    if (len < 0 or size_t(len) >= sizeof(buf))
       throw "1";
     io_send(buf, size_t(len), true);
 
@@ -67,6 +68,7 @@ public:
     len_ = 0;
     return *this;
   }
+
   inline chunky &finish() {
     flush();
     constexpr char fin[] = "0\r\n\r\n";
@@ -112,28 +114,28 @@ public:
   inline chunky &p(const int i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%d", i);
-    if (n < 0)
+    if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:1";
     return p(str, size_t(n));
   }
   inline chunky &p(const size_t i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%zd", i);
-    if (n < 0)
+    if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:2";
     return p(str, size_t(n));
   }
   inline chunky &p_ptr(const void *ptr) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%p", ptr);
-    if (n < 0)
+    if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:3";
     return p(str, size_t(n));
   }
   inline chunky &p_hex(const unsigned i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%ux", i);
-    if (n < 0)
+    if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:4";
     return p(str, size_t(n));
   }
@@ -156,7 +158,8 @@ public:
   }
   inline chunky &to(FILE *f) {
     char fmt[32];
-    if (snprintf(fmt, sizeof(fmt), "%%%zus", len_) < 1)
+    const int n = snprintf(fmt, sizeof(fmt), "%%%zus", len_);
+    if (n < 0 or size_t(n) >= sizeof(fmt))
       throw "chunky:err1";
     fprintf(f, fmt, buf_);
     return *this;

@@ -40,9 +40,13 @@ public:
     char buf[4 * K];
     // +1 because of '\n' after 'application_name'
     //? check return value
-    snprintf(buf, sizeof(buf),
-             "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
-             strlen(application_name) + 1, application_name);
+    const int res = snprintf(buf, sizeof(buf),
+                             "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
+                             strlen(application_name) + 1, application_name);
+    if (res < 0 or size_t(res) >= sizeof(buf)) {
+      puts("homepage does not fit buffer");
+      exit(7);
+    }
     homepage = new doc(buf);
 
     struct sockaddr_in sa;

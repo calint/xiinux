@@ -1,5 +1,5 @@
 
-tis 26 sep 2023 21:51:24 CEST
+tis 26 sep 2023 23:07:22 CEST
 coverage tests on http://localhost:8088
  * small file
  * larger file 16k
@@ -19,5 +19,5 @@ coverage tests on http://localhost:8088
  * chunked reply data larger than buffers >256K 
  * widget 'counter' 
  * abuse request >1K 
-tis 26 sep 2023 21:51:25 CEST
+tis 26 sep 2023 23:07:23 CEST
 

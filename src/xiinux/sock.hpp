@@ -493,9 +493,11 @@ private:
     // file upload
     char bf[256];
     // +1 to skip the leading '/'
-    if (snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1) == sizeof(bf))
+    const int res = snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1);
+    if (res < 0 or size_t(res) >= sizeof(bf))
       throw "sock:pathtrunc";
-    if ((upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664)) < 0) {
+    upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    if (upload_fd_ == -1) {
       perror("while creating file for upload");
       throw "sock:err7";
     }
@@ -592,7 +594,7 @@ private:
     stats.files++;
     const char *range = hdrs_["range"];
     char header_buf[512];
-    int header_buf_len;
+    int header_buf_len = 0;
     if (range and *range) {
       off_t rs = 0;
       if (sscanf(range, "bytes=%jd", &rs) == EOF) { //? is sscanf safe
@@ -615,7 +617,7 @@ private:
                    "%s\r\nContent-Length: %zu\r\n\r\n",
                    lastmod, file.length());
     }
-    if (header_buf_len == sizeof(header_buf) or header_buf_len < 0)
+    if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw "sock:err1";
     io_send(header_buf, size_t(header_buf_len), true);
 
