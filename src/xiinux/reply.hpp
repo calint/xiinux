@@ -71,9 +71,9 @@ public:
       io_send(content, len, true);
     return *this;
   }
-  inline reply &http(const int code, const strb &s) {
-    return http(code, s.buf(), s.size());
-  }
+  // inline reply &http(const int code, const strb<> &s) {
+  //   return http(code, s.buf(), s.size());
+  // }
   inline reply &http2(const int code, const char *str) {
     const size_t nn = strlen(str);
     return http(code, str, nn);

@@ -21,7 +21,7 @@ public:
       p++;
       ch++;
     }
-    x.p(buflen, buf);
+    x.p(buf, buflen);
 
     y->finish();
   }

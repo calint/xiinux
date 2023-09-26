@@ -9,7 +9,7 @@ public:
   void to(reply &r) override {
     my_counter++;
     counter::page_counter++;
-    strb sb;
+    strb<> sb;
     sb.p("my counter ").p(my_counter).nl();
     sb.p("counter for this page ").p(counter::page_counter).nl();
     sb.p("sessions ").p(int(sts.sessions)).nl();

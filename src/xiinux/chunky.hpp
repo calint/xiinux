@@ -76,9 +76,9 @@ public:
     return *this;
   }
   inline chunky &p(/*scans*/ const char *str) override {
-    return p(strlen(str), str);
+    return p(str, strlen(str));
   }
-  inline chunky &p(const size_t strlen, /*scans*/ const char *str) override {
+  inline chunky &p(/*scans*/ const char *str, const size_t strlen) override {
     const ssize_t sizeofbuf = sizeof(buf_);
     const ssize_t bufrem = sizeofbuf - ssize_t(len_);
     ssize_t rem = bufrem - ssize_t(strlen);
@@ -110,46 +110,46 @@ public:
     const int n = snprintf(str, sizeof(str), "%d", i);
     if (n < 0)
       throw "chunky:1";
-    return p(size_t(n), str);
+    return p(str, size_t(n));
   }
   inline chunky &p(const size_t i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%zd", i);
     if (n < 0)
       throw "chunky:2";
-    return p(size_t(n), str);
+    return p(str, size_t(n));
   }
   inline chunky &p_ptr(const void *ptr) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%p", ptr);
     if (n < 0)
       throw "chunky:3";
-    return p(size_t(n), str);
+    return p(str, size_t(n));
   }
   inline chunky &p_hex(const unsigned i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%ux", i);
     if (n < 0)
       throw "chunky:4";
-    return p(size_t(n), str);
+    return p(str, size_t(n));
   }
-  inline chunky &p(char ch) override {
+  inline chunky &p(const char ch) override {
     if (sizeof(buf_) - len_ == 0)
       flush();
     *(buf_ + len_++) = ch;
     return *this;
   }
   inline chunky &nl() override { return p('\n'); }
-  inline chunky &p(const strb &sb) { return p(sb.size(), sb.buf()); }
+  // inline chunky &p(const strb<> &sb) { return p(sb.size(), sb.buf()); }
 
   // html5
   inline chunky &html5(const char *title = "") override {
     const char s[] = "<!doctype html><script src=/x.js></script><link "
                      "rel=stylesheet href=/x.css>";
-    return p(sizeof(s), s)
-        .p(sizeof("<title>"), "<title>")
+    return p(s, sizeof(s))
+        .p("<title>", sizeof("<title>"))
         .p(title)
-        .p(sizeof("</title>"), "</title>");
+        .p("</title>", sizeof("</title>"));
   }
   inline chunky &to(FILE *f) {
     char fmt[32];

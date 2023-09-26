@@ -4,9 +4,9 @@
 #include <string.h>
 #include <sys/types.h>
 namespace xiinux {
-class strb final : public xprinter {
+template <unsigned N = 10> class strb final : public xprinter {
   size_t len_ = 0;
-  char buf_[4096];
+  char buf_[N];
 
 public:
   inline strb() {}
@@ -27,7 +27,7 @@ public:
     len_ += strlen;
     return *this;
   }
-  inline strb &p(const size_t strlen, /*copies*/ const char *str) override {
+  inline strb &p(/*copies*/ const char *str, const size_t strlen) override {
     const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(strlen);
     if (rem < 0)
       throw "buffer overrun";
@@ -40,30 +40,30 @@ public:
     const int len = snprintf(str, sizeof(str), "%d", i);
     if (len < 0)
       throw "strb:1";
-    return p(size_t(len), str);
+    return p(str, size_t(len));
   }
   inline strb &p(const size_t i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%zu", i);
     if (len < 0)
       throw "strb:2";
-    return p(size_t(len), str);
+    return p(str, size_t(len));
   }
   inline strb &p_ptr(const void *ptr) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%p", ptr);
     if (len < 0)
       throw "strb:3";
-    return p(size_t(len), str);
+    return p(str, size_t(len));
   }
   inline strb &p_hex(const unsigned i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%ux", i);
     if (len < 0)
       throw "strb:4";
-    return p(size_t(len), str);
+    return p(str, size_t(len));
   }
-  inline strb &p(char ch) override {
+  inline strb &p(const char ch) override {
     if (sizeof(buf_) - len_ == 0)
       throw "buffer overrun";
     *(buf_ + len_++) = ch;
@@ -86,7 +86,7 @@ public:
                      "rel=stylesheet href=/x.css>";
     // -1 to not copy the terminator \0
     // 7 and 8 are the number of characters to copy
-    return p(sizeof(s) - 1, s).p(7, "<title>").p(title).p(8, "</title>");
+    return p(s, sizeof(s) - 1).p("<title>", 7).p(title).p("</title>", 8);
   }
   inline strb &to(FILE *f) {
     char fmt[32];
