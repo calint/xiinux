@@ -29,7 +29,7 @@ public:
 
     if (conf::print_traffic) {
       const ssize_t m = write(conf::print_traffic_fd, buf, size_t(n));
-      if (m == -1 or n != m) {
+      if (m == -1 or m != n) {
         perror("reply:io_send");
       }
     }
