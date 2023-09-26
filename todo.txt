@@ -1,13 +1,13 @@
-[ ] review the messy ssize_t size_t ops in chunky.hpp
 [ ] review messy args.hpp
-[ ] format code with standard formatter
-[ ] change 'int n{1}' -> 'int n = 1'
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threaded clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
 [ ] qa: performance comparisons
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] review the messy ssize_t size_t ops in chunky.hpp
+[x] format code with standard formatter
+[x] change 'int n{1}' -> 'int n = 1'
 [-] option for apache-bench compatibility
     -> use other benchmarking tool 'hey'
 [x] append '_' to class members
