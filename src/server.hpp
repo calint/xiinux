@@ -22,6 +22,20 @@ class server final {
     return nullptr;
   }
 
+  inline static void init_homepage() {
+    char buf[4 * K];
+    // +1 because of '\n' after 'application_name'
+    //? check return value
+    const int res = snprintf(buf, sizeof(buf),
+                             "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
+                             strlen(application_name) + 1, application_name);
+    if (res < 0 or size_t(res) >= sizeof(buf)) {
+      puts("homepage does not fit buffer");
+      exit(7);
+    }
+    homepage = new doc(buf);
+  }
+
 public:
   inline static void stop() {
     delete homepage;
@@ -35,19 +49,12 @@ public:
     const int port = atoi(a.get_option_value('p', "8088"));
     const bool option_benchmark_mode = a.has_option('b');
     conf::print_traffic = a.has_option('t');
-    printf("%s on port %d\n", application_name, port);
 
-    char buf[4 * K];
-    // +1 because of '\n' after 'application_name'
-    //? check return value
-    const int res = snprintf(buf, sizeof(buf),
-                             "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
-                             strlen(application_name) + 1, application_name);
-    if (res < 0 or size_t(res) >= sizeof(buf)) {
-      puts("homepage does not fit buffer");
-      exit(7);
+    printf("%s on port %d", application_name, port);
+    if (option_benchmark_mode) {
+      printf(" in benchmark mode");
     }
-    homepage = new doc(buf);
+    printf("\n");
 
     struct sockaddr_in sa;
     const ssize_t sa_sz = sizeof(sa);
@@ -60,20 +67,24 @@ public:
       perror("socket");
       exit(1);
     }
+
     if (bind(server_socket.fd_, reinterpret_cast<struct sockaddr *>(&sa),
              sa_sz)) {
       perror("bind");
       exit(2);
     }
-    if (listen(server_socket.fd_, nclients) == -1) {
+
+    if (listen(server_socket.fd_, epoll_event_array_size) == -1) {
       perror("listen");
       exit(3);
     }
-    epollfd = epoll_create(nclients);
+
+    epollfd = epoll_create(epoll_event_array_size);
     if (!epollfd) {
       perror("epollcreate");
       exit(4);
     }
+
     struct epoll_event ev;
     ev.events = EPOLLIN;
     ev.data.ptr = &server_socket;
@@ -81,15 +92,19 @@ public:
       perror("epolladd");
       exit(5);
     }
-    struct epoll_event events[nclients];
+
+    init_homepage();
+
     if (thdwatch_on) {
       if (pthread_create(&thdwatch, nullptr, &thdwatch_run, nullptr)) {
         puts("pthread_create");
         exit(6);
       }
     }
+
+    struct epoll_event events[epoll_event_array_size];
     while (true) {
-      const int n = epoll_wait(epollfd, events, nclients, -1);
+      const int n = epoll_wait(epollfd, events, epoll_event_array_size, -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok
@@ -143,8 +158,6 @@ public:
             stats.brkp++;
             continue;
           }
-          //					printf(" *** exception from %p :
-          //%s\n",(void*)c,msg);
           printf(" *** exception: %s\n", msg);
         } catch (...) {
           printf(" *** exception from %p\n", static_cast<void *>(c));

@@ -1,4 +1,4 @@
-#include "xiinux/server.hpp"
+#include "server.hpp"
 #include <signal.h>
 [[noreturn]] static void sigint(int i) {
   puts("exiting");

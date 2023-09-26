@@ -1,13 +1,13 @@
 //-- generated (todo)
 #pragma once
-#include "chunked.hpp"
-#include "chunkedbig.hpp"
-#include "chunkedbigger.hpp"
-#include "counter.hpp"
-#include "hello.hpp"
 #include "notfound.hpp"
-#include "page.hpp"
-#include "typealine.hpp"
+#include "qa/chunked.hpp"
+#include "qa/chunkedbig.hpp"
+#include "qa/chunkedbigger.hpp"
+#include "qa/counter.hpp"
+#include "qa/hello.hpp"
+#include "qa/page.hpp"
+#include "qa/typealine.hpp"
 namespace xiinux {
 static inline widget *widget_new(const char *qs) {
   //?? "/?hello"  vs "/?hello&a=1"

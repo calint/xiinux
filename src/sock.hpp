@@ -1,5 +1,5 @@
 #pragma once
-#include "../web/web.hpp"
+#include "web/web.hpp"
 #include "args.hpp"
 #include "conf.hpp"
 #include "sessions.hpp"
