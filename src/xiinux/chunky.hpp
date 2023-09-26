@@ -140,7 +140,6 @@ public:
     return *this;
   }
   inline chunky &nl() override { return p('\n'); }
-  // inline chunky &p(const strb<> &sb) { return p(sb.size(), sb.buf()); }
 
   // html5
   inline chunky &html5(const char *title = "") override {

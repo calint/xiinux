@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/types.h>
 namespace xiinux {
-template <unsigned N = 10> class strb final : public xprinter {
+template <unsigned N = 4096> class strb final : public xprinter {
   size_t len_ = 0;
   char buf_[N];
 
@@ -22,7 +22,7 @@ public:
     const size_t strlen = strnlen(str, sizeof(buf_));
     const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(strlen);
     if (rem < 0)
-      throw "buffer overrun";
+      throw "strb:1";
     strncpy(buf_ + len_, str, strlen);
     len_ += strlen;
     return *this;
@@ -30,7 +30,7 @@ public:
   inline strb &p(/*copies*/ const char *str, const size_t strlen) override {
     const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(strlen);
     if (rem < 0)
-      throw "buffer overrun";
+      throw "strb:2";
     strncpy(buf_ + len_, str, strlen);
     len_ += strlen;
     return *this;
@@ -39,33 +39,33 @@ public:
     char str[32];
     const int len = snprintf(str, sizeof(str), "%d", i);
     if (len < 0)
-      throw "strb:1";
+      throw "strb:3";
     return p(str, size_t(len));
   }
   inline strb &p(const size_t i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%zu", i);
     if (len < 0)
-      throw "strb:2";
+      throw "strb:4";
     return p(str, size_t(len));
   }
   inline strb &p_ptr(const void *ptr) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%p", ptr);
     if (len < 0)
-      throw "strb:3";
+      throw "strb:5";
     return p(str, size_t(len));
   }
   inline strb &p_hex(const unsigned i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%ux", i);
     if (len < 0)
-      throw "strb:4";
+      throw "strb:6";
     return p(str, size_t(len));
   }
   inline strb &p(const char ch) override {
     if (sizeof(buf_) - len_ == 0)
-      throw "buffer overrun";
+      throw "strb:7";
     *(buf_ + len_++) = ch;
     return *this;
   }
@@ -74,7 +74,7 @@ public:
     const ssize_t rem =
         ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(sb.len_);
     if (rem < 0)
-      throw "buffer overrun";
+      throw "strb:8";
     strncpy(buf_ + len_, sb.buf_, sb.len_);
     len_ += sb.len_;
     return *this;
@@ -91,7 +91,7 @@ public:
   inline strb &to(FILE *f) {
     char fmt[32];
     if (snprintf(fmt, sizeof(fmt), "%%%zus", len_) < 0) //? check this
-      throw "strb:err1";
+      throw "strb:9";
     fprintf(f, fmt, buf_);
     return *this;
   }
