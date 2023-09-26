@@ -154,7 +154,7 @@ public:
         } catch (const char *msg) {
           // todo: print session id, ip
           delete c;
-          if (msg == signal_connection_reset_by_peer) {
+          if (msg == signal_connection_lost) {
             stats.brkp++;
             continue;
           }

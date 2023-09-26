@@ -180,7 +180,7 @@ class sock final {
     const ssize_t n = send(fd_, ptr, len, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_reset_by_peer;
+        throw signal_connection_lost;
       stats.errors++;
       throw "sock:iosend";
     }
@@ -224,7 +224,7 @@ public:
             return;
           }
           if (errno == EPIPE or errno == ECONNRESET)
-            throw signal_connection_reset_by_peer;
+            throw signal_connection_lost;
           stats.errors++;
           throw "sock:err2";
         }
@@ -235,13 +235,13 @@ public:
       } else if (state == receiving_content) {
         const ssize_t n = content.receive_from(fd_);
         if (n == 0)
-          throw signal_connection_reset_by_peer;
+          throw signal_connection_lost;
         if (n < 0) {
           if (errno == EAGAIN or errno == EWOULDBLOCK) {
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
-            throw signal_connection_reset_by_peer;
+            throw signal_connection_lost;
           stats.errors++;
           throw "sock:receiving_content";
         }
@@ -260,13 +260,13 @@ public:
       } else if (state == receiving_upload) {
         const ssize_t n = content.receive_from(fd_);
         if (n == 0)
-          throw signal_connection_reset_by_peer;
+          throw signal_connection_lost;
         if (n < 0) {
           if (errno == EAGAIN or errno == EWOULDBLOCK) {
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
-            throw signal_connection_reset_by_peer;
+            throw signal_connection_lost;
           stats.errors++;
           throw "sock:receiving_upload";
         }
@@ -319,7 +319,7 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET) {
-            throw signal_connection_reset_by_peer;
+            throw signal_connection_lost;
           }
           perror("sock:run:io_request_read");
           stats.errors++;
@@ -625,7 +625,7 @@ private:
     const ssize_t nn = file.resume_send_to(fd_);
     if (nn < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_reset_by_peer;
+        throw signal_connection_lost;
       stats.errors++;
       perr("sendingfile");
       throw "sock:err5";

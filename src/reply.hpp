@@ -21,7 +21,7 @@ public:
     const ssize_t n = ::send(fd_, buf, len, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_reset_by_peer;
+        throw signal_connection_lost;
       stats.errors++;
       throw "iosend";
     }

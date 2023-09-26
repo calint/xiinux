@@ -18,7 +18,7 @@ class chunky final : public xprinter {
     const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_reset_by_peer;
+        throw signal_connection_lost;
       stats.errors++;
       throw "iosend";
     }
