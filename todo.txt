@@ -1,5 +1,6 @@
 [ ] sock: bind widget factories to paths
 [ ] review messy args.hpp
+[ ] access to session from widget
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threaded clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
