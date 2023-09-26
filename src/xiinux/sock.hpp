@@ -14,7 +14,7 @@
 #include <unistd.h>
 namespace xiinux {
 class sock final {
-  enum {
+  enum state {
     method,
     uri,
     query,
@@ -25,9 +25,9 @@ class sock final {
     receiving_content,
     receiving_upload,
     next_request
-  } state{method};
+  } state = method;
 
-  class {
+  class file {
     off_t pos_ = 0;
     size_t len_ = 0;
     int fd_ = 0;
@@ -63,19 +63,19 @@ class sock final {
     }
   } file;
 
-  struct {
+  struct reqline {
     char *pth_ = nullptr;
     char *qs_ = nullptr;
     inline void rst() { pth_ = qs_ = nullptr; }
   } reqline;
 
-  struct {
+  struct header {
     char *key_ = nullptr;
     char *value_ = nullptr;
     inline void rst() { key_ = value_ = nullptr; }
-  } hdrparser;
+  } header;
 
-  class {
+  class content {
     size_t pos_ = 0;
     size_t len_ = 0;
     char *buf_ = nullptr;
@@ -113,7 +113,7 @@ class sock final {
     }
   } content;
 
-  class {
+  class buf {
     char buf_[sock_req_buf_size_in_bytes];
     char *p_ = buf_;
     char *e_ = buf_;
@@ -283,7 +283,7 @@ public:
         file.rst();
         reqline.rst();
         hdrs_.clear();
-        hdrparser.rst();
+        header.rst();
         content.rst();
         upload_fd_ = 0;
         wdgt_ = nullptr;
@@ -347,7 +347,7 @@ public:
         while (buf.more()) {
           const char c = buf.unsafe_next_char();
           if (c == '\n') {
-            hdrparser.key_ = buf.ptr();
+            header.key_ = buf.ptr();
             state = header_key;
             break;
           }
@@ -361,7 +361,7 @@ public:
             break;
           } else if (c == ':') {
             buf.eos();
-            hdrparser.value_ = buf.ptr();
+            header.value_ = buf.ptr();
             state = header_value;
             break;
           }
@@ -373,14 +373,14 @@ public:
           if (c == '\n') {
             buf.eos();
             // -2 to skip '\0' and place pointer on last character in the key
-            hdrparser.key_ = strtrm(hdrparser.key_, hdrparser.value_ - 2);
+            header.key_ = strtrm(header.key_, header.value_ - 2);
             // RFC 2616: header field names are case-insensitive
-            strlwr(hdrparser.key_);
+            strlwr(header.key_);
             //? -2 to skip '\0' and place pointer on last character in the value
-            hdrparser.value_ = strtrm(hdrparser.value_, buf.ptr() - 2);
+            header.value_ = strtrm(header.value_, buf.ptr() - 2);
             // printf("%s: %s\n",hdrparser.key,hdrparser.value);
-            hdrs_.put(hdrparser.key_, hdrparser.value_);
-            hdrparser.key_ = buf.ptr();
+            hdrs_.put(header.key_, header.value_);
+            header.key_ = buf.ptr();
             state = header_key;
             break;
           }
