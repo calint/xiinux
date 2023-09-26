@@ -390,7 +390,7 @@ public:
   }
 
 private:
-  void do_server_widget() {
+  void do_serve_widget() {
     sts.widgets++;
     const char *cookie = hdrs_["cookie"];
     const char *session_id = nullptr;
@@ -472,7 +472,8 @@ private:
     wdgt_->to(x);
     state = next_request;
   }
-  void do_file_upload() {
+
+  void do_serve_upload() {
     // file upload
     char bf[256];
     // +1 to skip the leading '/'
@@ -527,29 +528,8 @@ private:
     content.unsafe_skip(size_t(n));
     state = receiving_upload;
   }
-  void do_after_header() {
-    const char *path = *reqline.pth_ == '/' ? reqline.pth_ + 1 : reqline.pth_;
-    // printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
-    const char *content_length_str = hdrs_["content-length"];
-    if (content_length_str)
-      content.init_for_receive(content_length_str);
 
-    if (!*path and reqline.qs_) {
-      do_server_widget();
-      return;
-    }
-    const char *content_type = hdrs_["content-type"];
-    if (content_type and strstr(content_type, "file")) {
-      do_file_upload();
-      return;
-    }
-    reply x{fd_};
-    if (!*path) {
-      sts.cache++;
-      homepage->to(x);
-      state = next_request;
-      return;
-    }
+  void do_serve_file(reply &x, const char *path) {
     if (strstr(path, "..")) {
       constexpr char err[] = "path contains ..\n";
       // -1 to not include '\0'
@@ -573,59 +553,56 @@ private:
       return;
     }
     const struct tm *tm = gmtime(&fdstat.st_mtime);
-    {
-      char lastmod[64];
-      // example: "Fri, 31 Dec 1999 23:59:59 GMT"
-      if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm)) {
-        throw "sock:strftime";
-      }
-      const char *lastmodstr = hdrs_["if-modified-since"];
-      if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
-        constexpr char hdr[] = "HTTP/1.1 304\r\n\r\n";
-        // -1 to not include '\0'
-        io_send(hdr, sizeof(hdr) - 1, true);
-        state = next_request;
-        return;
-      }
-      if (file.open(path) < 0) {
-        // -1 ignore the '\0'
-        constexpr char err[] = "cannot open\n";
-        // -1 to not include '\0'
-        x.http(404, err, sizeof(err) - 1);
-        state = next_request;
-        return;
-      }
-      sts.files++;
-      const char *range = hdrs_["range"];
-      char header_buf[512];
-      int header_buf_len;
-      if (range and *range) {
-        off_t rs = 0;
-        if (sscanf(range, "bytes=%jd", &rs) == EOF) { //? is sscanf safe
-          sts.errors++;
-          perr("range");
-          throw "sock:errrorscanning";
-        }
-        file.init_for_send(size_t(fdstat.st_size), rs);
-        const size_t e = file.length();
-        header_buf_len =
-            snprintf(header_buf, sizeof(header_buf),
-                     "HTTP/1.1 206\r\nAccept-Ranges: "
-                     "bytes\r\nLast-Modified: %s\r\nContent-Length: "
-                     "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
-                     lastmod, e - size_t(rs), rs, e, e);
-      } else {
-        file.init_for_send(size_t(fdstat.st_size));
-        header_buf_len =
-            snprintf(header_buf, sizeof(header_buf),
-                     "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
-                     "%s\r\nContent-Length: %zu\r\n\r\n",
-                     lastmod, file.length());
-      }
-      if (header_buf_len == sizeof(header_buf) or header_buf_len < 0)
-        throw "sock:err1";
-      io_send(header_buf, size_t(header_buf_len), true);
+    char lastmod[64];
+    // example: "Fri, 31 Dec 1999 23:59:59 GMT"
+    if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm)) {
+      throw "sock:strftime";
     }
+    const char *lastmodstr = hdrs_["if-modified-since"];
+    if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
+      constexpr char hdr[] = "HTTP/1.1 304\r\n\r\n";
+      // -1 to not include '\0'
+      io_send(hdr, sizeof(hdr) - 1, true);
+      state = next_request;
+      return;
+    }
+    if (file.open(path) < 0) {
+      constexpr char err[] = "cannot open\n";
+      // -1 to not include '\0'
+      x.http(404, err, sizeof(err) - 1);
+      state = next_request;
+      return;
+    }
+    sts.files++;
+    const char *range = hdrs_["range"];
+    char header_buf[512];
+    int header_buf_len;
+    if (range and *range) {
+      off_t rs = 0;
+      if (sscanf(range, "bytes=%jd", &rs) == EOF) { //? is sscanf safe
+        sts.errors++;
+        perr("range");
+        throw "sock:errrorscanning";
+      }
+      file.init_for_send(size_t(fdstat.st_size), rs);
+      const size_t e = file.length();
+      header_buf_len = snprintf(header_buf, sizeof(header_buf),
+                                "HTTP/1.1 206\r\nAccept-Ranges: "
+                                "bytes\r\nLast-Modified: %s\r\nContent-Length: "
+                                "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
+                                lastmod, e - size_t(rs), rs, e, e);
+    } else {
+      file.init_for_send(size_t(fdstat.st_size));
+      header_buf_len =
+          snprintf(header_buf, sizeof(header_buf),
+                   "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
+                   "%s\r\nContent-Length: %zu\r\n\r\n",
+                   lastmod, file.length());
+    }
+    if (header_buf_len == sizeof(header_buf) or header_buf_len < 0)
+      throw "sock:err1";
+    io_send(header_buf, size_t(header_buf_len), true);
+
     const ssize_t nn = file.resume_send_to(fd_);
     if (nn < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
@@ -641,6 +618,33 @@ private:
     file.close();
     state = next_request;
   }
+
+  void do_after_header() {
+    const char *content_length_str = hdrs_["content-length"];
+    if (content_length_str) {
+      content.init_for_receive(content_length_str);
+    }
+    const char *path = *reqline.pth_ == '/' ? reqline.pth_ + 1 : reqline.pth_;
+    // printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
+    if (!*path and reqline.qs_) {
+      do_serve_widget();
+      return;
+    }
+    const char *content_type = hdrs_["content-type"];
+    if (content_type and strstr(content_type, "file")) {
+      do_serve_upload();
+      return;
+    }
+    reply x{fd_};
+    if (!*path) { // uri '/'
+      sts.cache++;
+      homepage->to(x);
+      state = next_request;
+      return;
+    }
+    do_serve_file(x, path);
+  }
+
   static inline char *strtrm(char *p, char *e) {
     while (p != e and isspace(*p))
       p++;

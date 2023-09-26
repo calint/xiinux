@@ -1,4 +1,3 @@
-[ ] sock: move bulk of code to do_after_header()
 [ ] sock: bind widget factories to paths
 [ ] review messy args.hpp
 [ ] MIME type for ".js" files (warning in Firefox when absent)
@@ -7,6 +6,7 @@
 [ ] qa: performance comparisons
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] sock: move bulk of code to do_after_header()
 [x] sock: upload overwrites buf
 [x] review the messy ssize_t size_t ops in chunky.hpp
 [x] format code with standard formatter
