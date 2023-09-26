@@ -3,9 +3,10 @@
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threaded clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
-[ ] qa: performance comparisons
+[ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] qa: performance comparisons
 [x] sock: move bulk of code to do_after_header()
 [x] sock: upload overwrites buf
 [x] review the messy ssize_t size_t ops in chunky.hpp
