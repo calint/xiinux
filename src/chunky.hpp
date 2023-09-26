@@ -10,7 +10,7 @@
 namespace xiinux {
 class chunky final : public xprinter {
   size_t len_ = 0;
-  char buf_[chunky_buf_size_in_bytes]; //? uninitialized
+  char buf_[conf::chunky_buf_size_in_bytes]; //? uninitialized
   int sockfd_;
   inline size_t io_send(const void *ptr, size_t len,
                         bool throw_if_send_not_complete = false) {

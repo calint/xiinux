@@ -1,8 +1,8 @@
 #pragma once
-#include "web/web.hpp"
 #include "args.hpp"
 #include "conf.hpp"
 #include "sessions.hpp"
+#include "web/web.hpp"
 #include "widget.hpp"
 #include "xiinux.hpp"
 #include <fcntl.h>
@@ -97,13 +97,14 @@ class sock final {
       pos_ = 0;
       len_ = size_t(atoll(content_length_str));
       if (!buf_) {
-        buf_ = new char[sock_content_buf_size_in_bytes];
+        buf_ = new char[conf::sock_content_buf_size_in_bytes];
       }
     }
     inline char *ptr() const { return buf_; }
     inline ssize_t receive_from(int fd_in) {
       stats.reads++;
-      const ssize_t n = recv(fd_in, buf_, sock_content_buf_size_in_bytes, 0);
+      const ssize_t n =
+          recv(fd_in, buf_, conf::sock_content_buf_size_in_bytes, 0);
       if (n < 0)
         return n;
       stats.input += size_t(n);
@@ -118,7 +119,7 @@ class sock final {
   } content;
 
   class buf {
-    char buf_[sock_req_buf_size_in_bytes];
+    char buf_[conf::sock_req_buf_size_in_bytes];
     char *p_ = buf_;
     char *e_ = buf_;
 
@@ -132,7 +133,7 @@ class sock final {
     inline char *ptr() const { return p_; }
     inline ssize_t receive_from(const int fd_in) {
       const size_t nbytes_to_read =
-          sock_req_buf_size_in_bytes - size_t(p_ - buf_);
+          conf::sock_req_buf_size_in_bytes - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
         throw "sock:buf:full";
       stats.reads++;

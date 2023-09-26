@@ -26,9 +26,9 @@ class server final {
     char buf[4 * K];
     // +1 because of '\n' after 'application_name'
     //? check return value
-    const int res = snprintf(buf, sizeof(buf),
-                             "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
-                             strlen(application_name) + 1, application_name);
+    const int res = snprintf(
+        buf, sizeof(buf), "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
+        strlen(conf::application_name) + 1, conf::application_name);
     if (res < 0 or size_t(res) >= sizeof(buf)) {
       puts("homepage does not fit buffer");
       exit(7);
@@ -50,7 +50,7 @@ public:
     const bool option_benchmark_mode = a.has_option('b');
     conf::print_traffic = a.has_option('t');
 
-    printf("%s on port %d", application_name, port);
+    printf("%s on port %d", conf::application_name, port);
     if (option_benchmark_mode) {
       printf(" in benchmark mode");
     }
@@ -74,12 +74,12 @@ public:
       exit(2);
     }
 
-    if (listen(server_socket.fd_, epoll_event_array_size) == -1) {
+    if (listen(server_socket.fd_, conf::epoll_event_array_size) == -1) {
       perror("listen");
       exit(3);
     }
 
-    epollfd = epoll_create(epoll_event_array_size);
+    epollfd = epoll_create(conf::epoll_event_array_size);
     if (!epollfd) {
       perror("epollcreate");
       exit(4);
@@ -102,9 +102,9 @@ public:
       }
     }
 
-    struct epoll_event events[epoll_event_array_size];
+    struct epoll_event events[conf::epoll_event_array_size];
     while (true) {
-      const int n = epoll_wait(epollfd, events, epoll_event_array_size, -1);
+      const int n = epoll_wait(epollfd, events, conf::epoll_event_array_size, -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok

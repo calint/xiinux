@@ -1,4 +1,6 @@
 #pragma once
+#include <cstdlib>
+#include <cstring>
 //? replace use with std::unordered_map
 namespace xiinux {
 template <class T> class lut final {
