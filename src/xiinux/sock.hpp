@@ -149,7 +149,6 @@ class sock final {
   session *ses_ = nullptr;
   bool send_session_id_in_reply_ = false;
 
-  //-----  - - - --- --- --- - - -- - -- - -- - - ----- - -- -- - -- - - -
   inline void io_request_read() {
     struct epoll_event ev;
     ev.data.ptr = this;
@@ -157,6 +156,7 @@ class sock final {
     if (epoll_ctl(epollfd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodread";
   }
+
   inline void io_request_write() {
     struct epoll_event ev;
     ev.data.ptr = this;
@@ -164,6 +164,7 @@ class sock final {
     if (epoll_ctl(epollfd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodwrite";
   }
+
   inline size_t io_send(const void *ptr, size_t len,
                         bool throw_if_send_not_complete = false) {
     sts.writes++;
@@ -191,6 +192,7 @@ class sock final {
 public:
   int fd_ = 0;
   inline sock(const int f = 0) : fd_{f} { sts.socks++; }
+
   inline ~sock() {
     content.free();
     sts.socks--;
@@ -199,6 +201,7 @@ public:
     sts.errors++;
     perr("sockdel");
   }
+
   inline void run() {
     while (true) {
       if (state == resume_send_file) {
@@ -357,7 +360,7 @@ public:
         while (buf.more()) {
           const char c = buf.unsafe_next_char();
           if (c == '\n') { // content or done parsing
-            do_after_header();
+            do_after_headers();
             break;
           } else if (c == ':') {
             buf.eos();
@@ -619,7 +622,7 @@ private:
     state = next_request;
   }
 
-  void do_after_header() {
+  void do_after_headers() {
     const char *content_length_str = hdrs_["content-length"];
     if (content_length_str) {
       content.init_for_receive(content_length_str);
