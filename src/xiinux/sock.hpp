@@ -467,11 +467,65 @@ private:
         state = receiving_content;
         return;
       }
-    } else { // requesting widget
-      wdgt_->to(x);
+    }
+    // requesting widget
+    wdgt_->to(x);
+    state = next_request;
+  }
+  void do_file_upload() {
+    // file upload
+    char bf[256];
+    // +1 to skip the leading '/'
+    if (snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1) == sizeof(bf))
+      throw "sock:pathtrunc";
+    if ((upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664)) < 0) {
+      perror("while creating file for upload");
+      throw "sock:err7";
+    }
+    // check if client expects 100-continue before sending content
+    const char *s = hdrs_["expect"];
+    if (s and !strcmp(s, "100-continue")) {
+      // 16 is string length
+      io_send("HTTP/1.1 100\r\n\r\n", 16, true);
+      state = receiving_upload;
+      return;
+    }
+    const size_t rem = buf.rem();
+    if (rem == 0) {
+      state = receiving_upload;
+      return;
+    }
+    const size_t total = content.total_length();
+    if (rem >= total) {
+      // the whole file is in 'buf'
+      const ssize_t n = write(upload_fd_, buf.ptr(), total);
+      if (n < 0) {
+        perr("while writing upload to file");
+        throw "sock:err4";
+      }
+      if (size_t(n) != total) {
+        throw "sock:incomplete upload";
+      }
+      if (::close(upload_fd_) < 0) {
+        perr("while closing upload file");
+      }
+      const char resp[] = "HTTP/1.1 204\r\n\r\n";
+      // -1 to exclude '\0'
+      io_send(resp, sizeof(resp) - 1, true);
       state = next_request;
       return;
     }
+    // part of the file is in 'buf'
+    const ssize_t n = write(upload_fd_, buf.ptr(), rem);
+    if (n < 0) {
+      perror("while writing upload to file2");
+      throw "sock:err6";
+    }
+    if (size_t(n) != rem) {
+      throw "upload2";
+    }
+    content.unsafe_skip(size_t(n));
+    state = receiving_upload;
   }
   void do_after_header() {
     const char *path = *reqline.pth_ == '/' ? reqline.pth_ + 1 : reqline.pth_;
@@ -486,59 +540,7 @@ private:
     }
     const char *content_type = hdrs_["content-type"];
     if (content_type and strstr(content_type, "file")) {
-      // file upload
-      char bf[256];
-      // +1 to skip the leading '/'
-      if (snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1) == sizeof(bf))
-        throw "sock:pathtrunc";
-      if ((upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664)) < 0) {
-        perror("while creating file for upload");
-        throw "sock:err7";
-      }
-      // check if client expects 100-continue before sending content
-      const char *s = hdrs_["expect"];
-      if (s and !strcmp(s, "100-continue")) {
-        // 16 is string length
-        io_send("HTTP/1.1 100\r\n\r\n", 16, true);
-        state = receiving_upload;
-        return;
-      }
-      const size_t rem = buf.rem();
-      if (rem == 0) {
-        state = receiving_upload;
-        return;
-      }
-      const size_t total = content.total_length();
-      if (rem >= total) {
-        // the whole file is in 'buf'
-        const ssize_t n = write(upload_fd_, buf.ptr(), total);
-        if (n < 0) {
-          perr("while writing upload to file");
-          throw "sock:err4";
-        }
-        if (size_t(n) != total) {
-          throw "sock:incomplete upload";
-        }
-        if (::close(upload_fd_) < 0) {
-          perr("while closing upload file");
-        }
-        const char resp[] = "HTTP/1.1 204\r\n\r\n";
-        // -1 to exclude '\0'
-        io_send(resp, sizeof(resp) - 1, true);
-        state = next_request;
-        return;
-      }
-      // part of the file is in 'buf'
-      const ssize_t n = write(upload_fd_, buf.ptr(), rem);
-      if (n < 0) {
-        perror("while writing upload to file2");
-        throw "sock:err6";
-      }
-      if (size_t(n) != rem) {
-        throw "upload2";
-      }
-      content.unsafe_skip(size_t(n));
-      state = receiving_upload;
+      do_file_upload();
       return;
     }
     reply x{fd_};
