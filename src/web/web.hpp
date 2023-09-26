@@ -9,7 +9,7 @@
 #include "page.hpp"
 #include "typealine.hpp"
 namespace xiinux {
-static inline widget *widgetget(const char *qs) {
+static inline widget *widget_new(const char *qs) {
   //?? "/?hello"  vs "/?hello&a=1"
   if (!strcmp("hello", qs))
     return new web::hello();

@@ -1,3 +1,4 @@
+[ ] sock: bind widget factories to paths
 [ ] review messy args.hpp
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threaded clients, chunky pause and resume when write would block
@@ -5,6 +6,7 @@
 [ ] qa: performance comparisons
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] sock: upload overwrites buf
 [x] review the messy ssize_t size_t ops in chunky.hpp
 [x] format code with standard formatter
 [x] change 'int n{1}' -> 'int n = 1'

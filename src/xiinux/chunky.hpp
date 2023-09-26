@@ -5,8 +5,8 @@
 #include "strb.hpp"
 #include "xprinter.hpp"
 #include <errno.h>
-#include <unistd.h>
 #include <sys/socket.h>
+#include <unistd.h>
 namespace xiinux {
 class chunky final : public xprinter {
   size_t len_ = 0;
@@ -76,8 +76,7 @@ public:
     return *this;
   }
   inline chunky &p(/*scans*/ const char *str) override {
-    const size_t n = strnlen(str, sizeof(buf_) + 1); //? togetbufferoverrun
-    return p(n, str);
+    return p(strlen(str), str);
   }
   inline chunky &p(const size_t strlen, /*scans*/ const char *str) override {
     const ssize_t sizeofbuf = sizeof(buf_);
@@ -93,7 +92,7 @@ public:
     len_ += size_t(bufrem);
     flush();
     const char *s = str + bufrem; // pointer to remaining part of 'str'
-    rem = -rem;                   // now remaining chars to be sent from 'str'
+    rem = -rem;                   // remaining chars to be sent from 'str'
     while (true) {
       const ssize_t n = sizeofbuf - ssize_t(len_);
       const ssize_t m = rem <= n ? rem : n;
