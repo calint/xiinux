@@ -354,260 +354,10 @@ public:
         }
       }
       if (state == header_key) {
-      read_header_key:
         while (buf.more()) {
           const char c = buf.unsafe_next_char();
           if (c == '\n') { // content or done parsing
-            const char *path =
-                *reqline.pth_ == '/' ? reqline.pth_ + 1 : reqline.pth_;
-            // printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
-            const char *content_length_str = hdrs_["content-length"];
-            if (content_length_str)
-              content.init_for_receive(content_length_str);
-
-            if (!*path and reqline.qs_) {
-              sts.widgets++;
-              const char *cookie = hdrs_["cookie"];
-              const char *session_id = nullptr;
-              if (cookie and strstr(cookie, "i=")) {
-                // -1 to exclude '\0'
-                session_id = cookie + sizeof("i=") - 1;
-              }
-              if (!session_id) {
-                // create session
-                // "Fri, 31 Dec 1999 23:59:59 GMT"
-                time_t timer = time(nullptr);
-                struct tm *tm_info = gmtime(&timer);
-                char *sid = new char[24];
-                // 20150411-225519-ieu44dn
-                strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info);
-                // 16 is len of "20150411-225519-"
-                char *sid_ptr = sid + 16;
-                for (int i = 0; i < 7; i++) {
-                  *sid_ptr++ = 'a' + char((random()) % 26);
-                }
-                *sid_ptr = 0;
-                ses_ = new session(/*give*/ sid);
-                sess.put(ses_, false);
-                send_session_id_in_reply_ = true;
-              } else {
-                ses_ = sess.get(session_id);
-                if (!ses_) {
-                  // 24 is the size of session id including '\0'
-                  // e.g: "20150411-225519-ieu44dn\0"
-                  char *sid = new char[24];
-                  strncpy(sid, session_id, 23);
-                  // make sure sid is terminated
-                  sid[23] = '\0';
-                  ses_ = new session(/*give*/ sid);
-                  sess.put(/*give*/ ses_, false);
-                }
-              }
-              //? remake to bind path to widget factories
-              wdgt_ = ses_->get_widget(reqline.qs_);
-              if (!wdgt_) {
-                wdgt_ = widget_new(reqline.qs_);
-                const size_t key_len = strnlen(reqline.qs_, 1024);
-                if (key_len == 1024)
-                  throw "sock:key_len";
-                // +1 for the \0 terminator
-                char *key = new char[key_len + 1];
-                memcpy(key, reqline.qs_, key_len + 1);
-                ses_->put_widget(/*give*/ key, /*give*/ wdgt_);
-              }
-              reply x{fd_};
-              if (send_session_id_in_reply_) {
-                x.send_session_id_at_next_opportunity(ses_->id());
-                send_session_id_in_reply_ = false;
-              }
-              if (content_length_str) { // posting content to widget
-                const size_t total_content_len = content.total_length();
-                wdgt_->on_content(x, nullptr, 0, total_content_len);
-                // if client expects 100 continue before sending post
-                const char *s = hdrs_["expect"];
-                if (s and !strcmp(s, "100-continue")) {
-                  io_send("HTTP/1.1 100\r\n\r\n", 16, true);
-                  state = receiving_content;
-                  break;
-                }
-                const size_t rem = buf.rem();
-                if (rem >= total_content_len) { // full content is in 'buf'
-                  wdgt_->on_content(x, buf.ptr(), total_content_len,
-                                    total_content_len);
-                  state = next_request;
-                  break;
-                } else {
-                  // part of the content is in 'buf'
-                  wdgt_->on_content(x, buf.ptr(), rem, total_content_len);
-                  content.unsafe_skip(rem);
-                  state = receiving_content;
-                  break;
-                }
-              } else { // requesting widget
-                wdgt_->to(x);
-                state = next_request;
-                return;
-              }
-            }
-            const char *content_type = hdrs_["content-type"];
-            if (content_type and strstr(content_type, "file")) {
-              // file upload
-              char bf[256];
-              // +1 to skip the leading '/'
-              if (snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1) ==
-                  sizeof(bf))
-                throw "sock:pathtrunc";
-
-              if ((upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664)) <
-                  0) {
-                perror("while creating file for upload");
-                throw "sock:err7";
-              }
-
-              // check if client expects 100-continue before sending content
-              const char *s = hdrs_["expect"];
-              if (s and !strcmp(s, "100-continue")) {
-                // 16 is string length
-                io_send("HTTP/1.1 100\r\n\r\n", 16, true);
-                state = receiving_upload;
-                break;
-              }
-              const size_t rem = buf.rem();
-              if (rem == 0) {
-                state = receiving_upload;
-                break;
-              }
-              const size_t total = content.total_length();
-              if (rem >= total) {
-                // the whole file is in 'buf'
-                const ssize_t n = write(upload_fd_, buf.ptr(), total);
-                if (n < 0) {
-                  perr("while writing upload to file");
-                  throw "sock:err4";
-                }
-                if (size_t(n) != total) {
-                  throw "sock:incomplete upload";
-                }
-                if (::close(upload_fd_) < 0) {
-                  perr("while closing upload file");
-                }
-                const char resp[] = "HTTP/1.1 204\r\n\r\n";
-                // -1 to exclude '\0'
-                io_send(resp, sizeof(resp) - 1, true);
-                state = next_request;
-                break;
-              }
-              // part of the file is in 'buf'
-              const ssize_t n = write(upload_fd_, buf.ptr(), rem);
-              if (n < 0) {
-                perror("while writing upload to file2");
-                throw "sock:err6";
-              }
-              if (size_t(n) != rem) {
-                throw "upload2";
-              }
-              content.unsafe_skip(size_t(n));
-              state = receiving_upload;
-              break;
-            }
-            reply x{fd_};
-            if (!*path) {
-              sts.cache++;
-              homepage->to(x);
-              state = next_request;
-              break;
-            }
-            if (strstr(path, "..")) {
-              constexpr char err[] = "path contains ..\n";
-              // -1 to not include '\0'
-              x.http(403, err, sizeof(err) - 1);
-              state = next_request;
-              return;
-            }
-            struct stat fdstat;
-            if (stat(path, &fdstat)) {
-              constexpr char err[] = "not found\n";
-              // -1 to not include '\0'
-              x.http(404, err, sizeof(err) - 1);
-              state = next_request;
-              return;
-            }
-            if (S_ISDIR(fdstat.st_mode)) {
-              constexpr char err[] = "path is directory\n";
-              // -1 to not include '\0'
-              x.http(403, err, sizeof(err) - 1);
-              state = next_request;
-              return;
-            }
-            const struct tm *tm = gmtime(&fdstat.st_mtime);
-            {
-              char lastmod[64];
-              // example: "Fri, 31 Dec 1999 23:59:59 GMT"
-              if (!strftime(lastmod, sizeof(lastmod),
-                            "%a, %d %b %y %H:%M:%S %Z", tm)) {
-                throw "sock:strftime";
-              }
-              const char *lastmodstr = hdrs_["if-modified-since"];
-              if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
-                constexpr char hdr[] = "HTTP/1.1 304\r\n\r\n";
-                // -1 to not include '\0'
-                io_send(hdr, sizeof(hdr) - 1, true);
-                state = next_request;
-                break;
-              }
-              if (file.open(path) < 0) {
-                // -1 ignore the '\0'
-                constexpr char err[] = "cannot open\n";
-                // -1 to not include '\0'
-                x.http(404, err, sizeof(err) - 1);
-                state = next_request;
-                break;
-              }
-              sts.files++;
-              const char *range = hdrs_["range"];
-              char header_buf[512];
-              int header_buf_len;
-              if (range and *range) {
-                off_t rs = 0;
-                if (sscanf(range, "bytes=%jd", &rs) == EOF) { //? is sscanf safe
-                  sts.errors++;
-                  perr("range");
-                  throw "sock:errrorscanning";
-                }
-                file.init_for_send(size_t(fdstat.st_size), rs);
-                const size_t e = file.length();
-                header_buf_len =
-                    snprintf(header_buf, sizeof(header_buf),
-                             "HTTP/1.1 206\r\nAccept-Ranges: "
-                             "bytes\r\nLast-Modified: %s\r\nContent-Length: "
-                             "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
-                             lastmod, e - size_t(rs), rs, e, e);
-              } else {
-                file.init_for_send(size_t(fdstat.st_size));
-                header_buf_len = snprintf(
-                    header_buf, sizeof(header_buf),
-                    "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
-                    "%s\r\nContent-Length: %zu\r\n\r\n",
-                    lastmod, file.length());
-              }
-              if (header_buf_len == sizeof(header_buf) or header_buf_len < 0)
-                throw "sock:err1";
-              io_send(header_buf, size_t(header_buf_len), true);
-            }
-            const ssize_t nn = file.resume_send_to(fd_);
-            if (nn < 0) {
-              if (errno == EPIPE or errno == ECONNRESET)
-                throw signal_connection_reset_by_peer;
-              sts.errors++;
-              perr("sendingfile");
-              throw "sock:err5";
-            }
-            if (!file.done()) {
-              state = resume_send_file;
-              break;
-            }
-            file.close();
-            state = next_request;
+            do_after_header();
             break;
           } else if (c == ':') {
             buf.eos();
@@ -632,7 +382,7 @@ public:
             hdrs_.put(hdrparser.key_, hdrparser.value_);
             hdrparser.key_ = buf.ptr();
             state = header_key;
-            goto read_header_key;
+            break;
           }
         }
       }
@@ -640,6 +390,255 @@ public:
   }
 
 private:
+  void do_server_widget() {
+    sts.widgets++;
+    const char *cookie = hdrs_["cookie"];
+    const char *session_id = nullptr;
+    if (cookie and strstr(cookie, "i=")) {
+      // -1 to exclude '\0'
+      session_id = cookie + sizeof("i=") - 1;
+    }
+    if (!session_id) {
+      // create session
+      // "Fri, 31 Dec 1999 23:59:59 GMT"
+      time_t timer = time(nullptr);
+      struct tm *tm_info = gmtime(&timer);
+      char *sid = new char[24];
+      // 20150411-225519-ieu44dn
+      strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info);
+      // 16 is len of "20150411-225519-"
+      char *sid_ptr = sid + 16;
+      for (unsigned i = 0; i < 7; i++) {
+        *sid_ptr++ = 'a' + char((random()) % 26);
+      }
+      *sid_ptr = 0;
+      ses_ = new session(/*give*/ sid);
+      sess.put(ses_, false);
+      send_session_id_in_reply_ = true;
+    } else {
+      ses_ = sess.get(session_id);
+      if (!ses_) {
+        // 24 is the size of session id including '\0'
+        // e.g: "20150411-225519-ieu44dn\0"
+        char *sid = new char[24];
+        strncpy(sid, session_id, 23);
+        // make sure sid is terminated
+        sid[23] = '\0';
+        ses_ = new session(/*give*/ sid);
+        sess.put(/*give*/ ses_, false);
+      }
+    }
+    //? remake to bind path to widget factories
+    wdgt_ = ses_->get_widget(reqline.qs_);
+    if (!wdgt_) {
+      wdgt_ = widget_new(reqline.qs_);
+      const size_t key_len = strnlen(reqline.qs_, 1024);
+      if (key_len == 1024)
+        throw "sock:key_len";
+      // +1 for the \0 terminator
+      char *key = new char[key_len + 1];
+      memcpy(key, reqline.qs_, key_len + 1);
+      ses_->put_widget(/*give*/ key, /*give*/ wdgt_);
+    }
+    reply x{fd_};
+    if (send_session_id_in_reply_) {
+      x.send_session_id_at_next_opportunity(ses_->id());
+      send_session_id_in_reply_ = false;
+    }
+    const size_t total_content_len = content.total_length();
+    if (total_content_len) { // posting content to widget
+      wdgt_->on_content(x, nullptr, 0, total_content_len);
+      // if client expects 100 continue before sending post
+      const char *s = hdrs_["expect"];
+      if (s and !strcmp(s, "100-continue")) {
+        io_send("HTTP/1.1 100\r\n\r\n", 16, true);
+        state = receiving_content;
+        return;
+      }
+      const size_t rem = buf.rem();
+      if (rem >= total_content_len) { // full content is in 'buf'
+        wdgt_->on_content(x, buf.ptr(), total_content_len, total_content_len);
+        state = next_request;
+        return;
+      } else {
+        // part of the content is in 'buf'
+        wdgt_->on_content(x, buf.ptr(), rem, total_content_len);
+        content.unsafe_skip(rem);
+        state = receiving_content;
+        return;
+      }
+    } else { // requesting widget
+      wdgt_->to(x);
+      state = next_request;
+      return;
+    }
+  }
+  void do_after_header() {
+    const char *path = *reqline.pth_ == '/' ? reqline.pth_ + 1 : reqline.pth_;
+    // printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
+    const char *content_length_str = hdrs_["content-length"];
+    if (content_length_str)
+      content.init_for_receive(content_length_str);
+
+    if (!*path and reqline.qs_) {
+      do_server_widget();
+      return;
+    }
+    const char *content_type = hdrs_["content-type"];
+    if (content_type and strstr(content_type, "file")) {
+      // file upload
+      char bf[256];
+      // +1 to skip the leading '/'
+      if (snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1) == sizeof(bf))
+        throw "sock:pathtrunc";
+      if ((upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664)) < 0) {
+        perror("while creating file for upload");
+        throw "sock:err7";
+      }
+      // check if client expects 100-continue before sending content
+      const char *s = hdrs_["expect"];
+      if (s and !strcmp(s, "100-continue")) {
+        // 16 is string length
+        io_send("HTTP/1.1 100\r\n\r\n", 16, true);
+        state = receiving_upload;
+        return;
+      }
+      const size_t rem = buf.rem();
+      if (rem == 0) {
+        state = receiving_upload;
+        return;
+      }
+      const size_t total = content.total_length();
+      if (rem >= total) {
+        // the whole file is in 'buf'
+        const ssize_t n = write(upload_fd_, buf.ptr(), total);
+        if (n < 0) {
+          perr("while writing upload to file");
+          throw "sock:err4";
+        }
+        if (size_t(n) != total) {
+          throw "sock:incomplete upload";
+        }
+        if (::close(upload_fd_) < 0) {
+          perr("while closing upload file");
+        }
+        const char resp[] = "HTTP/1.1 204\r\n\r\n";
+        // -1 to exclude '\0'
+        io_send(resp, sizeof(resp) - 1, true);
+        state = next_request;
+        return;
+      }
+      // part of the file is in 'buf'
+      const ssize_t n = write(upload_fd_, buf.ptr(), rem);
+      if (n < 0) {
+        perror("while writing upload to file2");
+        throw "sock:err6";
+      }
+      if (size_t(n) != rem) {
+        throw "upload2";
+      }
+      content.unsafe_skip(size_t(n));
+      state = receiving_upload;
+      return;
+    }
+    reply x{fd_};
+    if (!*path) {
+      sts.cache++;
+      homepage->to(x);
+      state = next_request;
+      return;
+    }
+    if (strstr(path, "..")) {
+      constexpr char err[] = "path contains ..\n";
+      // -1 to not include '\0'
+      x.http(403, err, sizeof(err) - 1);
+      state = next_request;
+      return;
+    }
+    struct stat fdstat;
+    if (stat(path, &fdstat)) {
+      constexpr char err[] = "not found\n";
+      // -1 to not include '\0'
+      x.http(404, err, sizeof(err) - 1);
+      state = next_request;
+      return;
+    }
+    if (S_ISDIR(fdstat.st_mode)) {
+      constexpr char err[] = "path is directory\n";
+      // -1 to not include '\0'
+      x.http(403, err, sizeof(err) - 1);
+      state = next_request;
+      return;
+    }
+    const struct tm *tm = gmtime(&fdstat.st_mtime);
+    {
+      char lastmod[64];
+      // example: "Fri, 31 Dec 1999 23:59:59 GMT"
+      if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm)) {
+        throw "sock:strftime";
+      }
+      const char *lastmodstr = hdrs_["if-modified-since"];
+      if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
+        constexpr char hdr[] = "HTTP/1.1 304\r\n\r\n";
+        // -1 to not include '\0'
+        io_send(hdr, sizeof(hdr) - 1, true);
+        state = next_request;
+        return;
+      }
+      if (file.open(path) < 0) {
+        // -1 ignore the '\0'
+        constexpr char err[] = "cannot open\n";
+        // -1 to not include '\0'
+        x.http(404, err, sizeof(err) - 1);
+        state = next_request;
+        return;
+      }
+      sts.files++;
+      const char *range = hdrs_["range"];
+      char header_buf[512];
+      int header_buf_len;
+      if (range and *range) {
+        off_t rs = 0;
+        if (sscanf(range, "bytes=%jd", &rs) == EOF) { //? is sscanf safe
+          sts.errors++;
+          perr("range");
+          throw "sock:errrorscanning";
+        }
+        file.init_for_send(size_t(fdstat.st_size), rs);
+        const size_t e = file.length();
+        header_buf_len =
+            snprintf(header_buf, sizeof(header_buf),
+                     "HTTP/1.1 206\r\nAccept-Ranges: "
+                     "bytes\r\nLast-Modified: %s\r\nContent-Length: "
+                     "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
+                     lastmod, e - size_t(rs), rs, e, e);
+      } else {
+        file.init_for_send(size_t(fdstat.st_size));
+        header_buf_len =
+            snprintf(header_buf, sizeof(header_buf),
+                     "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
+                     "%s\r\nContent-Length: %zu\r\n\r\n",
+                     lastmod, file.length());
+      }
+      if (header_buf_len == sizeof(header_buf) or header_buf_len < 0)
+        throw "sock:err1";
+      io_send(header_buf, size_t(header_buf_len), true);
+    }
+    const ssize_t nn = file.resume_send_to(fd_);
+    if (nn < 0) {
+      if (errno == EPIPE or errno == ECONNRESET)
+        throw signal_connection_reset_by_peer;
+      sts.errors++;
+      perr("sendingfile");
+      throw "sock:err5";
+    }
+    if (!file.done()) {
+      state = resume_send_file;
+      return;
+    }
+    file.close();
+    state = next_request;
+  }
   static inline char *strtrm(char *p, char *e) {
     while (p != e and isspace(*p))
       p++;
