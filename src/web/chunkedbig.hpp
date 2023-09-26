@@ -1,21 +1,22 @@
 #pragma once
-#include<memory>
-namespace web{
-	class chunkedbig final:public widget{
-	public:
-		void to(reply&r)override{
-			std::unique_ptr<chunky>y(/*take*/r.reply_chunky());
-			y->p("HTTP/1.1 200\r\nTransfer-Encoding:chunked\r\nContent-Type:text/plain;charset=utf-8\r\n\r\n");
-			y->send_response_header();//? send_session_id
+#include <memory>
+namespace web {
+using namespace xiinux;
+class chunkedbig final : public widget {
+public:
+  void to(reply &r) override {
+    std::unique_ptr<chunky> y(/*take*/ r.reply_chunky());
+    y->p("HTTP/1.1 "
+         "200\r\nTransfer-Encoding:chunked\r\nContent-Type:text/"
+         "plain;charset=utf-8\r\n\r\n");
+    y->send_response_header(); //? send_session_id
 
+    xprinter &x = *y;
+    for (unsigned i = 0; i < 4 * 1024; i++) {
+      x.p("chunked response ");
+    }
 
-			xprinter&x=*y;
-			for(unsigned i=0;i<4*1024;i++){
-				x.p("chunked response ");
-			}
-
-
-			y->finish();
-		}
-	};
-}
+    y->finish();
+  }
+};
+} // namespace web

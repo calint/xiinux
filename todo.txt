@@ -1,4 +1,7 @@
-[ ] review the messy ssize_t size_t ops in chunky
+[ ] review the messy ssize_t size_t ops in chunky.hpp
+[ ] review messy args.hpp
+[ ] format code with standard formatter
+[ ] change 'int n{1}' -> 'int n = 1'
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threaded clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
