@@ -12,29 +12,6 @@ class chunky final : public xprinter {
   size_t len_ = 0;
   char buf_[conf::chunky_buf_size_in_bytes]; //? uninitialized
   int sockfd_;
-  inline size_t io_send(const void *ptr, size_t len,
-                        bool throw_if_send_not_complete = false) {
-    stats.writes++;
-    const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
-    if (n < 0) {
-      if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_lost;
-      stats.errors++;
-      throw "iosend";
-    }
-    stats.output += size_t(n);
-    if (conf::print_traffic) {
-      const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
-      if (m == -1 or m != n) {
-        perror("write not complete or failed");
-      }
-    }
-    if (throw_if_send_not_complete and size_t(n) != len) {
-      stats.errors++;
-      throw "sendnotcomplete";
-    }
-    return size_t(n);
-  }
 
 public:
   inline chunky(int sockfd) : sockfd_{sockfd} {}
@@ -75,15 +52,18 @@ public:
     io_send(fin, sizeof(fin) - 1, true); // -1 to exclude terminator '\0'
     return *this;
   }
+
   // sends current buffer as is
   inline chunky &send_response_header() {
     io_send(buf_, len_, true);
     len_ = 0;
     return *this;
   }
+
   inline chunky &p(/*scans*/ const char *str) override {
     return p(str, strlen(str));
   }
+
   inline chunky &p(/*scans*/ const char *str, const size_t strlen) override {
     const ssize_t sizeofbuf = sizeof(buf_);
     const ssize_t bufrem = sizeofbuf - ssize_t(len_);
@@ -111,6 +91,7 @@ public:
       s += m;
     }
   }
+
   inline chunky &p(const int i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%d", i);
@@ -118,6 +99,7 @@ public:
       throw "chunky:1";
     return p(str, size_t(n));
   }
+
   inline chunky &p(const size_t i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%zd", i);
@@ -125,6 +107,7 @@ public:
       throw "chunky:2";
     return p(str, size_t(n));
   }
+
   inline chunky &p_ptr(const void *ptr) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%p", ptr);
@@ -132,6 +115,7 @@ public:
       throw "chunky:3";
     return p(str, size_t(n));
   }
+
   inline chunky &p_hex(const unsigned i) override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%ux", i);
@@ -139,12 +123,14 @@ public:
       throw "chunky:4";
     return p(str, size_t(n));
   }
+
   inline chunky &p(const char ch) override {
     if (sizeof(buf_) - len_ == 0)
       flush();
     *(buf_ + len_++) = ch;
     return *this;
   }
+
   inline chunky &nl() override { return p('\n'); }
 
   // html5
@@ -163,6 +149,31 @@ public:
       throw "chunky:err1";
     fprintf(f, fmt, buf_);
     return *this;
+  }
+
+private:
+  inline size_t io_send(const void *ptr, size_t len,
+                        bool throw_if_send_not_complete = false) {
+    stats.writes++;
+    const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
+    if (n < 0) {
+      if (errno == EPIPE or errno == ECONNRESET)
+        throw signal_connection_lost;
+      stats.errors++;
+      throw "iosend";
+    }
+    stats.output += size_t(n);
+    if (conf::print_traffic) {
+      const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
+      if (m == -1 or m != n) {
+        perror("write not complete or failed");
+      }
+    }
+    if (throw_if_send_not_complete and size_t(n) != len) {
+      stats.errors++;
+      throw "sendnotcomplete";
+    }
+    return size_t(n);
   }
 };
 } // namespace xiinux
