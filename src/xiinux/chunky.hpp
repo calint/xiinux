@@ -127,9 +127,9 @@ public:
       throw "chunky:3";
     return p(size_t(n), str);
   }
-  inline chunky &p_hex(const unsigned long i) override {
+  inline chunky &p_hex(const unsigned i) override {
     char str[32];
-    const int n = snprintf(str, sizeof(str), "%lx", i);
+    const int n = snprintf(str, sizeof(str), "%ux", i);
     if (n < 0)
       throw "chunky:4";
     return p(size_t(n), str);

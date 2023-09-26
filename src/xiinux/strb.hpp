@@ -1,6 +1,7 @@
 #pragma once
 #include "xprinter.hpp"
 #include <string.h>
+//?? unsafe use of buffer
 namespace xiinux {
 class strb final : public xprinter {
   size_t len_ = 0;
@@ -54,9 +55,9 @@ public:
       throw "strb:3";
     return p(size_t(len), str);
   }
-  inline strb &p_hex(const unsigned long i) override {
+  inline strb &p_hex(const unsigned i) override {
     char str[32];
-    const int len = snprintf(str, sizeof(str), "%lx", i);
+    const int len = snprintf(str, sizeof(str), "%ux", i);
     if (len < 0)
       throw "strb:4";
     return p(size_t(len), str);
@@ -64,7 +65,7 @@ public:
   inline strb &p(char ch) override {
     if (sizeof(buf_) - len_ == 0)
       flush();
-    *(buf_ + len_++) = ch;
+    *(buf_ + len_++) = ch; //?? len_ can be out of range?
     return *this;
   }
   inline strb &nl() override { return p('\n'); }

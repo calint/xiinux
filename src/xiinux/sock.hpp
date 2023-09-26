@@ -42,7 +42,7 @@ class sock final {
       const ssize_t n = sendfile(to_fd, fd_, &pos_, len_ - size_t(pos_));
       if (n < 0)
         return n;
-      xiinux::sts.output += unsigned(n);
+      sts.output += unsigned(n);
       return n;
     }
     inline void init_for_send(const size_t size_in_bytes,
@@ -69,8 +69,6 @@ class sock final {
     inline void rst() { pth_ = qs_ = nullptr; }
   } reqline;
 
-  lut<const char *> hdrs_;
-
   struct {
     char *key_ = nullptr;
     char *value_ = nullptr;
@@ -80,7 +78,7 @@ class sock final {
   class {
     size_t pos_ = 0;
     size_t len_ = 0;
-    char *buf_{nullptr};
+    char *buf_ = nullptr;
 
   public:
     inline void rst() { pos_ = len_ = 0; }
@@ -145,10 +143,11 @@ class sock final {
     }
   } buf;
 
+  lut<const char *> hdrs_;
   int upload_fd_ = 0;
   widget *wdgt_ = nullptr;
   session *ses_ = nullptr;
-  bool send_session_id_in_reply_{false};
+  bool send_session_id_in_reply_ = false;
 
   //-----  - - - --- --- --- - - -- - -- - -- - - ----- - -- -- - -- - - -
   inline void io_request_read() {
@@ -187,7 +186,7 @@ class sock final {
   }
 
 public:
-  int fd_{0};
+  int fd_ = 0;
   inline sock(const int f = 0) : fd_{f} { sts.socks++; }
   inline ~sock() {
     content.cleanup();
@@ -273,7 +272,7 @@ public:
       }
       if (state == next_request) {
         // if previous request had header 'Connection: close'
-        const char *connection{hdrs_["connection"]};
+        const char *connection = hdrs_["connection"];
         if (connection and !strcmp("close", connection)) {
           delete this;
           return;
@@ -362,8 +361,10 @@ public:
             // printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
             const char *content_length_str = hdrs_["content-length"];
             content.rst();
+
             if (content_length_str)
               content.init_for_receive(content_length_str);
+
             if (!*path and reqline.qs_) {
               sts.widgets++;
               const char *cookie = hdrs_["cookie"];
@@ -439,7 +440,7 @@ public:
             }
             const char *content_type = hdrs_["content-type"];
             if (content_type and strstr(content_type, "file")) { // file upload
-              const mode_t mod{0664};
+              const mode_t mod = 0664;
               char bf[256];
               if (snprintf(bf, sizeof(bf), "upload/%s", reqline.pth_ + 1) ==
                   sizeof(bf))
@@ -542,7 +543,7 @@ public:
               char bb[K];
               int bb_len;
               if (range and *range) {
-                off_t rs{0};
+                off_t rs = 0;
                 if (EOF == sscanf(range, "bytes=%jd", &rs)) { //? is sscanf safe
                   sts.errors++;
                   perr("range");

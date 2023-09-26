@@ -3,12 +3,11 @@
 namespace xiinux {
 template <class T> class lut final {
 private:
-  unsigned size_;
   class el {
   public:
-    char *key_{nullptr};
-    T data_{nullptr};
-    el *nxt_{nullptr};
+    char *key_ = nullptr;
+    T data_ = nullptr;
+    el *nxt_ = nullptr;
     inline el(char *key, T data) : key_{key}, data_{data} {}
     inline void delete_content_recurse(const bool delete_key) {
       if (data_)
@@ -18,6 +17,8 @@ private:
     }
   };
   el **array_;
+  unsigned size_;
+
   // note. size must be 2^n because size-1 will be used for bitwise 'and'
   static inline unsigned hash(const char *key, const unsigned size) {
     unsigned i = 0;
@@ -71,9 +72,9 @@ public:
   }
   inline void clear() {
     for (unsigned i = 0; i < size_; i++) {
-      el *e{array_[i]};
+      el *e = array_[i];
       while (e) {
-        el *nxt{e->nxt_};
+        el *nxt = e->nxt_;
         delete e;
         e = nxt;
       }

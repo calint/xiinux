@@ -5,7 +5,7 @@
 #include <netinet/tcp.h>
 namespace xiinux {
 class server final {
-  inline static bool thdwatch_on{false};
+  inline static bool thdwatch_on = false;
   inline static pthread_t thdwatch;
   inline static void *thdwatch_run(void *arg) {
     sts.printhdr(stdout);
@@ -122,8 +122,7 @@ public:
           if (option_benchmark_mode) {
             int flag = 1;
             if (setsockopt(fda, IPPROTO_TCP, TCP_NODELAY,
-                           static_cast<void *>(&flag),
-                           sizeof(int)) < 0) { //? for performance tests
+                           static_cast<void *>(&flag), sizeof(int)) < 0) {
               perror("optsetTCP_NODELAY");
               puts("optsetTCP_NODELAY");
               return 8;

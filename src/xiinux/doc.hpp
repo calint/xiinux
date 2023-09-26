@@ -6,7 +6,7 @@ class doc final {
   char *buf_;
 
 public:
-  inline doc(const char *data, const char *lastmod = nullptr) {
+  inline doc(const char *data) {
     const size_t maxlen = K * M;
     len_ = strnlen(data, maxlen);
     if (len_ == maxlen)

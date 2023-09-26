@@ -9,8 +9,8 @@
 #include <unistd.h>
 namespace xiinux {
 class reply final {
-  int fd_;
-  const char *set_session_id_cookie_{nullptr};
+  int fd_ = 0;
+  const char *set_session_id_cookie_ = nullptr;
 
 public:
   inline reply(const int fd = 0) : fd_{fd} {}
@@ -21,7 +21,7 @@ public:
   inline size_t io_send(const void *buf, size_t len,
                         bool throw_if_send_not_complete = false) {
     sts.writes++;
-    const ssize_t n{send(fd_, buf, len, MSG_NOSIGNAL)};
+    const ssize_t n = send(fd_, buf, len, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_reset_by_peer;
@@ -29,12 +29,15 @@ public:
       throw "iosend";
     }
     sts.output += size_t(n);
+
     if (conf::print_traffic)
       write(conf::print_traffic_fd, buf, size_t(n));
+
     if (throw_if_send_not_complete and size_t(n) != len) {
       sts.errors++;
       throw "sendnotcomplete";
     }
+
     return size_t(n);
   }
   inline reply &pk(const char *data, const size_t len) {
