@@ -4,7 +4,7 @@ namespace web {
 using namespace xiinux;
 class counter final : public widget {
 public:
-  static std::atomic_int page_counter;
+  static inline std::atomic_int page_counter{0};
   int my_counter{0};
   void to(reply &r) override {
     my_counter++;
@@ -17,5 +17,4 @@ public:
     r.http(200, sb.buf(), sb.size());
   }
 };
-std::atomic_int counter::page_counter{0};
 } // namespace web

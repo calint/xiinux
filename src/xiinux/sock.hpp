@@ -393,10 +393,12 @@ public:
               } else {
                 ses_ = sess.get(session_id);
                 if (!ses_) {
-                  // 24 is the size of session id. e.g:
-                  // "20150411-225519-ieu44dn\0"
+                  // 24 is the size of session id including '\0'
+                  // e.g: "20150411-225519-ieu44dn\0"
                   char *sid = new char[24];
-                  strncpy(sid, session_id, 24);
+                  strncpy(sid, session_id, 23);
+                  // make sure sid is terminated
+                  sid[23] = '\0';
                   ses_ = new session(/*give*/ sid);
                   sess.put(/*give*/ ses_, false);
                 }
