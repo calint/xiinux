@@ -14,7 +14,6 @@
                 "-Wshadow",
                 "-Wctad-maybe-unsupported",
                 "-Wno-unused-parameter",
-                "-Wno-unused-result",
                 "-Wfatal-errors",
                 "-pthread",
                 //                "-lgcov",

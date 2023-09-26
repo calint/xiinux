@@ -30,7 +30,7 @@ echo > all.src &&
 for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
 
 echo &&
-$CC  -o $BIN $SRC $DBG $LIB $OPTS $WARNINGS && 
+$CC -o $BIN $SRC $DBG $LIB $OPTS $WARNINGS && 
 echo    "            lines   words   chars" &&
 echo -n "   source:" &&
 cat all.src|wc &&
