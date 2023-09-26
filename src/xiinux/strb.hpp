@@ -89,6 +89,7 @@ public:
     // 7 and 8 are the number of characters to copy
     return p(s, sizeof(s) - 1).p("<title>", 7).p(title).p("</title>", 8);
   }
+
   inline strb &to(FILE *f) {
     char fmt[32];
     const int res = snprintf(fmt, sizeof(fmt), "%%%zus", len_);

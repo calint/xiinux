@@ -19,6 +19,7 @@ public:
         .nl();
     x.http(200, s.buf(), s.size());
   }
+  
   void on_content(reply &x, /*scan*/ const char *content,
                   const size_t content_len,
                   const size_t total_content_len) override {
