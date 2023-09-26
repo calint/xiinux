@@ -124,7 +124,7 @@ class sock final {
     inline size_t rem() const { return size_t(e_ - p_); }
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline char unsafe_next_char() { return *p_++; }
-    inline void eos() { *(p_ - 1) = '\0'; }
+    inline void set_eos() { *(p_ - 1) = '\0'; }
     inline char *ptr() const { return p_; }
     inline ssize_t receive_from(const int fd_in) {
       const size_t nbytes_to_read =
@@ -325,11 +325,11 @@ public:
         while (buf.more()) {
           const char c = buf.unsafe_next_char();
           if (c == ' ') {
-            buf.eos();
+            buf.set_eos();
             state = protocol;
             break;
           } else if (c == '?') {
-            buf.eos();
+            buf.set_eos();
             reqline.qs_ = buf.ptr();
             state = query;
             break;
@@ -340,7 +340,7 @@ public:
         while (buf.more()) {
           const char c = buf.unsafe_next_char();
           if (c == ' ') {
-            buf.eos();
+            buf.set_eos();
             state = protocol;
             break;
           }
@@ -363,7 +363,7 @@ public:
             do_after_headers();
             break;
           } else if (c == ':') {
-            buf.eos();
+            buf.set_eos();
             header.value_ = buf.ptr();
             state = header_value;
             break;
@@ -374,7 +374,7 @@ public:
         while (buf.more()) {
           const char c = buf.unsafe_next_char();
           if (c == '\n') {
-            buf.eos();
+            buf.set_eos();
             // -2 to skip '\0' and place pointer on last character in the key
             header.key_ = strtrm(header.key_, header.value_ - 2);
             // RFC 2616: header field names are case-insensitive
@@ -403,7 +403,6 @@ private:
     }
     if (!session_id) {
       // create session
-      // "Fri, 31 Dec 1999 23:59:59 GMT"
       time_t timer = time(nullptr);
       struct tm *tm_info = gmtime(&timer);
       char *sid = new char[24];
@@ -414,7 +413,7 @@ private:
       for (unsigned i = 0; i < 7; i++) {
         *sid_ptr++ = 'a' + char((random()) % 26);
       }
-      *sid_ptr = 0;
+      *sid_ptr = '\0';
       ses_ = new session(/*give*/ sid);
       sess.put(ses_, false);
       send_session_id_in_reply_ = true;
