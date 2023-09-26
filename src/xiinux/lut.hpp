@@ -5,10 +5,10 @@ template <class T> class lut final {
 private:
   class el {
   public:
-    char *key_ = nullptr;
+    const char *key_ = nullptr;
     T data_ = nullptr;
     el *nxt_ = nullptr;
-    inline el(char *key, T data) : key_{key}, data_{data} {}
+    inline el(const char *key, T data) : key_{key}, data_{data} {}
     inline void delete_content_recurse(const bool delete_key) {
       if (data_)
         delete data_;
@@ -48,7 +48,7 @@ public:
     }
     return nullptr;
   }
-  inline void put(char *key, T data, bool allow_overwrite = true) {
+  inline void put(const char *key, T data, bool allow_overwrite = true) {
     const unsigned h = hash(key, size_);
     el *e = array_[h];
     if (!e) {

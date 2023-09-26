@@ -17,6 +17,6 @@ public:
   inline ~doc() { delete[] buf_; }
   inline const char *buffer() const { return buf_; }
   inline size_t size_in_bytes() const { return len_; }
-  inline void to(reply &x) const { x.pk(buf_, len_); }
+  inline void to(reply &x) const { x.send(buf_, len_); }
 };
 } // namespace xiinux

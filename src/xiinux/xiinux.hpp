@@ -4,5 +4,5 @@
 namespace xiinux { // shared by server and sock to avoid circular ref
 static int epollfd;
 static doc *homepage;
-static widget *widget_new(const char *qs);
+static /*give*/ widget *widget_new(const char *qs);
 } // namespace xiinux

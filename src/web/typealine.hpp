@@ -9,10 +9,10 @@ namespace web{
 			if(!buf){// init content scan
 				char s[K];
 				const int n=snprintf(s,sizeof(s),"HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n",total_len);
-				x.pk(s,size_t(n));
+				x.send(s,size_t(n));
 				return;
 			}
-			x.pk(buf,len);
+			x.send(buf,len);
 		}
 	};
 }

@@ -12,7 +12,7 @@ public:
     strb<> sb;
     sb.p("my counter ").p(my_counter).nl();
     sb.p("counter for this page ").p(counter::page_counter).nl();
-    sb.p("sessions ").p(int(sts.sessions)).nl();
+    sb.p("sessions ").p(int(stats.sessions)).nl();
     r.http(200, sb.buf(), sb.size());
   }
 };

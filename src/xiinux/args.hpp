@@ -8,7 +8,7 @@ class args final {
 
 public:
   inline args(const int argc, const char *argv[]) : argc_{argc}, argv_{argv} {}
-  inline bool hasoption(const char short_name) {
+  inline bool has_option(const char short_name) {
     if (argc_ == 1)
       return false;
     const char **vv = argv_;
@@ -34,7 +34,7 @@ public:
       }
     }
   }
-  inline const char *getoptionvalue(const char short_name,
+  inline const char *get_option_value(const char short_name,
                                     const char *default_value) {
     int i = argc_ - 1;
     if (i == 0)

@@ -20,6 +20,9 @@ public:
   }
   inline strb &p(/*copies*/ const char *str) override {
     const size_t strlen = strnlen(str, sizeof(buf_));
+    return p(str, strlen);
+  }
+  inline strb &p(/*copies*/ const char *str, const size_t strlen) override {
     const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(strlen);
     if (rem < 0)
       throw "strb:1";
@@ -27,46 +30,39 @@ public:
     len_ += strlen;
     return *this;
   }
-  inline strb &p(/*copies*/ const char *str, const size_t strlen) override {
-    const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(strlen);
-    if (rem < 0)
-      throw "strb:2";
-    strncpy(buf_ + len_, str, strlen);
-    len_ += strlen;
-    return *this;
-  }
   inline strb &p(const int i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%d", i);
-    if (len < 0)
-      throw "strb:3";
+    if (len < 0 || len == sizeof(str))
+      throw "strb:2";
     return p(str, size_t(len));
   }
   inline strb &p(const size_t i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%zu", i);
-    if (len < 0)
-      throw "strb:4";
+    if (len < 0 || len == sizeof(str))
+      throw "strb:3";
     return p(str, size_t(len));
   }
   inline strb &p_ptr(const void *ptr) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%p", ptr);
-    if (len < 0)
-      throw "strb:5";
+    if (len < 0 || len == sizeof(str))
+      throw "strb:4";
     return p(str, size_t(len));
   }
   inline strb &p_hex(const unsigned i) override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%ux", i);
-    if (len < 0)
-      throw "strb:6";
+    if (len < 0 || len == sizeof(str))
+      throw "strb:5";
     return p(str, size_t(len));
   }
   inline strb &p(const char ch) override {
     if (sizeof(buf_) - len_ == 0)
-      throw "strb:7";
-    *(buf_ + len_++) = ch;
+      throw "strb:6";
+    *(buf_ + len_) = ch;
+    len_++;
     return *this;
   }
   inline strb &nl() override { return p('\n'); }
@@ -74,7 +70,7 @@ public:
     const ssize_t rem =
         ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(sb.len_);
     if (rem < 0)
-      throw "strb:8";
+      throw "strb:7";
     strncpy(buf_ + len_, sb.buf_, sb.len_);
     len_ += sb.len_;
     return *this;
@@ -82,7 +78,7 @@ public:
 
   // html5
   inline strb &html5(const char *title = "") override {
-    const char s[] = "<!doctype html><script src=/x.js></script><link "
+    constexpr char s[] = "<!doctype html><script src=/x.js></script><link "
                      "rel=stylesheet href=/x.css>";
     // -1 to not copy the terminator \0
     // 7 and 8 are the number of characters to copy
@@ -91,7 +87,7 @@ public:
   inline strb &to(FILE *f) {
     char fmt[32];
     if (snprintf(fmt, sizeof(fmt), "%%%zus", len_) < 0) //? check this
-      throw "strb:9";
+      throw "strb:8";
     fprintf(f, fmt, buf_);
     return *this;
   }

@@ -14,19 +14,23 @@ class chunky final : public xprinter {
   int sockfd_;
   inline size_t io_send(const void *ptr, size_t len,
                         bool throw_if_send_not_complete = false) {
-    sts.writes++;
+    stats.writes++;
     const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_reset_by_peer;
-      sts.errors++;
+      stats.errors++;
       throw "iosend";
     }
-    sts.output += size_t(n);
-    if (conf::print_traffic)
-      write(conf::print_traffic_fd, buf_, size_t(n));
+    stats.output += size_t(n);
+    if (conf::print_traffic) {
+      const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
+      if (m == -1 or m != n) {
+        perror("write not complete or failed");
+      }
+    }
     if (throw_if_send_not_complete and size_t(n) != len) {
-      sts.errors++;
+      stats.errors++;
       throw "sendnotcomplete";
     }
     return size_t(n);

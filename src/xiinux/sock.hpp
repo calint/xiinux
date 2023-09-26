@@ -38,11 +38,11 @@ class sock final {
         perror("closefile");
     }
     inline ssize_t resume_send_to(const int to_fd) {
-      sts.writes++;
+      stats.writes++;
       const ssize_t n = sendfile(to_fd, fd_, &pos_, len_ - size_t(pos_));
       if (n < 0)
         return n;
-      sts.output += size_t(n);
+      stats.output += size_t(n);
       return n;
     }
     inline void init_for_send(const size_t size_in_bytes,
@@ -102,13 +102,17 @@ class sock final {
     }
     inline char *ptr() const { return buf_; }
     inline ssize_t receive_from(int fd_in) {
-      sts.reads++;
+      stats.reads++;
       const ssize_t n = recv(fd_in, buf_, sock_content_buf_size_in_bytes, 0);
       if (n < 0)
         return n;
-      sts.input += size_t(n);
-      if (conf::print_traffic)
-        write(conf::print_traffic_fd, buf_, size_t(n));
+      stats.input += size_t(n);
+      if (conf::print_traffic) {
+        const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
+        if (m == -1 or n != m) {
+          perror("reply:io_send");
+        }
+      }
       return n;
     }
   } content;
@@ -131,14 +135,18 @@ class sock final {
           sock_req_buf_size_in_bytes - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
         throw "sock:buf:full";
-      sts.reads++;
+      stats.reads++;
       const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
       if (n < 0)
         return n;
-      sts.input += size_t(n);
+      stats.input += size_t(n);
       e_ = p_ + n;
-      if (conf::print_traffic)
-        write(conf::print_traffic_fd, p_, size_t(n));
+      if (conf::print_traffic) {
+        const ssize_t m = write(conf::print_traffic_fd, p_, size_t(n));
+        if (m == -1 or m != n) {
+          perror("incomplete or failed write");
+        }
+      }
       return n;
     }
   } buf;
@@ -167,38 +175,41 @@ class sock final {
 
   inline size_t io_send(const void *ptr, size_t len,
                         bool throw_if_send_not_complete = false) {
-    sts.writes++;
+    stats.writes++;
     const ssize_t n = send(fd_, ptr, len, MSG_NOSIGNAL);
     if (n < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_reset_by_peer;
-      sts.errors++;
+      stats.errors++;
       throw "sock:iosend";
     }
-    const size_t un = size_t(n);
-    sts.output += un;
+    const size_t nbytes_sent = size_t(n);
+    stats.output += nbytes_sent;
 
-    if (conf::print_traffic)
-      write(conf::print_traffic_fd, ptr, un);
-
-    if (throw_if_send_not_complete and un != len) {
-      sts.errors++;
+    if (conf::print_traffic) {
+      const ssize_t m = write(conf::print_traffic_fd, ptr, nbytes_sent);
+      if (m == -1 or m != n) {
+        perror("reply:io_send2");
+      }
+    }
+    if (throw_if_send_not_complete and nbytes_sent != len) {
+      stats.errors++;
       throw "sock:sendnotcomplete";
     }
 
-    return un;
+    return nbytes_sent;
   }
 
 public:
   int fd_ = 0;
-  inline sock(const int f = 0) : fd_{f} { sts.socks++; }
+  inline sock(const int f = 0) : fd_{f} { stats.socks++; }
 
   inline ~sock() {
     content.free();
-    sts.socks--;
+    stats.socks--;
     if (!::close(fd_))
       return;
-    sts.errors++;
+    stats.errors++;
     perr("sockdel");
   }
 
@@ -213,7 +224,7 @@ public:
           }
           if (errno == EPIPE or errno == ECONNRESET)
             throw signal_connection_reset_by_peer;
-          sts.errors++;
+          stats.errors++;
           throw "sock:err2";
         }
         if (!file.done())
@@ -230,7 +241,7 @@ public:
             return;
           } else if (errno == ECONNRESET)
             throw signal_connection_reset_by_peer;
-          sts.errors++;
+          stats.errors++;
           throw "sock:receiving_content";
         }
         const size_t un = size_t(n);
@@ -255,14 +266,16 @@ public:
             return;
           } else if (errno == ECONNRESET)
             throw signal_connection_reset_by_peer;
-          sts.errors++;
+          stats.errors++;
           throw "sock:receiving_upload";
         }
         const size_t un = size_t(n);
         const size_t rem = content.rem();
-        const ssize_t m = write(upload_fd_, content.ptr(), rem > un ? un : rem);
-        if (m < 0) {
-          sts.errors++;
+        const size_t nbytes_to_write = rem > un ? un : rem;
+        const ssize_t m = write(upload_fd_, content.ptr(), nbytes_to_write);
+        if (m == -1 or size_t(m) != nbytes_to_write) {
+          stats.errors++;
+          perror("sock:run:upload");
           throw "sock:writing upload to file";
         }
         if (m != n)
@@ -282,7 +295,7 @@ public:
           delete this;
           return;
         }
-        sts.requests++;
+        stats.requests++;
         file.rst();
         reqline.rst();
         hdrs_.clear();
@@ -307,7 +320,7 @@ public:
           } else if (errno == ECONNRESET) {
             throw signal_connection_reset_by_peer;
           }
-          sts.errors++;
+          stats.errors++;
           throw "sock:err3";
         }
       }
@@ -394,7 +407,7 @@ public:
 
 private:
   void do_serve_widget() {
-    sts.widgets++;
+    stats.widgets++;
     const char *cookie = hdrs_["cookie"];
     const char *session_id = nullptr;
     if (cookie and strstr(cookie, "i=")) {
@@ -415,10 +428,10 @@ private:
       }
       *sid_ptr = '\0';
       ses_ = new session(/*give*/ sid);
-      sess.put(ses_, false);
+      sessions.put(ses_, false);
       send_session_id_in_reply_ = true;
     } else {
-      ses_ = sess.get(session_id);
+      ses_ = sessions.get(session_id);
       if (!ses_) {
         // 24 is the size of session id including '\0'
         // e.g: "20150411-225519-ieu44dn\0"
@@ -427,7 +440,7 @@ private:
         // make sure sid is terminated
         sid[23] = '\0';
         ses_ = new session(/*give*/ sid);
-        sess.put(/*give*/ ses_, false);
+        sessions.put(/*give*/ ses_, false);
       }
     }
     //? remake to bind path to widget factories
@@ -502,8 +515,8 @@ private:
     if (rem >= total) {
       // the whole file is in 'buf'
       const ssize_t n = write(upload_fd_, buf.ptr(), total);
-      if (n < 0) {
-        perr("while writing upload to file");
+      if (n == -1 or size_t(n) != total) {
+        perror("could not write");
         throw "sock:err4";
       }
       if (size_t(n) != total) {
@@ -520,7 +533,7 @@ private:
     }
     // part of the file is in 'buf'
     const ssize_t n = write(upload_fd_, buf.ptr(), rem);
-    if (n < 0) {
+    if (n == 1 or size_t(n) != rem) {
       perror("while writing upload to file2");
       throw "sock:err6";
     }
@@ -575,14 +588,14 @@ private:
       state = next_request;
       return;
     }
-    sts.files++;
+    stats.files++;
     const char *range = hdrs_["range"];
     char header_buf[512];
     int header_buf_len;
     if (range and *range) {
       off_t rs = 0;
       if (sscanf(range, "bytes=%jd", &rs) == EOF) { //? is sscanf safe
-        sts.errors++;
+        stats.errors++;
         perr("range");
         throw "sock:errrorscanning";
       }
@@ -609,7 +622,7 @@ private:
     if (nn < 0) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_reset_by_peer;
-      sts.errors++;
+      stats.errors++;
       perr("sendingfile");
       throw "sock:err5";
     }
@@ -639,7 +652,7 @@ private:
     }
     reply x{fd_};
     if (!*path) { // uri '/'
-      sts.cache++;
+      stats.cache++;
       homepage->to(x);
       state = next_request;
       return;
@@ -660,5 +673,5 @@ private:
       p++;
     }
   }
-} static srv;
+} static server_socket;
 } // namespace xiinux

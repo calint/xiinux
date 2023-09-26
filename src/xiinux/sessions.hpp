@@ -11,5 +11,5 @@ public:
     all_.put(s->id(), s, allow_overwrite);
   }
   inline session *get(const char *sid) { return all_[sid]; }
-} static sess;
+} static sessions;
 } // namespace xiinux
