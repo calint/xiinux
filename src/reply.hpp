@@ -75,6 +75,7 @@ public:
   }
 
   // todo: buffer_send=false
+  // todo: content type
   inline reply &http(const int code, const char *content = nullptr,
                      size_t len = 0) {
     char header[256];

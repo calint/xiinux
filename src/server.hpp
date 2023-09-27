@@ -122,7 +122,7 @@ public:
         try {
           c->run();
         } catch (const char *msg) {
-          // todo: print session id, ip
+          // todo: print timestamp, ip, session id 
           delete c;
           if (msg == signal_connection_lost) {
             stats.brkp++;
