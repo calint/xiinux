@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include "args.hpp"
 #include "defines.hpp"
@@ -44,7 +45,7 @@ public:
     }
 
     epoll_fd = epoll_create(conf::epoll_event_array_size);
-    if (!epoll_fd) {
+    if (epoll_fd == -1) {
       perror("epollcreate");
       exit(4);
     }
@@ -52,7 +53,7 @@ public:
     struct epoll_event ev;
     ev.events = EPOLLIN;
     ev.data.ptr = &server_socket;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket.fd_, &ev) < 0) {
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket.fd_, &ev)) {
       perror("epolladd");
       exit(5);
     }
@@ -88,12 +89,12 @@ public:
             continue;
           }
           int opts = fcntl(fda, F_GETFL);
-          if (opts < 0) {
+          if (opts == -1) {
             perror("fncntl1");
             continue;
           }
           opts |= O_NONBLOCK;
-          if (fcntl(fda, F_SETFL, opts)) {
+          if (fcntl(fda, F_SETFL, opts) == -1) {
             perror("fncntl2");
             continue;
           }
@@ -106,7 +107,7 @@ public:
           if (option_benchmark_mode) {
             int flag = 1;
             if (setsockopt(fda, IPPROTO_TCP, TCP_NODELAY,
-                           static_cast<void *>(&flag), sizeof(int)) < 0) {
+                           static_cast<void *>(&flag), sizeof(int))) {
               perror("setsockopt TCP_NODELAY");
               continue;
             }
@@ -141,12 +142,11 @@ private:
   inline static void init_homepage() {
     char buf[4 * K];
     // +1 because of '\n' after 'application_name'
-    //? check return value
     const int res = snprintf(
         buf, sizeof(buf), "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
         strlen(conf::application_name) + 1, conf::application_name);
-    if (res < 0 or size_t(res) >= sizeof(buf)) {
-      puts("homepage does not fit buffer");
+    if (size_t(res) >= sizeof(buf)) {
+      puts("homepage does not fit in buffer");
       exit(7);
     }
     homepage = new doc(buf);

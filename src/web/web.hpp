@@ -11,7 +11,6 @@
 
 namespace xiinux {
 static inline widget *widget_new(const char *qs) {
-  //?? "/?hello"  vs "/?hello&a=1"
   if (!strcmp("hello", qs))
     return new web::qa::hello();
   if (!strcmp("typealine", qs))

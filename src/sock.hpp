@@ -403,7 +403,7 @@ public:
             header.name_ = strtrm(header.name_, header.value_ - 2);
             // RFC 2616: header field names are case-insensitive
             strlwr(header.name_);
-            //? -2 to skip '\0' and place pointer on last character in the value
+            // -2 to skip '\0' and place pointer on last character in the value
             header.value_ = strtrm(header.value_, buf.ptr() - 2);
             // printf("%s: %s\n",hdrparser.key,hdrparser.value);
             headers_.put(header.name_, header.value_);
@@ -456,7 +456,6 @@ private:
         sessions.put(/*give*/ session_, false);
       }
     }
-    //? remake to bind path to widget factories
     widget_ = session_->get_widget(reqline.query_str_);
     if (!widget_) {
       widget_ = widget_new(reqline.query_str_);
@@ -607,18 +606,19 @@ private:
     int header_buf_len = 0;
     if (range and *range) {
       off_t offset = 0;
-      if (sscanf(range, "bytes=%jd", &offset) == EOF) { //? is sscanf safe
+      if (sscanf(range, "bytes=%jd", &offset) == EOF) {
         stats.errors++;
         perr("range");
         throw "sock:errrorscanning";
       }
       file.init_for_send(size_t(fdstat.st_size), offset);
       const size_t len = file.length();
-      header_buf_len = snprintf(header_buf, sizeof(header_buf),
-                                "HTTP/1.1 206\r\nAccept-Ranges: "
-                                "bytes\r\nLast-Modified: %s\r\nContent-Length: "
-                                "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
-                                lastmod, len - size_t(offset), offset, len, len);
+      header_buf_len =
+          snprintf(header_buf, sizeof(header_buf),
+                   "HTTP/1.1 206\r\nAccept-Ranges: "
+                   "bytes\r\nLast-Modified: %s\r\nContent-Length: "
+                   "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
+                   lastmod, len - size_t(offset), offset, len, len);
     } else {
       file.init_for_send(size_t(fdstat.st_size));
       header_buf_len =
