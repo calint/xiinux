@@ -42,8 +42,8 @@ public:
       exit(3);
     }
 
-    epollfd = epoll_create(conf::epoll_event_array_size);
-    if (!epollfd) {
+    epoll_fd = epoll_create(conf::epoll_event_array_size);
+    if (!epoll_fd) {
       perror("epollcreate");
       exit(4);
     }
@@ -51,7 +51,7 @@ public:
     struct epoll_event ev;
     ev.events = EPOLLIN;
     ev.data.ptr = &server_socket;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server_socket.fd_, &ev) < 0) {
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket.fd_, &ev) < 0) {
       perror("epolladd");
       exit(5);
     }
@@ -68,7 +68,7 @@ public:
     struct epoll_event events[conf::epoll_event_array_size];
     while (true) {
       const int n =
-          epoll_wait(epollfd, events, conf::epoll_event_array_size, -1);
+          epoll_wait(epoll_fd, events, conf::epoll_event_array_size, -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok
@@ -98,7 +98,7 @@ public:
           }
           ev.data.ptr = new sock(fda);
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
-          if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fda, &ev)) {
+          if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fda, &ev)) {
             perror("epoll_ctl");
             continue;
           }

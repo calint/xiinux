@@ -162,7 +162,7 @@ class sock final {
     struct epoll_event ev;
     ev.data.ptr = this;
     ev.events = EPOLLIN;
-    if (epoll_ctl(epollfd, EPOLL_CTL_MOD, fd_, &ev))
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodread";
   }
 
@@ -170,7 +170,7 @@ class sock final {
     struct epoll_event ev;
     ev.data.ptr = this;
     ev.events = EPOLLOUT;
-    if (epoll_ctl(epollfd, EPOLL_CTL_MOD, fd_, &ev))
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodwrite";
   }
 

@@ -18,12 +18,14 @@ public:
   size_t cache = 0;
   size_t errors = 0;
   size_t brkp = 0;
+
   void print_headers(FILE *f) {
     fprintf(f, "%12s%12s%12s%8s%8s%8s%8s%12s%12s%12s%12s%12s%8s%8s\n", "ms",
             "input", "output", "socks", "reqs", "sess", "accepts", "reads",
             "writes", "files", "widgets", "cache", "errors", "brkpipe");
     fflush(f);
   }
+
   void print_stats(FILE *f) {
     fprintf(
         f, "\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",
