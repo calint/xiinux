@@ -9,7 +9,7 @@ class server final {
 public:
   inline static int start(const int argc, const char **argv) {
     args a(argc, argv);
-    thdwatch_on = a.has_option('v');
+    thdwatch_on = a.has_option('m');
     const int port = atoi(a.get_option_value('p', "8088"));
     const bool option_benchmark_mode = a.has_option('b');
     conf::print_traffic = a.has_option('t');

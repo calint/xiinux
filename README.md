@@ -16,7 +16,7 @@ supports:
 
 howto:
 * for normal mode use './xiinux'
-* for benchmarking and displaying metrics use './xiinux -bv'
+* for benchmarking and displaying metrics use './xiinux -bm'
 
 
 note. abandoned in favor of [bob](https://github.com/calint/bob)
