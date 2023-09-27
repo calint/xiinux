@@ -12,9 +12,9 @@
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
 [x] reduce packets count when sending files
-    -> send(fd_, buf, len, MSG_NOSIGNAL | (buffer_sends ? MSG_MORE : 0))
+    -> send MSG_NOSIGNAL | MSG_MORE
 [x] chunky: sends too many small packets. sudo tcpdump -A -i lo -n port 8088
-    -> send(fd_, buf, len, MSG_NOSIGNAL | (buffer_sends ? MSG_MORE : 0))
+    -> send MSG_NOSIGNAL | MSG_MORE
 [x] review messy args.hpp
     -> looks messy but it is simple
 [x] qa: performance comparisons

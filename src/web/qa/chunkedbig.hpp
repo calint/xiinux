@@ -8,13 +8,11 @@ public:
   void to(reply &r) override {
     std::unique_ptr<chunky> y(
         /*take*/ r.reply_chunky("text/plain;charset=utf-8"));
-
     xprinter &x = *y;
+
     for (unsigned i = 0; i < 4 * 1024; i++) {
       x.p("chunked response ");
     }
-
-    y->finish();
   }
 };
 } // namespace xiinux::web::qa

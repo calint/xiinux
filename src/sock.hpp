@@ -184,8 +184,8 @@ class sock final {
                         bool throw_if_send_not_complete = false,
                         const bool buffer_sends = false) {
     stats.writes++;
-    const ssize_t n =
-        send(fd_, ptr, len, MSG_NOSIGNAL | (buffer_sends ? MSG_MORE : 0));
+    const int flags = buffer_sends ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
+    const ssize_t n = send(fd_, ptr, len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;

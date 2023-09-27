@@ -12,10 +12,16 @@ namespace xiinux {
 class chunky final : public xprinter {
   size_t len_ = 0;
   char buf_[conf::chunky_buf_size_in_bytes]; //? uninitialized
+  bool finished_ = false;
   int sockfd_;
 
 public:
   inline chunky(int sockfd) : sockfd_{sockfd} {}
+  inline ~chunky() {
+    if (!finished_) {
+      finish();
+    }
+  }
 
   inline chunky &flush() {
     if (len_ == 0)
@@ -50,7 +56,9 @@ public:
   inline chunky &finish() {
     flush();
     constexpr char fin[] = "0\r\n\r\n";
-    io_send(fin, sizeof(fin) - 1, true, false); // -1 to exclude terminator '\0'
+    // -1 to exclude terminator '\0'
+    io_send(fin, sizeof(fin) - 1, true, false);
+    finished_ = true;
     return *this;
   }
 
@@ -157,7 +165,7 @@ private:
                         bool throw_if_send_not_complete = false,
                         const bool buffer_sends = false) {
     stats.writes++;
-    const int flags = MSG_NOSIGNAL | (buffer_sends ? MSG_MORE : 0);
+    const int flags = buffer_sends ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
     const ssize_t n = send(sockfd_, buf, len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)

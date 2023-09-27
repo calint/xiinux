@@ -8,8 +8,8 @@ public:
   void to(reply &r) override {
     std::unique_ptr<chunky> y(
         /*take*/ r.reply_chunky("text/plain;charset=utf-8"));
-
     xprinter &x = *y;
+
     const size_t buflen = 1024 * 1024;
     char buf[buflen];
     char *p = buf;
@@ -20,8 +20,6 @@ public:
       ch++;
     }
     x.p(buf, buflen);
-
-    y->finish();
   }
 };
 } // namespace xiinux::web::qa
