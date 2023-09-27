@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <string.h>
 #include <sys/types.h>
+
 namespace xiinux {
 template <unsigned N = 4096> class strb final : public xprinter {
   size_t len_ = 0;

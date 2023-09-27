@@ -1,5 +1,6 @@
 #pragma once
 #include <ctype.h>
+
 // todo: review messy but simple code
 namespace xiinux {
 class args final {

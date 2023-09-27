@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+
 namespace xiinux::conf {
 static constexpr const char *application_name = "xiinux web server";
 static constexpr int epoll_event_array_size = 128;

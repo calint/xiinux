@@ -1,5 +1,6 @@
 #pragma once
 #include "widget.hpp"
+
 namespace xiinux {
 class session final {
   const char *key_;
