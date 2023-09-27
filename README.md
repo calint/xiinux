@@ -15,8 +15,11 @@ supports:
 * resumable download
 
 howto:
-* for normal mode use './xiinux'
-* for benchmarking and displaying metrics use './xiinux -bm'
+* to build run 'make.sh'
+* for normal mode run 'xiinux'
+* for benchmarking mode run 'xiinux -b'
+* for displaying metrics run 'xiinux -m'
+* for both benchmarking mode and metrics run 'xiinux -bm'
 
 note. abandoned in favor of [bob](https://github.com/calint/bob)
 
