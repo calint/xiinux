@@ -8,7 +8,7 @@ class typealine : public widget {
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
                   const size_t received_len,
                   const size_t content_len) override {
-    if (!buf) { // first call
+    if (!buf) { // begin content receive
       strb<128> sb;
       sb.p("HTTP/1.1 200\r\nContent-Length: ").p(content_len).p("\r\n\r\n");
       x.send(sb.buf(), sb.size(), true, true);

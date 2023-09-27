@@ -24,7 +24,7 @@ public:
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
                   const size_t received_len, const size_t content_len) override {
 
-    if (buf == nullptr) {
+    if (buf == nullptr) { // begin content receive
       txt.rst();
       return;
     }
