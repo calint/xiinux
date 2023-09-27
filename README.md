@@ -15,17 +15,18 @@ supports:
 * resumable download
 
 howto:
-* start with './xiinux -vb' for benchmarking and vital data output
-* for normal quite non-benchmarking operation use './xiinux'
+* for normal mode use './xiinux'
+* for benchmarking and displaying metrics use './xiinux -bv'
 
-abandoned in favor of [bob](https://github.com/calint/bob)
+
+note. abandoned in favor of [bob](https://github.com/calint/bob)
 
 ```
 
             lines   words   chars
-   source:   1764    5892   49785
-  gzipped:     37     254   11308
+   source:   1814    5874   49568
+  gzipped:     49     272   11271
 
--rwxrwxr-x 1 c 63K sep 26 23:51 xiinux
+-rwxrwxr-x 1 c 63K sep 27 02:22 xiinux
 
 ```
