@@ -1,4 +1,5 @@
 #pragma once
+
 namespace xiinux::web::qa {
 class page final : public widget {
   strb<32 * K> txt;

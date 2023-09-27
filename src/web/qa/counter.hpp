@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+
 // used in qa/test-coverage.sh
 namespace xiinux::web::qa {
 class counter final : public widget {
