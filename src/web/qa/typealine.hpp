@@ -11,7 +11,7 @@ class typealine : public widget {
     if (!buf) { // begin content receive
       strb<128> sb;
       sb.p("HTTP/1.1 200\r\nContent-Length: ").p(content_len).p("\r\n\r\n");
-      x.send(sb.buf(), sb.size(), true, true);
+      x.send(sb.buf(), sb.len(), true, true);
       return;
     }
     x.send(buf, buf_len, true, received_len != content_len);

@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 
 namespace xiinux {
@@ -5,7 +6,7 @@ class xprinter {
 public:
   virtual ~xprinter() {}
   virtual xprinter &p(/*scan*/ const char *str) = 0;
-  virtual xprinter &p(/*scan*/ const char *str, const size_t strlen) = 0;
+  virtual xprinter &p(/*scan*/ const char *str, const size_t str_len) = 0;
   virtual xprinter &p(const int i) = 0;
   virtual xprinter &p(const size_t i) = 0;
   virtual xprinter &p_ptr(const void *ptr) = 0;

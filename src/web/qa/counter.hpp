@@ -14,7 +14,7 @@ public:
     strb<256> sb;
     sb.p("counter in this instance: ").p(counter_).nl();
     sb.p("counter in this class: ").p(counter::atomic_counter).nl();
-    r.http(200, sb.buf(), sb.size());
+    r.http(200, sb.buf(), sb.len());
   }
 };
 } // namespace xiinux::web::qa

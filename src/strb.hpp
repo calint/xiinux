@@ -13,7 +13,7 @@ public:
   inline strb() {}
   inline strb(const char *str) { p(str); }
   inline const char *buf() const { return buf_; }
-  inline size_t size() const { return len_; }
+  inline size_t len() const { return len_; }
 
   inline strb &rst() {
     len_ = 0;
@@ -25,12 +25,12 @@ public:
     return p(str, strlen);
   }
 
-  inline strb &p(/*copies*/ const char *str, const size_t strlen) override {
-    const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(strlen);
+  inline strb &p(/*copies*/ const char *str, const size_t str_len) override {
+    const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(str_len);
     if (rem < 0)
       throw "strb:1:buffer full";
-    strncpy(buf_ + len_, str, strlen);
-    len_ += strlen;
+    strncpy(buf_ + len_, str, str_len);
+    len_ += str_len;
     return *this;
   }
 
@@ -77,7 +77,7 @@ public:
   inline strb &nl() override { return p('\n'); }
 
   template <unsigned M> inline strb &p(const strb<M> &sb) {
-    p(sb.buf(), sb.size());
+    p(sb.buf(), sb.len());
     return *this;
   }
 

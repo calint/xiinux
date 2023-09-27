@@ -16,200 +16,6 @@
 
 namespace xiinux {
 class sock final {
-  enum state {
-    method,
-    uri,
-    query,
-    protocol,
-    header_key,
-    header_value,
-    resume_send_file,
-    receiving_content,
-    receiving_upload,
-    next_request
-  } state = method;
-
-  class file {
-    off_t offset_ = 0;
-    size_t count_ = 0;
-    int fd_ = 0;
-
-  public:
-    inline void close() {
-      if (::close(fd_))
-        perror("closefile");
-    }
-    inline ssize_t resume_send_to(const int out_fd) {
-      stats.writes++;
-      const ssize_t n =
-          sendfile(out_fd, fd_, &offset_, count_ - size_t(offset_));
-      if (n == -1) // error
-        return n;
-      stats.output += size_t(n);
-      return n;
-    }
-    inline void init_for_send(const size_t size_in_bytes,
-                              const off_t seek_pos = 0) {
-      offset_ = seek_pos;
-      count_ = size_in_bytes;
-    }
-    inline bool is_done() const { return size_t(offset_) == count_; }
-    inline size_t length() const { return count_; }
-    inline int open(const char *path) {
-      fd_ = ::open(path, O_RDONLY);
-      return fd_;
-    }
-    inline void rst() {
-      fd_ = 0;
-      offset_ = 0;
-      count_ = 0;
-    }
-  } file;
-
-  struct reqline {
-    char *path_ = nullptr;
-    char *query_str_ = nullptr;
-    inline void rst() { path_ = query_str_ = nullptr; }
-  } reqline;
-
-  struct header {
-    char *name_ = nullptr;
-    char *value_ = nullptr;
-    inline void rst() { name_ = value_ = nullptr; }
-  } header;
-
-  class content {
-    size_t pos_ = 0;
-    size_t len_ = 0;
-    char *buf_ = nullptr;
-
-  public:
-    inline void rst() { pos_ = len_ = 0; }
-    inline void free() {
-      if (!buf_)
-        return;
-      delete[] buf_;
-      buf_ = nullptr;
-    }
-    inline char *buf() const { return buf_; }
-    inline size_t pos() const { return pos_; }
-    inline size_t remaining() const { return len_ - pos_; }
-    inline void unsafe_skip(const size_t n) { pos_ += n; }
-    inline size_t content_len() const { return len_; }
-
-    inline void init_for_receive(const char *content_length_str) {
-      pos_ = 0;
-      len_ = size_t(atoll(content_length_str));
-      // todo: abuse len
-      // todo: atoll error
-      if (!buf_) {
-        buf_ = new char[conf::sock_content_buf_size];
-      }
-    }
-
-    inline ssize_t receive_from(int fd_in) {
-      stats.reads++;
-      const ssize_t n =
-          recv(fd_in, buf_, conf::sock_content_buf_size, 0);
-      if (n == -1) // error
-        return n;
-      stats.input += size_t(n);
-      if (conf::print_traffic) {
-        const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
-        if (m == -1 or m != n) {
-          perror("reply:io_send");
-        }
-      }
-      return n;
-    }
-  } content;
-
-  class buf {
-    char buf_[conf::sock_req_buf_size];
-    char *p_ = buf_;
-    char *e_ = buf_;
-
-  public:
-    inline void rst() { p_ = e_ = buf_; }
-    inline bool has_more() const { return p_ != e_; }
-    inline size_t remaining() const { return size_t(e_ - p_); }
-    inline void unsafe_skip(const size_t n) { p_ += n; }
-    inline char unsafe_next_char() { return *p_++; }
-    inline void set_eos() { *(p_ - 1) = '\0'; }
-    inline char *ptr() const { return p_; }
-    inline ssize_t receive_from(const int fd_in) {
-      const size_t nbytes_to_read =
-          conf::sock_req_buf_size - size_t(p_ - buf_);
-      if (nbytes_to_read == 0)
-        throw "sock:buf:full";
-      stats.reads++;
-      const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
-      if (n == -1)
-        return n;
-      stats.input += size_t(n);
-      e_ = p_ + n;
-      if (conf::print_traffic) {
-        const ssize_t m = write(conf::print_traffic_fd, p_, size_t(n));
-        if (m == -1 or m != n) {
-          perror("incomplete or failed write");
-        }
-      }
-      return n;
-    }
-  } buf;
-
-  lut<const char *> headers_;
-  int upload_fd_ = 0;
-  widget *widget_ = nullptr;
-  session *session_ = nullptr;
-  bool send_session_id_in_reply_ = false;
-
-  inline void io_request_read() {
-    struct epoll_event ev;
-    ev.data.ptr = this;
-    ev.events = EPOLLIN;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
-      throw "sock:epollmodread";
-  }
-
-  inline void io_request_write() {
-    struct epoll_event ev;
-    ev.data.ptr = this;
-    ev.events = EPOLLOUT;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
-      throw "sock:epollmodwrite";
-  }
-
-  inline size_t io_send(const char *ptr, size_t len,
-                        bool throw_if_send_not_complete = false,
-                        const bool buffer_send = false) {
-    stats.writes++;
-    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = send(fd_, ptr, len, flags);
-    if (n == -1) {
-      if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_lost;
-      stats.errors++;
-      throw "sock:io_send";
-    }
-    const size_t nbytes_sent = size_t(n);
-    stats.output += nbytes_sent;
-
-    if (conf::print_traffic) {
-      const ssize_t m = write(conf::print_traffic_fd, ptr, nbytes_sent);
-      if (m == -1 or m != n) {
-        perror("reply:io_send2");
-      }
-    }
-
-    if (throw_if_send_not_complete and nbytes_sent != len) {
-      stats.errors++;
-      throw "sock:sendnotcomplete";
-    }
-
-    return nbytes_sent;
-  }
-
 public:
   int fd_ = 0;
   inline sock(const int f = 0) : fd_{f} { stats.socks++; }
@@ -694,6 +500,200 @@ private:
       *p = char(tolower(*p));
       p++;
     }
+  }
+
+    enum state {
+    method,
+    uri,
+    query,
+    protocol,
+    header_key,
+    header_value,
+    resume_send_file,
+    receiving_content,
+    receiving_upload,
+    next_request
+  } state = method;
+
+  class file {
+    off_t offset_ = 0;
+    size_t count_ = 0;
+    int fd_ = 0;
+
+  public:
+    inline void close() {
+      if (::close(fd_))
+        perror("closefile");
+    }
+    inline ssize_t resume_send_to(const int out_fd) {
+      stats.writes++;
+      const ssize_t n =
+          sendfile(out_fd, fd_, &offset_, count_ - size_t(offset_));
+      if (n == -1) // error
+        return n;
+      stats.output += size_t(n);
+      return n;
+    }
+    inline void init_for_send(const size_t size_in_bytes,
+                              const off_t seek_pos = 0) {
+      offset_ = seek_pos;
+      count_ = size_in_bytes;
+    }
+    inline bool is_done() const { return size_t(offset_) == count_; }
+    inline size_t length() const { return count_; }
+    inline int open(const char *path) {
+      fd_ = ::open(path, O_RDONLY);
+      return fd_;
+    }
+    inline void rst() {
+      fd_ = 0;
+      offset_ = 0;
+      count_ = 0;
+    }
+  } file;
+
+  struct reqline {
+    char *path_ = nullptr;
+    char *query_str_ = nullptr;
+    inline void rst() { path_ = query_str_ = nullptr; }
+  } reqline;
+
+  struct header {
+    char *name_ = nullptr;
+    char *value_ = nullptr;
+    inline void rst() { name_ = value_ = nullptr; }
+  } header;
+
+  class content {
+    size_t pos_ = 0;
+    size_t len_ = 0;
+    char *buf_ = nullptr;
+
+  public:
+    inline void rst() { pos_ = len_ = 0; }
+    inline void free() {
+      if (!buf_)
+        return;
+      delete[] buf_;
+      buf_ = nullptr;
+    }
+    inline char *buf() const { return buf_; }
+    inline size_t pos() const { return pos_; }
+    inline size_t remaining() const { return len_ - pos_; }
+    inline void unsafe_skip(const size_t n) { pos_ += n; }
+    inline size_t content_len() const { return len_; }
+
+    inline void init_for_receive(const char *content_length_str) {
+      pos_ = 0;
+      len_ = size_t(atoll(content_length_str));
+      // todo: abuse len
+      // todo: atoll error
+      if (!buf_) {
+        buf_ = new char[conf::sock_content_buf_size];
+      }
+    }
+
+    inline ssize_t receive_from(int fd_in) {
+      stats.reads++;
+      const ssize_t n =
+          recv(fd_in, buf_, conf::sock_content_buf_size, 0);
+      if (n == -1) // error
+        return n;
+      stats.input += size_t(n);
+      if (conf::print_traffic) {
+        const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
+        if (m == -1 or m != n) {
+          perror("reply:io_send");
+        }
+      }
+      return n;
+    }
+  } content;
+
+  class buf {
+    char buf_[conf::sock_req_buf_size];
+    char *p_ = buf_;
+    char *e_ = buf_;
+
+  public:
+    inline void rst() { p_ = e_ = buf_; }
+    inline bool has_more() const { return p_ != e_; }
+    inline size_t remaining() const { return size_t(e_ - p_); }
+    inline void unsafe_skip(const size_t n) { p_ += n; }
+    inline char unsafe_next_char() { return *p_++; }
+    inline void set_eos() { *(p_ - 1) = '\0'; }
+    inline char *ptr() const { return p_; }
+    inline ssize_t receive_from(const int fd_in) {
+      const size_t nbytes_to_read =
+          conf::sock_req_buf_size - size_t(p_ - buf_);
+      if (nbytes_to_read == 0)
+        throw "sock:buf:full";
+      stats.reads++;
+      const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
+      if (n == -1)
+        return n;
+      stats.input += size_t(n);
+      e_ = p_ + n;
+      if (conf::print_traffic) {
+        const ssize_t m = write(conf::print_traffic_fd, p_, size_t(n));
+        if (m == -1 or m != n) {
+          perror("incomplete or failed write");
+        }
+      }
+      return n;
+    }
+  } buf;
+
+  lut<const char *> headers_;
+  int upload_fd_ = 0;
+  widget *widget_ = nullptr;
+  session *session_ = nullptr;
+  bool send_session_id_in_reply_ = false;
+
+  inline void io_request_read() {
+    struct epoll_event ev;
+    ev.data.ptr = this;
+    ev.events = EPOLLIN;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
+      throw "sock:epollmodread";
+  }
+
+  inline void io_request_write() {
+    struct epoll_event ev;
+    ev.data.ptr = this;
+    ev.events = EPOLLOUT;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
+      throw "sock:epollmodwrite";
+  }
+
+  inline size_t io_send(const char *ptr, size_t len,
+                        bool throw_if_send_not_complete = false,
+                        const bool buffer_send = false) {
+    stats.writes++;
+    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
+    const ssize_t n = send(fd_, ptr, len, flags);
+    if (n == -1) {
+      if (errno == EPIPE or errno == ECONNRESET)
+        throw signal_connection_lost;
+      stats.errors++;
+      throw "sock:io_send";
+    }
+    const size_t nbytes_sent = size_t(n);
+    stats.output += nbytes_sent;
+
+    if (conf::print_traffic) {
+      const ssize_t m = write(conf::print_traffic_fd, ptr, nbytes_sent);
+      if (m == -1 or m != n) {
+        perror("reply:io_send2");
+      }
+    }
+
+    if (throw_if_send_not_complete and nbytes_sent != len) {
+      stats.errors++;
+      throw "sock:sendnotcomplete";
+    }
+
+    return nbytes_sent;
   }
 } static server_socket;
 } // namespace xiinux

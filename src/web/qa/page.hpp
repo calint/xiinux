@@ -18,7 +18,7 @@ public:
         .p("</textarea>")
         .p("<script>$('_txt').focus()</script>")
         .nl();
-    x.http(200, s.buf(), s.size());
+    x.http(200, s.buf(), s.len());
   }
 
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
