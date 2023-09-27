@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #include "server.hpp"
 #include <signal.h>
 
@@ -7,7 +8,7 @@
   exit(0);
 }
 
-int main(const int argc, const char **argv) {
+int main(const int argc, const char *argv[]) {
   signal(SIGINT, sigint);
   // if SIGPIPE not ignored 'sendfile' aborts program when 'Broken pipe'
   signal(SIGPIPE, SIG_IGN);

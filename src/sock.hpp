@@ -103,14 +103,14 @@ class sock final {
       // todo: abuse len
       // todo: atoll error
       if (!buf_) {
-        buf_ = new char[conf::sock_content_buf_size_in_bytes];
+        buf_ = new char[conf::sock_content_buf_size];
       }
     }
 
     inline ssize_t receive_from(int fd_in) {
       stats.reads++;
       const ssize_t n =
-          recv(fd_in, buf_, conf::sock_content_buf_size_in_bytes, 0);
+          recv(fd_in, buf_, conf::sock_content_buf_size, 0);
       if (n == -1) // error
         return n;
       stats.input += size_t(n);
@@ -125,7 +125,7 @@ class sock final {
   } content;
 
   class buf {
-    char buf_[conf::sock_req_buf_size_in_bytes];
+    char buf_[conf::sock_req_buf_size];
     char *p_ = buf_;
     char *e_ = buf_;
 
@@ -139,7 +139,7 @@ class sock final {
     inline char *ptr() const { return p_; }
     inline ssize_t receive_from(const int fd_in) {
       const size_t nbytes_to_read =
-          conf::sock_req_buf_size_in_bytes - size_t(p_ - buf_);
+          conf::sock_req_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
         throw "sock:buf:full";
       stats.reads++;
@@ -463,8 +463,8 @@ private:
     if (!widget_) {
       widget_ = widget_new(reqline.query_str_);
       const size_t key_len =
-          strnlen(reqline.query_str_, conf::widget_max_key_len);
-      if (key_len == conf::widget_max_key_len)
+          strnlen(reqline.query_str_, conf::widget_key_size);
+      if (key_len == conf::widget_key_size)
         throw "sock:key_len";
       // +1 for the \0 terminator
       char *key = new char[key_len + 1];
@@ -511,12 +511,12 @@ private:
 
   void do_serve_upload() {
     // file upload
-    char bf[conf::upload_max_file_len];
+    char pth[conf::upload_path_size];
     // +1 to skip the leading '/'
-    const int res = snprintf(bf, sizeof(bf), "upload/%s", reqline.path_ + 1);
-    if (res < 0 or size_t(res) >= sizeof(bf))
+    const int res = snprintf(pth, sizeof(pth), "upload/%s", reqline.path_ + 1);
+    if (res < 0 or size_t(res) >= sizeof(pth))
       throw "sock:pathtrunc";
-    upload_fd_ = open(bf, O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (upload_fd_ == -1) {
       perror("while creating file for upload");
       throw "sock:err7";

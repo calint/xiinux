@@ -9,6 +9,6 @@ static constexpr const char *signal_connection_lost = "brk";
 #define perr(str)                                                              \
   do {                                                                         \
     printf("%s:%d %s", __FILE__, __LINE__, __PRETTY_FUNCTION__);               \
-    perror(str); /*throw"perr";*/                                              \
+    perror(str);                                                               \
   } while (false)
 } // namespace xiinux

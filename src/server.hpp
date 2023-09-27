@@ -8,7 +8,7 @@
 namespace xiinux {
 class server final {
 public:
-  inline static int start(const int argc, const char **argv) {
+  inline static int start(const int argc, const char *argv[]) {
     args a(argc, argv);
     thdwatch_on = a.has_option('m');
     thdwatch_stats_to_file = a.has_option('f');

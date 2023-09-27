@@ -22,12 +22,12 @@ public:
   inline const char *operator[](const char *key) const { return kvp_[key]; }
   inline widget *get_widget(const char *key) const { return widgets_[key]; }
 
-  inline void put(/*take*/ const char *key, /*take*/ const char *data) {
-    kvp_.put(key, data);
+  inline void put(/*take*/ const char *key, /*take*/ const char *str) {
+    kvp_.put(key, str);
   }
 
-  inline void put_widget(/*take*/ const char *key, /*take*/ widget *o) {
-    widgets_.put(key, o);
+  inline void put_widget(/*take*/ const char *key, /*take*/ widget *wgt) {
+    widgets_.put(key, wgt);
   }
 };
 } // namespace xiinux

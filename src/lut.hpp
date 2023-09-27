@@ -33,7 +33,7 @@ template <class T> class lut final {
 
 public:
   // note. size must be 2^n because size-1 will be used for bitwise 'and'
-  inline lut(const unsigned size = 8) : size_(size) {
+  inline lut(const unsigned size = 8) : size_{size} {
     array_ = static_cast<el **>(calloc(size_t(size), sizeof(el *)));
   }
 
@@ -42,7 +42,7 @@ public:
     free(array_);
   }
 
-  inline T operator[](const char *key) const{
+  inline T operator[](const char *key) const {
     const unsigned h = hash(key, size_);
     el *e = array_[h];
     while (e) {
