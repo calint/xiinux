@@ -12,7 +12,6 @@ template <unsigned N = 4096> class strb final : public xprinter {
 public:
   inline strb() {}
   inline strb(const char *str) { p(str); }
-  // inline strb &flush() override { return *this; }
   inline const char *buf() const { return buf_; }
   inline size_t size() const { return len_; }
 
