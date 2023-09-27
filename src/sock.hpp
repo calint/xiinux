@@ -182,9 +182,9 @@ class sock final {
 
   inline size_t io_send(const char *ptr, size_t len,
                         bool throw_if_send_not_complete = false,
-                        const bool buffer_sends = false) {
+                        const bool buffer_send = false) {
     stats.writes++;
-    const int flags = buffer_sends ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
+    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
     const ssize_t n = send(fd_, ptr, len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)

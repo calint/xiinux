@@ -38,9 +38,9 @@ public:
 
   inline size_t send(const char *buf, size_t len,
                         bool throw_if_send_not_complete = false,
-                        const bool buffer_sends = false) {
+                        const bool buffer_send = false) {
     stats.writes++;
-    const int flags = buffer_sends ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
+    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
     const ssize_t n = ::send(fd_, buf, len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
@@ -74,6 +74,7 @@ public:
     set_session_id_ = id;
   }
 
+  // todo: buffer_send=false
   inline reply &http(const int code, const char *content = nullptr,
                      size_t len = 0) {
     char header[256];
