@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include "../../widget.hpp"
 #include <memory>
@@ -9,7 +10,7 @@ public:
   void to(reply &r) override {
     std::unique_ptr<chunky> y(
         /*take*/ r.reply_chunky("text/plain;charset=utf-8"));
-    xprinter &x = *y;
+    xprinter &x = *y; //? splicing?
 
     x.p("chunked response").nl();
   }

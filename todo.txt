@@ -1,3 +1,6 @@
+[ ] examine if splicing can occur when doing:
+    std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));
+    xprinter &x = *y;
 [ ] reply.http buffer_send=false
 [ ] reply.http content_type
 [ ] review reply

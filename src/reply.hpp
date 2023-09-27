@@ -36,12 +36,12 @@ public:
     return rsp;
   }
 
-  inline size_t send(const char *buf, size_t len,
-                        bool throw_if_send_not_complete = false,
-                        const bool buffer_send = false) {
+  inline size_t send(const char *buf, size_t buf_len,
+                     bool throw_if_send_not_complete = false,
+                     const bool buffer_send = false) {
     stats.writes++;
     const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = ::send(fd_, buf, len, flags);
+    const ssize_t n = ::send(fd_, buf, buf_len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
@@ -57,7 +57,7 @@ public:
       }
     }
 
-    if (throw_if_send_not_complete and size_t(n) != len) {
+    if (throw_if_send_not_complete and size_t(n) != buf_len) {
       stats.errors++;
       throw "sendnotcomplete";
     }
@@ -65,17 +65,12 @@ public:
     return size_t(n);
   }
 
-  // inline reply &send(const char *data, const size_t len) {
-  //   io_send(data, len, true);
-  //   return *this;
-  // }
-
   inline void send_session_id_at_next_opportunity(const char *id) {
     set_session_id_ = id;
   }
 
+  // todo: content_type
   // todo: buffer_send=false
-  // todo: content type
   inline reply &http(const int code, const char *content = nullptr,
                      size_t len = 0) {
     char header[256];

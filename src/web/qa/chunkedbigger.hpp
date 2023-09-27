@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include <memory>
 
@@ -8,18 +9,18 @@ public:
   void to(reply &r) override {
     std::unique_ptr<chunky> y(
         /*take*/ r.reply_chunky("text/plain;charset=utf-8"));
-    xprinter &x = *y;
+    xprinter &x = *y; //? splicing?
 
-    const size_t buflen = 1024 * 1024;
-    char buf[buflen];
+    constexpr size_t buf_len = 1024 * 1024;
+    char buf[buf_len];
     char *p = buf;
     unsigned char ch = 0;
-    for (size_t i = 0; i < buflen; i++) {
+    for (unsigned i = 0; i < buf_len; i++) {
       *p = 'a' + ch % 26;
       p++;
       ch++;
     }
-    x.p(buf, buflen);
+    x.p(buf, buf_len);
   }
 };
 } // namespace xiinux::web::qa

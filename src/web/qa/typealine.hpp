@@ -1,9 +1,10 @@
+// reviewed: 2023-09-27
 #pragma once
 // used in qa/test-coverage.sh
 namespace xiinux::web::qa {
 class typealine final: public widget {
 
-  void to(reply &x) override { x.http(200, "typealine"); }
+  void to(reply &x) override { x.http(403, "forbidden. intended for post only"); }
 
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
                   const size_t received_len,
