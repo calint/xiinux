@@ -180,7 +180,7 @@ class sock final {
       throw "sock:epollmodwrite";
   }
 
-  inline size_t io_send(const void *ptr, size_t len,
+  inline size_t io_send(const char *ptr, size_t len,
                         bool throw_if_send_not_complete = false,
                         const bool buffer_sends = false) {
     stats.writes++;
