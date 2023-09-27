@@ -1,3 +1,4 @@
+[ ] chunky: sends too many small packets. sudo tcpdump -A -i lo -n port 8088
 [ ] sock: bind widget factories to paths
 [ ] access path and query string from widget
 [ ] access session from widget

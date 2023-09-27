@@ -153,7 +153,7 @@ public:
   }
 
 private:
-  inline size_t io_send(const void *ptr, size_t len,
+  inline size_t io_send(const char *ptr, size_t len,
                         bool throw_if_send_not_complete = false) {
     stats.writes++;
     const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
@@ -161,18 +161,18 @@ private:
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
-      throw "iosend";
+      throw "io_send";
     }
     stats.output += size_t(n);
     if (conf::print_traffic) {
       const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
       if (m == -1 or m != n) {
-        perror("write not complete or failed");
+        perror("writing traffic");
       }
     }
     if (throw_if_send_not_complete and size_t(n) != len) {
       stats.errors++;
-      throw "sendnotcomplete";
+      throw "send not complete";
     }
     return size_t(n);
   }

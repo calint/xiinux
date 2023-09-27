@@ -32,8 +32,8 @@ public:
     rsp->p("Transfer-Encoding:chunked\r\nContent-Type: ", 41)
         .p(content_type)
         .p("\r\n\r\n", 4);
-    rsp->send_response_header(); // todo: response headers and first chunk in
-                                 // one packet
+    rsp->send_response_header(); // todo: ? response headers and first chunk in
+                                 // one packet for better benchmarking
     return rsp;
   }
   inline size_t io_send(const void *buf, size_t len,

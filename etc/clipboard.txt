@@ -4,6 +4,8 @@ TAG=$(date "+%Y-%m-%d--%H-%M") && git tag $TAG && git push origin $TAG
 
 ./test-coverage.sh | tee test-coverage.log
 
+sudo tcpdump -A -i lo -n port 8088
+
 sudo sysctl net.ipv4.ip_local_port_range='1024 65000'
 sudo sysctl net.core.somaxconn=40000
 
