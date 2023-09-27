@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include "xprinter.hpp"
 #include <cstdio>
@@ -5,13 +6,14 @@
 #include <sys/types.h>
 
 namespace xiinux {
-template <unsigned N = 4096> class strb final : public xprinter {
+template <unsigned N = 1024> class strb final : public xprinter {
   size_t len_ = 0;
   char buf_[N];
 
 public:
   inline strb() {}
   inline strb(const char *str) { p(str); }
+  inline strb(const char *str, const size_t str_len) { p(str, str_len); }
   inline const char *buf() const { return buf_; }
   inline size_t len() const { return len_; }
 
@@ -21,12 +23,14 @@ public:
   }
 
   inline strb &p(/*copies*/ const char *str) override {
-    const size_t strlen = strnlen(str, sizeof(buf_));
-    return p(str, strlen);
+    const size_t str_len = strnlen(str, sizeof(buf_));
+    // note. next statement will throw if buffer is overrun
+    return p(str, str_len);
   }
 
   inline strb &p(/*copies*/ const char *str, const size_t str_len) override {
-    const ssize_t rem = ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(str_len);
+    const ssize_t rem =
+        ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(str_len);
     if (rem < 0)
       throw "strb:1:buffer full";
     strncpy(buf_ + len_, str, str_len);
@@ -42,9 +46,9 @@ public:
     return p(str, size_t(len));
   }
 
-  inline strb &p(const size_t i) override {
+  inline strb &p(const size_t sz) override {
     char str[32];
-    const int len = snprintf(str, sizeof(str), "%zu", i);
+    const int len = snprintf(str, sizeof(str), "%zu", sz);
     if (len < 0 or size_t(len) >= sizeof(str))
       throw "strb:3";
     return p(str, size_t(len));
@@ -58,9 +62,9 @@ public:
     return p(str, size_t(len));
   }
 
-  inline strb &p_hex(const unsigned i) override {
+  inline strb &p_hex(const int i) override {
     char str[32];
-    const int len = snprintf(str, sizeof(str), "%ux", i);
+    const int len = snprintf(str, sizeof(str), "%x", i);
     if (len < 0 or size_t(len) >= sizeof(str))
       throw "strb:5";
     return p(str, size_t(len));
@@ -78,24 +82,6 @@ public:
 
   template <unsigned M> inline strb &p(const strb<M> &sb) {
     p(sb.buf(), sb.len());
-    return *this;
-  }
-
-  // html5
-  inline strb &html5(const char *title = "") override {
-    constexpr char s[] = "<!doctype html><script src=/x.js></script><link "
-                         "rel=stylesheet href=/x.css>";
-    // -1 to not copy the terminator \0
-    // 7 and 8 are the number of characters to copy
-    return p(s, sizeof(s) - 1).p("<title>", 7).p(title).p("</title>", 8);
-  }
-
-  inline strb &to(FILE *f) {
-    char fmt[32];
-    const int res = snprintf(fmt, sizeof(fmt), "%%%zus", len_);
-    if (res < 0 or res >= sizeof(fmt))
-      throw "strb:8";
-    fprintf(f, fmt, buf_);
     return *this;
   }
 };

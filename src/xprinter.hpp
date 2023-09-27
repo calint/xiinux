@@ -10,9 +10,8 @@ public:
   virtual xprinter &p(const int i) = 0;
   virtual xprinter &p(const size_t sz) = 0;
   virtual xprinter &p_ptr(const void *ptr) = 0;
-  virtual xprinter &p_hex(const unsigned hex) = 0;
+  virtual xprinter &p_hex(const int i) = 0;
   virtual xprinter &p(const char ch) = 0;
   virtual xprinter &nl() = 0;
-  virtual xprinter &html5(const char *title = "") = 0;
 };
 } // namespace xiinux

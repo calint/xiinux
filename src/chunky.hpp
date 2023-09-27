@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include "conf.hpp"
 #include "defines.hpp"
@@ -31,7 +32,7 @@ public:
     char buf[32];
     const int len = snprintf(buf, sizeof(buf), "%lx\r\n", len_);
     if (len < 0 or size_t(len) >= sizeof(buf))
-      throw "1";
+      throw "chunky:1";
     io_send(buf, size_t(len), true, true);
 
     size_t sent_total = 0;
@@ -43,7 +44,7 @@ public:
         if (nsent == nsend)
           break;
         //?? blocking
-        perr("would block, try again");
+        perr("would block");
       }
       if (sent_total == len_)
         break;
@@ -54,6 +55,8 @@ public:
   }
 
   inline chunky &finish() {
+    if (finished_)
+      throw "chunky:already finished";
     flush();
     constexpr char fin[] = "0\r\n\r\n";
     // -1 to exclude terminator '\0'
@@ -70,26 +73,28 @@ public:
   }
 
   inline chunky &p(/*scans*/ const char *str) override {
-    return p(str, strlen(str));
+    return p(str, strlen(str)); //? strnlen
   }
 
-  inline chunky &p(/*scans*/ const char *str, const size_t strlen) override {
-    const ssize_t sizeofbuf = sizeof(buf_);
-    const ssize_t bufrem = sizeofbuf - ssize_t(len_);
-    ssize_t rem = bufrem - ssize_t(strlen);
+  inline chunky &p(/*scans*/ const char *str, const size_t str_len) override {
+    const ssize_t buf_size = sizeof(buf_);
+    const ssize_t buf_rem = buf_size - ssize_t(len_);
+    ssize_t rem = buf_rem - ssize_t(str_len);
     if (rem >= 0) { // str fits in remaining buffer
-      strncpy(buf_ + len_, str, strlen);
-      len_ += strlen;
+      strncpy(buf_ + len_, str, str_len);
+      len_ += str_len;
       return *this;
     }
     // str does not fit in buffer
-    strncpy(buf_ + len_, str, size_t(bufrem)); // fill buffer
-    len_ += size_t(bufrem);
+    // fill remaining buffer then flush
+    strncpy(buf_ + len_, str, size_t(buf_rem));
+    len_ += size_t(buf_rem);
     flush();
-    const char *s = str + bufrem; // pointer to remaining part of 'str'
-    rem = -rem;                   // remaining chars to be sent from 'str'
+    // loop until done
+    const char *s = str + buf_rem; // pointer to remaining part of 'str'
+    rem = -rem;                    // remaining chars to be sent from 'str'
     while (true) {
-      const ssize_t n = sizeofbuf - ssize_t(len_);
+      const ssize_t n = buf_size - ssize_t(len_);
       const ssize_t m = rem <= n ? rem : n;
       strncpy(buf_ + len_, s, size_t(m));
       len_ += size_t(m);
@@ -105,15 +110,15 @@ public:
     char str[32];
     const int n = snprintf(str, sizeof(str), "%d", i);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:1";
+      throw "chunky:2";
     return p(str, size_t(n));
   }
 
-  inline chunky &p(const size_t i) override {
+  inline chunky &p(const size_t sz) override {
     char str[32];
-    const int n = snprintf(str, sizeof(str), "%zd", i);
+    const int n = snprintf(str, sizeof(str), "%zu", sz);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:2";
+      throw "chunky:3";
     return p(str, size_t(n));
   }
 
@@ -121,15 +126,15 @@ public:
     char str[32];
     const int n = snprintf(str, sizeof(str), "%p", ptr);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:3";
+      throw "chunky:4";
     return p(str, size_t(n));
   }
 
-  inline chunky &p_hex(const unsigned i) override {
+  inline chunky &p_hex(const int i) override {
     char str[32];
-    const int n = snprintf(str, sizeof(str), "%ux", i);
+    const int n = snprintf(str, sizeof(str), "%x", i);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:4";
+      throw "chunky:5";
     return p(str, size_t(n));
   }
 
@@ -142,31 +147,13 @@ public:
 
   inline chunky &nl() override { return p('\n'); }
 
-  // html5
-  inline chunky &html5(const char *title = "") override {
-    const char s[] = "<!doctype html><script src=/x.js></script><link "
-                     "rel=stylesheet href=/x.css>";
-    return p(s, sizeof(s))
-        .p("<title>", sizeof("<title>"))
-        .p(title)
-        .p("</title>", sizeof("</title>"));
-  }
-  inline chunky &to(FILE *f) {
-    char fmt[32];
-    const int n = snprintf(fmt, sizeof(fmt), "%%%zus", len_);
-    if (n < 0 or size_t(n) >= sizeof(fmt))
-      throw "chunky:err1";
-    fprintf(f, fmt, buf_);
-    return *this;
-  }
-
 private:
-  inline size_t io_send(const char *buf, size_t len,
+  inline size_t io_send(const char *buf, size_t buf_len,
                         bool throw_if_send_not_complete = false,
                         const bool buffer_send = false) {
     stats.writes++;
     const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = send(sockfd_, buf, len, flags);
+    const ssize_t n = send(sockfd_, buf, buf_len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
@@ -180,7 +167,7 @@ private:
         perror("writing traffic");
       }
     }
-    if (throw_if_send_not_complete and size_t(n) != len) {
+    if (throw_if_send_not_complete and size_t(n) != buf_len) {
       stats.errors++;
       throw "send not complete";
     }
