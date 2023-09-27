@@ -184,11 +184,11 @@ class sock final {
                         bool throw_if_send_not_complete = false) {
     stats.writes++;
     const ssize_t n = send(fd_, ptr, len, MSG_NOSIGNAL);
-    if (n < 0) {
+    if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
-      throw "sock:iosend";
+      throw "sock:io_send";
     }
     const size_t nbytes_sent = size_t(n);
     stats.output += nbytes_sent;

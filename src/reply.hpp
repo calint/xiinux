@@ -40,11 +40,11 @@ public:
                         bool throw_if_send_not_complete = false) {
     stats.writes++;
     const ssize_t n = ::send(fd_, buf, len, MSG_NOSIGNAL);
-    if (n < 0) {
+    if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
-      throw "iosend";
+      throw "reply:io_send";
     }
     stats.output += size_t(n);
 

@@ -83,30 +83,34 @@ public:
         if (c->fd_ == server_socket.fd_) {
           // new connection
           stats.accepts++;
-          const int fda = accept(server_socket.fd_, nullptr, nullptr);
-          if (fda == -1) {
+          const int fd = accept(server_socket.fd_, nullptr, nullptr);
+          if (fd == -1) {
             perror("accept");
             continue;
           }
-          int opts = fcntl(fda, F_GETFL);
+          int opts = fcntl(fd, F_GETFL);
           if (opts == -1) {
             perror("fncntl1");
             continue;
           }
           opts |= O_NONBLOCK;
-          if (fcntl(fda, F_SETFL, opts) == -1) {
+          if (fcntl(fd, F_SETFL, opts) == -1) {
             perror("fncntl2");
             continue;
           }
-          ev.data.ptr = new sock(fda);
+          ev.data.ptr = new sock(fd);
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
-          if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fda, &ev)) {
+          if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev)) {
             perror("epoll_ctl");
             continue;
           }
+
+          // int bufsize = 8192;
+          // setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(int));
+
           if (option_benchmark_mode) {
             int flag = 1;
-            if (setsockopt(fda, IPPROTO_TCP, TCP_NODELAY,
+            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
                            static_cast<void *>(&flag), sizeof(int))) {
               perror("setsockopt TCP_NODELAY");
               continue;

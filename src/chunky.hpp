@@ -157,11 +157,11 @@ private:
                         bool throw_if_send_not_complete = false) {
     stats.writes++;
     const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
-    if (n < 0) {
+    if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
-      throw "io_send";
+      throw "chunky:io_send";
     }
     stats.output += size_t(n);
     if (conf::print_traffic) {
