@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include <cstdlib>
 #include <cstring>
@@ -41,7 +42,7 @@ public:
     free(array_);
   }
 
-  inline T operator[](const char *key) {
+  inline T operator[](const char *key) const{
     const unsigned h = hash(key, size_);
     el *e = array_[h];
     while (e) {

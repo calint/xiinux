@@ -11,6 +11,7 @@ public:
   inline static int start(const int argc, const char **argv) {
     args a(argc, argv);
     thdwatch_on = a.has_option('m');
+    thdwatch_stats_to_file = a.has_option('f');
     const int port = atoi(a.get_option_value('p', "8088"));
     const bool option_benchmark_mode = a.has_option('b');
     conf::print_traffic = a.has_option('t');
@@ -122,7 +123,7 @@ public:
         try {
           c->run();
         } catch (const char *msg) {
-          // todo: print timestamp, ip, session id 
+          // todo: print timestamp, ip, session id
           delete c;
           if (msg == signal_connection_lost) {
             stats.brkp++;
@@ -156,6 +157,7 @@ private:
     homepage = new doc(buf);
   }
 
+  inline static bool thdwatch_stats_to_file = false;
   inline static pthread_t thdwatch{};
   inline static bool thdwatch_on = false;
   inline static void *thdwatch_run(void *arg) {
@@ -167,8 +169,11 @@ private:
         usleep(sleep_us);
         stats.ms += sleep_us / 1'000; //? not really
         stats.print_stats(stdout);
+        printf(thdwatch_stats_to_file ? "\n" : "\r");
       }
-      fprintf(stdout, "\n");
+      if (!thdwatch_stats_to_file) {
+        fprintf(stdout, "\n");
+      }
     }
     return nullptr;
   }

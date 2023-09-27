@@ -1,3 +1,4 @@
+// reviewed: 2023-09-27
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +30,7 @@ public:
 
   void print_stats(FILE *f) {
     fprintf(
-        f, "\r%12zu%12zu%12zu%8zu%8zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",
+        f, "%12zu%12zu%12zu%8zu%8zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",
         ms, input, output, socks, requests, sessions, accepts, reads, writes,
         files, widgets, cache, errors, brkp);
     fflush(f);
