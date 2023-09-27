@@ -7,10 +7,12 @@
 // 'sock' uses 'epoll_fd', 'homepage' and 'widget_new'
 // 'sock' does not refer to 'server'
 // 'server' uses 'epoll_fd' and 'homepage'. refers to 'sock'
+
 namespace xiinux {
 static int epoll_fd;
 static doc *homepage;
-namespace web {
+} // namespace xiinux
+
+namespace xiinux::web {
 static /*give*/ widget *widget_new(const char *qs);
 }
-} // namespace xiinux
