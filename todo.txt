@@ -12,6 +12,7 @@
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
 [x] review messy args.hpp
+    -> looks messy but it is simple
 [x] qa: performance comparisons
 [x] sock: move bulk of code to do_after_header()
 [x] sock: upload overwrites buf
