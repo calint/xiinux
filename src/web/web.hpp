@@ -1,6 +1,7 @@
-//-- generated (todo)
+// reviewed: 2023-09-27
+// todo: generate this file from index
 #pragma once
-#include "notfound.hpp"
+#include "error404.hpp"
 #include "qa/chunked.hpp"
 #include "qa/chunkedbig.hpp"
 #include "qa/chunkedbigger.hpp"
@@ -9,22 +10,22 @@
 #include "qa/page.hpp"
 #include "qa/typealine.hpp"
 
-namespace xiinux {
+namespace xiinux::web {
 static inline widget *widget_new(const char *qs) {
   if (!strcmp("hello", qs))
-    return new web::qa::hello();
+    return new qa::hello();
   if (!strcmp("typealine", qs))
-    return new web::qa::typealine();
+    return new qa::typealine();
   if (!strcmp("counter", qs))
-    return new web::qa::counter();
+    return new qa::counter();
   if (!strcmp("page", qs))
-    return new web::qa::page();
+    return new qa::page();
   if (!strcmp("chunked", qs))
-    return new web::qa::chunked();
+    return new qa::chunked();
   if (!strcmp("chunkedbig", qs))
-    return new web::qa::chunkedbig();
+    return new qa::chunkedbig();
   if (!strcmp("chunkedbigger", qs))
-    return new web::qa::chunkedbigger();
-  return new web::notfound();
+    return new qa::chunkedbigger();
+  return new error404();
 }
 } // namespace xiinux

@@ -461,7 +461,7 @@ private:
     }
     widget_ = session_->get_widget(reqline.query_str_);
     if (!widget_) {
-      widget_ = widget_new(reqline.query_str_);
+      widget_ = web::widget_new(reqline.query_str_);
       const size_t key_len =
           strnlen(reqline.query_str_, conf::widget_key_size);
       if (key_len == conf::widget_key_size)

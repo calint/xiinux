@@ -7,5 +7,7 @@
 namespace xiinux {
 static int epoll_fd;
 static doc *homepage;
+namespace web {
 static /*give*/ widget *widget_new(const char *qs);
+}
 } // namespace xiinux

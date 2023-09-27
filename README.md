@@ -28,9 +28,9 @@ note. revived in active development.
 ```
 
             lines   words   chars
-   source:   1856    6107   51750
-  gzipped:     37     270   11807
+   source:   1862    6119   51736
+  gzipped:     46     252   11797
 
--rwxrwxr-x 1 c 63K sep 27 19:27 xiinux
+-rwxrwxr-x 1 c 63K sep 27 20:06 xiinux
 
 ```
