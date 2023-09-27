@@ -268,8 +268,7 @@ private:
     widget_ = session_->get_widget(reqline.query_str_);
     if (!widget_) {
       widget_ = web::widget_new(reqline.query_str_);
-      const size_t key_len =
-          strnlen(reqline.query_str_, conf::widget_key_size);
+      const size_t key_len = strnlen(reqline.query_str_, conf::widget_key_size);
       if (key_len == conf::widget_key_size)
         throw "sock:key_len";
       // +1 for the \0 terminator
@@ -492,7 +491,7 @@ private:
     while (p != e and isspace(*p))
       p++;
     while (p != e and isspace(*e))
-      *e-- = 0;
+      *e-- = '\0';
     return p;
   }
   static inline void strlwr(char *p) {
@@ -502,7 +501,7 @@ private:
     }
   }
 
-    enum state {
+  enum state {
     method,
     uri,
     query,
@@ -595,8 +594,7 @@ private:
 
     inline ssize_t receive_from(int fd_in) {
       stats.reads++;
-      const ssize_t n =
-          recv(fd_in, buf_, conf::sock_content_buf_size, 0);
+      const ssize_t n = recv(fd_in, buf_, conf::sock_content_buf_size, 0);
       if (n == -1) // error
         return n;
       stats.input += size_t(n);
@@ -617,15 +615,15 @@ private:
 
   public:
     inline void rst() { p_ = e_ = buf_; }
+    inline char *ptr() const { return p_; }
     inline bool has_more() const { return p_ != e_; }
     inline size_t remaining() const { return size_t(e_ - p_); }
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline char unsafe_next_char() { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
-    inline char *ptr() const { return p_; }
+    
     inline ssize_t receive_from(const int fd_in) {
-      const size_t nbytes_to_read =
-          conf::sock_req_buf_size - size_t(p_ - buf_);
+      const size_t nbytes_to_read = conf::sock_req_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
         throw "sock:buf:full";
       stats.reads++;
