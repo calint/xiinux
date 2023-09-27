@@ -17,7 +17,7 @@ class chunky final : public xprinter {
 
 public:
   inline chunky(int sockfd) : sockfd_{sockfd} {}
-  inline ~chunky() {
+  inline ~chunky() override {
     if (!finished_) {
       finish();
     }

@@ -22,7 +22,7 @@ public:
     // 9 and 2 are length of strings
     rsp->p("HTTP/1.1 ", 9).p(response_code).p("\r\n", 2);
     if (set_session_id_) {
-      // 14 and 60 length of strings
+      // 14 and 60 are length of strings
       rsp->p("Set-Cookie: i=", 14)
           .p(set_session_id_)
           .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n",
@@ -32,14 +32,16 @@ public:
     rsp->p("Transfer-Encoding:chunked\r\nContent-Type: ", 41)
         .p(content_type)
         .p("\r\n\r\n", 4);
-    rsp->send_response_header(); // todo: ? response headers and first chunk in
-                                 // one packet for better benchmarking
+    rsp->send_response_header();
     return rsp;
   }
-  inline size_t io_send(const void *buf, size_t len,
-                        bool throw_if_send_not_complete = false) {
+
+  inline size_t send(const char *buf, size_t len,
+                        bool throw_if_send_not_complete = false,
+                        const bool buffer_sends = false) {
     stats.writes++;
-    const ssize_t n = ::send(fd_, buf, len, MSG_NOSIGNAL);
+    const int flags = buffer_sends ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
+    const ssize_t n = ::send(fd_, buf, len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
@@ -63,10 +65,10 @@ public:
     return size_t(n);
   }
 
-  inline reply &send(const char *data, const size_t len) {
-    io_send(data, len, true);
-    return *this;
-  }
+  // inline reply &send(const char *data, const size_t len) {
+  //   io_send(data, len, true);
+  //   return *this;
+  // }
 
   inline void send_session_id_at_next_opportunity(const char *id) {
     set_session_id_ = id;
@@ -91,11 +93,11 @@ public:
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n", code, len);
     }
     if (n < 0 or size_t(n) >= sizeof(header))
-      throw "reply:http:headerbuf";
+      throw "reply:http:1";
 
-    io_send(header, size_t(n), true);
+    send(header, size_t(n), true, content ? true : false);
     if (content) {
-      io_send(content, len, true);
+      send(content, len, true, false);
     }
     return *this;
   }

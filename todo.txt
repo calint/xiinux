@@ -1,6 +1,6 @@
 [ ] sock: bind widget factories to paths
-[ ] access path and query string from widget
-[ ] access session from widget
+[ ] access path, query, headers, session from widget
+[ ] decode query string on demand
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
