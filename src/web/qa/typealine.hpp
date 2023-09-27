@@ -1,7 +1,7 @@
 #pragma once
 // used in qa/test-coverage.sh
 namespace xiinux::web::qa {
-class typealine : public widget {
+class typealine final: public widget {
 
   void to(reply &x) override { x.http(200, "typealine"); }
 
