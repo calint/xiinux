@@ -20,19 +20,18 @@ public:
         .nl();
     x.http(200, s.buf(), s.size());
   }
-  
-  void on_content(reply &x, /*scan*/ const char *content,
-                  const size_t content_len,
-                  const size_t total_content_len) override {
 
-    if (content == nullptr) {
+  void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
+                  const size_t received_len, const size_t content_len) override {
+
+    if (buf == nullptr) {
       txt.rst();
       return;
     }
 
-    txt.p(content, content_len);
-    
-    if (txt.size() == total_content_len) {
+    txt.p(buf, buf_len);
+
+    if (received_len == content_len) {
       x.http(200, "location.reload();");
     }
   }

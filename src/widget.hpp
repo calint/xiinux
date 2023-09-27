@@ -8,11 +8,10 @@ public:
   virtual void to(reply &x) = 0;
 
   // called when client is sending content
-  // first call is with buf=nullptr, len=0 and the length of the content in
-  // total_content_len
+  // first call is with buf=nullptr, buf_len=0, content_len
   // subsequent calls are the portions of the content as read from the client
   virtual void on_content(reply &x, /*scan*/ const char *buf,
-                          const size_t buflen, const size_t total_content_len) {
-  }
+                          const size_t buf_len, const size_t received_len,
+                          const size_t content_len) {}
 };
 } // namespace xiinux

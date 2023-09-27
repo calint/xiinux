@@ -20,12 +20,14 @@ howto:
 
 note. abandoned in favor of [bob](https://github.com/calint/bob)
 
+note. revived in active development.
+
 ```
 
             lines   words   chars
-   source:   1840    5990   50856
-  gzipped:     60     286   11669
+   source:   1849    6057   51341
+  gzipped:     53     261   11717
 
--rwxrwxr-x 1 c 63K sep 27 15:17 xiinux
+-rwxrwxr-x 1 c 63K sep 27 18:14 xiinux
 
 ```

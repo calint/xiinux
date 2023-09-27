@@ -1,3 +1,4 @@
+[ ] xprinter for sockets with buffered sends
 [ ] sock: bind widget factories to paths
 [ ] access path, query, headers, session from widget
 [ ] decode query string on demand

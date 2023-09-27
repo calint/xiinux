@@ -92,8 +92,8 @@ class sock final {
       buf_ = nullptr;
     }
     inline char *buf() const { return buf_; }
-    inline bool more() const { return pos_ != len_; }
-    inline size_t rem() const { return len_ - pos_; }
+    inline size_t pos() const { return pos_; }
+    inline size_t remaining() const { return len_ - pos_; }
     inline void unsafe_skip(const size_t n) { pos_ += n; }
     inline size_t content_len() const { return len_; }
 
@@ -257,11 +257,12 @@ public:
           throw "sock:receiving_content";
         }
         const size_t un = size_t(n);
-        const size_t crem = content.rem();
-        const size_t total = content.content_len();
+        const size_t rem = content.remaining();
+        const size_t content_len = content.content_len();
         reply x{fd_};
-        widget_->on_content(x, content.buf(), un, total);
-        if (crem > un) { // not finished
+        widget_->on_content(x, content.buf(), un, content.pos() + un,
+                            content_len);
+        if (rem > un) { // not finished
           content.unsafe_skip(un);
           continue;
         }
@@ -281,7 +282,7 @@ public:
           throw "sock:receiving_upload";
         }
         const size_t un = size_t(n);
-        const size_t rem = content.rem();
+        const size_t rem = content.remaining();
         const size_t nbytes_to_write = rem > un ? un : rem;
         const ssize_t m = write(upload_fd_, content.buf(), nbytes_to_write);
         if (m == -1 or size_t(m) != nbytes_to_write) {
@@ -291,8 +292,8 @@ public:
         }
         if (m != n)
           throw "sock:writing upload to file 2";
-        content.unsafe_skip(unsigned(m));
-        if (content.more())
+        content.unsafe_skip(size_t(m));
+        if (content.remaining())
           continue;
         if (::close(upload_fd_)) {
           perr("while closing upload file 2");
@@ -475,9 +476,9 @@ private:
       x.send_session_id_at_next_opportunity(session_->id());
       send_session_id_in_reply_ = false;
     }
-    const size_t total_content_len = content.content_len();
-    if (total_content_len) { // posting content to widget
-      widget_->on_content(x, nullptr, 0, total_content_len);
+    const size_t content_len = content.content_len();
+    if (content_len) { // posting content to widget
+      widget_->on_content(x, nullptr, 0, 0, content_len);
       // if client expects 100 continue before sending post
       const char *expect = headers_["expect"];
       if (expect and !strcmp(expect, "100-continue")) {
@@ -486,14 +487,19 @@ private:
         return;
       }
       const size_t rem = buf.remaining();
-      if (rem >= total_content_len) { // full content is in 'buf'
-        widget_->on_content(x, buf.ptr(), total_content_len, total_content_len);
+      if (rem >= content_len) { // full content is in 'buf'
+        widget_->on_content(x, buf.ptr(), content_len, content_len,
+                            content_len);
         state = next_request;
         return;
       } else {
-        // part of the content is in 'buf'
-        widget_->on_content(x, buf.ptr(), rem, total_content_len);
-        content.unsafe_skip(rem);
+        // first part of the content is in 'buf'
+        // note. client might not have sent any content in the same packet
+        //       as the headers
+        if (rem) {
+          widget_->on_content(x, buf.ptr(), rem, rem, content_len);
+          content.unsafe_skip(rem);
+        }
         state = receiving_content;
         return;
       }
