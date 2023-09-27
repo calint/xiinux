@@ -22,11 +22,11 @@ public:
   inline const char *operator[](const char *key) const { return kvp_[key]; }
   inline widget *get_widget(const char *key) const { return widgets_[key]; }
 
-  inline void put(/*take*/ char *key, /*take*/ char *data) {
+  inline void put(/*take*/ const char *key, /*take*/ const char *data) {
     kvp_.put(key, data);
   }
 
-  inline void put_widget(/*take*/ char *key, /*take*/ widget *o) {
+  inline void put_widget(/*take*/ const char *key, /*take*/ widget *o) {
     widgets_.put(key, o);
   }
 };
