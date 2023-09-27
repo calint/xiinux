@@ -13,6 +13,6 @@ public:
   virtual xprinter &p(const char ch) = 0;
   virtual xprinter &nl() = 0;
   virtual xprinter &html5(const char *title = "") = 0;
-  virtual xprinter &flush() = 0;
+  // virtual xprinter &flush() = 0;
 };
 } // namespace xiinux

@@ -17,7 +17,7 @@ class chunky final : public xprinter {
 public:
   inline chunky(int sockfd) : sockfd_{sockfd} {}
 
-  inline chunky &flush() override {
+  inline chunky &flush() {
     if (len_ == 0)
       return *this;
 
@@ -26,13 +26,13 @@ public:
     const int len = snprintf(buf, sizeof(buf), "%lx\r\n", len_);
     if (len < 0 or size_t(len) >= sizeof(buf))
       throw "1";
-    io_send(buf, size_t(len), true);
+    io_send(buf, size_t(len), true, true);
 
     size_t sent_total = 0;
     while (true) {
       while (true) {
         const size_t nsend = len_ - sent_total;
-        const size_t nsent = io_send(buf_ + sent_total, nsend, false);
+        const size_t nsent = io_send(buf_ + sent_total, nsend, false, true);
         sent_total += nsent;
         if (nsent == nsend)
           break;
@@ -42,7 +42,7 @@ public:
       if (sent_total == len_)
         break;
     }
-    io_send("\r\n", 2, true); // 2 is string length
+    io_send("\r\n", 2, true, true); // 2 is string length
     len_ = 0;
     return *this;
   }
@@ -50,13 +50,13 @@ public:
   inline chunky &finish() {
     flush();
     constexpr char fin[] = "0\r\n\r\n";
-    io_send(fin, sizeof(fin) - 1, true); // -1 to exclude terminator '\0'
+    io_send(fin, sizeof(fin) - 1, true, false); // -1 to exclude terminator '\0'
     return *this;
   }
 
   // sends current buffer as is
   inline chunky &send_response_header() {
-    io_send(buf_, len_, true);
+    io_send(buf_, len_, true, true);
     len_ = 0;
     return *this;
   }
@@ -153,10 +153,12 @@ public:
   }
 
 private:
-  inline size_t io_send(const char *ptr, size_t len,
-                        bool throw_if_send_not_complete = false) {
+  inline size_t io_send(const char *buf, size_t len,
+                        bool throw_if_send_not_complete = false,
+                        const bool buffer_sends = false) {
     stats.writes++;
-    const ssize_t n = send(sockfd_, ptr, len, MSG_NOSIGNAL);
+    const int flags = MSG_NOSIGNAL | (buffer_sends ? MSG_MORE : 0);
+    const ssize_t n = send(sockfd_, buf, len, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
