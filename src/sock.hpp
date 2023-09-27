@@ -181,9 +181,11 @@ class sock final {
   }
 
   inline size_t io_send(const void *ptr, size_t len,
-                        bool throw_if_send_not_complete = false) {
+                        bool throw_if_send_not_complete = false,
+                        const bool buffer_sends = false) {
     stats.writes++;
-    const ssize_t n = send(fd_, ptr, len, MSG_NOSIGNAL);
+    const ssize_t n =
+        send(fd_, ptr, len, MSG_NOSIGNAL | (buffer_sends ? MSG_MORE : 0));
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
@@ -629,7 +631,7 @@ private:
     }
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw "sock:err1";
-    io_send(header_buf, size_t(header_buf_len), true);
+    io_send(header_buf, size_t(header_buf_len), true, true);
 
     const ssize_t n = file.resume_send_to(fd_);
     if (n < 0) {

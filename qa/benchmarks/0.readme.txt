@@ -1,13 +1,9 @@
 uri '/':
   xiinux has homepage in memory while nginx is not configured to cache
 
-files:
-  xiinux sends at least two packets per file in benchmark mode.
-  one packet for headers and the rest for the file. nginx does
-  not do that. see notes/*-packets-*
-
 example:
 hey -n 1 -c 1 http://localhost:8088/
+hey -n 1 -c 1 http://localhost:8088/qa/files/small.txt
 hey -n 1 -c 1 http://localhost:8088/qa/files/far_side_dog_ok.jpg
 
 how to benchmark:

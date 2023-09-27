@@ -11,6 +11,7 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------
+[x] reduce packets count when sending files
 [x] chunky: sends too many small packets. sudo tcpdump -A -i lo -n port 8088
 [x] review messy args.hpp
     -> looks messy but it is simple
