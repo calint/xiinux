@@ -11,11 +11,31 @@
 namespace xiinux {
 class reply final {
   int fd_ = 0;
-  const char *set_session_id_cookie_ = nullptr;
+  const char *set_session_id_ = nullptr;
 
 public:
   inline reply(const int fd = 0) : fd_{fd} {}
-  inline /*give*/ chunky *reply_chunky() { return new chunky(fd_); }
+  inline /*give*/ chunky *
+  reply_chunky(const char *content_type = "text/html; charset=utf-8",
+               const int response_code = 200) {
+    chunky *rsp = new chunky(fd_);
+    // 9 and 2 are length of strings
+    rsp->p("HTTP/1.1 ", 9).p(response_code).p("\r\n", 2);
+    if (set_session_id_) {
+      // 14 and 60 length of strings
+      rsp->p("Set-Cookie: i=", 14)
+          .p(set_session_id_)
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n",
+             60);
+    }
+    // 41 and 4 are length of strings
+    rsp->p("Transfer-Encoding:chunked\r\nContent-Type: ", 41)
+        .p(content_type)
+        .p("\r\n\r\n", 4);
+    rsp->send_response_header(); // todo: response headers and first chunk in
+                                 // one packet
+    return rsp;
+  }
   inline size_t io_send(const void *buf, size_t len,
                         bool throw_if_send_not_complete = false) {
     stats.writes++;
@@ -49,7 +69,7 @@ public:
   }
 
   inline void send_session_id_at_next_opportunity(const char *id) {
-    set_session_id_cookie_ = id;
+    set_session_id_ = id;
   }
 
   inline reply &http(const int code, const char *content = nullptr,
@@ -59,13 +79,13 @@ public:
       len = strnlen(content, K * M);
     }
     int n = 0;
-    if (set_session_id_cookie_) {
+    if (set_session_id_) {
       n = snprintf(header, sizeof(header),
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
                    "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
                    "GMT;SameSite=Lax\r\n\r\n",
-                   code, len, set_session_id_cookie_);
-      set_session_id_cookie_ = nullptr;
+                   code, len, set_session_id_);
+      set_session_id_ = nullptr;
     } else {
       n = snprintf(header, sizeof(header),
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n", code, len);
@@ -79,6 +99,5 @@ public:
     }
     return *this;
   }
-
 };
 } // namespace xiinux
