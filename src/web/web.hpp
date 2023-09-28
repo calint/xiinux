@@ -9,23 +9,37 @@
 #include "qa/hello.hpp"
 #include "qa/page.hpp"
 #include "qa/typealine.hpp"
+#include <functional>
 
 namespace xiinux::web {
-static inline widget *widget_new(const char *qs) {
-  if (!strcmp("hello", qs))
-    return new qa::hello();
-  if (!strcmp("typealine", qs))
-    return new qa::typealine();
-  if (!strcmp("counter", qs))
-    return new qa::counter();
-  if (!strcmp("page", qs))
-    return new qa::page();
-  if (!strcmp("chunked", qs))
-    return new qa::chunked();
-  if (!strcmp("chunkedbig", qs))
-    return new qa::chunkedbig();
-  if (!strcmp("chunkedbigger", qs))
-    return new qa::chunkedbigger();
-  return new error404();
+
+inline static lut<std::function<widget *()>> path_to_widget_factory_map{};
+
+static inline void init_path_to_widget_factory_map() {
+  path_to_widget_factory_map.put(
+      "/qa/hello", []() -> widget * { return new xiinux::web::qa::hello(); });
+  path_to_widget_factory_map.put("/qa/typealine", []() -> widget * {
+    return new xiinux::web::qa::typealine();
+  });
+  path_to_widget_factory_map.put("/qa/counter", []() -> widget * {
+    return new xiinux::web::qa::counter();
+  });
+  path_to_widget_factory_map.put(
+      "/qa/page", []() -> widget * { return new xiinux::web::qa::page(); });
+  path_to_widget_factory_map.put("/qa/chunked", []() -> widget * {
+    return new xiinux::web::qa::chunked();
+  });
+  path_to_widget_factory_map.put("/qa/chunkedbig", []() -> widget * {
+    return new xiinux::web::qa::chunkedbig();
+  });
+  path_to_widget_factory_map.put("/qa/chunkedbigger", []() -> widget * {
+    return new xiinux::web::qa::chunkedbigger();
+  });
 }
-} // namespace xiinux
+
+static inline const std::function<widget *()> 
+widget_factory_for_path(const char *path) {
+  return path_to_widget_factory_map[path];
+}
+
+} // namespace xiinux::web

@@ -1,5 +1,5 @@
 
-tor 28 sep 2023 22:07:10 CEST
+fre 29 sep 2023 01:48:52 CEST
 coverage tests on http://localhost:8088
  * small file
  * larger file 16K
@@ -9,7 +9,6 @@ coverage tests on http://localhost:8088
  * cached document
  * illegal path
  * page not found
- * widget not found
  * post
  * bigger post >4K
  * upload small file
@@ -19,5 +18,5 @@ coverage tests on http://localhost:8088
  * chunked reply data larger than buffers >256K 
  * widget 'counter' 
  * abuse request >1K 
-tor 28 sep 2023 22:07:12 CEST
+fre 29 sep 2023 01:48:53 CEST
 

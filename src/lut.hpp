@@ -11,6 +11,9 @@ template <class T> class lut final {
     T data_ = nullptr;
     el *nxt_ = nullptr;
     inline el(const char *key, T data) : key_{key}, data_{data} {}
+    inline el(const el &) = delete;
+    inline el &operator=(const el &) = delete;
+
     inline void delete_content_recurse(const bool delete_key) {
       if (data_)
         delete data_;

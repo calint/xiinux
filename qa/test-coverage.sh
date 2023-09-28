@@ -21,7 +21,7 @@ diff -q cmp t07.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * dynamic document"&&
-curl -s $HTTP/?hello>cmp&&
+curl -s $HTTP/qa/hello>cmp&&
 diff -q cmp t02.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -45,10 +45,10 @@ curl -si $HTTP/asdf.html>cmp&&
 diff -q cmp t03.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * widget not found"&&
-curl -s $HTTP/?asdf>cmp&&
-diff -q cmp t04.cmp&&
-rm cmp&&
+#echo " * widget not found"&&
+#curl -s $HTTP/?asdf>cmp&&
+#diff -q cmp t04.cmp&&
+#rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained get"&&
@@ -57,12 +57,12 @@ rm cmp&&
 #rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * post"&&
-curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ" $HTTP/?typealine>cmp&&
+curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ" $HTTP/qa/typealine>cmp&&
 diff -q cmp t10.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * bigger post >4K"&&
-curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt $HTTP/?typealine>cmp&&
+curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt $HTTP/qa/typealine>cmp&&
 diff -q cmp t11.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -93,17 +93,17 @@ rm ../upload/upl&&
 #rm ../upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chunked small 12B"&&
-curl -s $HTTP/?chunked>cmp&&
+curl -s $HTTP/qa/chunked>cmp&&
 diff -q cmp t15.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chunked many small to larger than chunk size >4K "&&
-curl -s $HTTP/?chunkedbig>cmp&&
+curl -s $HTTP/qa/chunkedbig>cmp&&
 diff -q cmp t16.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chunked reply data larger than buffers >256K "&&
-curl -s $HTTP/?chunkedbigger>cmp&&
+curl -s $HTTP/qa/chunkedbigger>cmp&&
 gunzip -fk t17.cmp.gz &&
 diff -q cmp t17.cmp&&
 rm cmp t17.cmp&&
@@ -115,9 +115,9 @@ rm cmp t17.cmp&&
 #rm cmp t17.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * widget 'counter' "&&
-curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/?counter>cmp&&
+curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter>cmp&&
 diff -q cmp t19_1.cmp&&
-curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/?counter>cmp&&
+curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter>cmp&&
 diff -q cmp t19_2.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * abuse request >1K "&&

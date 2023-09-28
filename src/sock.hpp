@@ -227,7 +227,36 @@ public:
   }
 
 private:
-  void do_serve_widget() {
+  void do_after_headers() {
+    const std::function<widget *()> &widget_factory =
+        web::widget_factory_for_path(reqline.path_);
+    if (widget_factory) {
+      do_serve_widget(widget_factory);
+      return;
+    }
+
+    const char *content_type = headers_["content-type"];
+    if (content_type and strstr(content_type, "file")) {
+      content.init_for_receive(headers_["content-length"]);
+      do_serve_upload();
+      return;
+    }
+
+    reply x{fd_};
+
+    const char *path =
+        *reqline.path_ == '/' ? reqline.path_ + 1 : reqline.path_;
+    if (!*path) { // uri '/'
+      stats.cache++;
+      homepage->to(x);
+      state = next_request;
+      return;
+    }
+
+    do_serve_file(x, path);
+  }
+
+  void do_serve_widget(const std::function<widget *()> &factory) {
     stats.widgets++;
     const char *cookie = headers_["cookie"];
     const char *session_id = nullptr;
@@ -266,15 +295,15 @@ private:
         sessions.put(/*give*/ session_, false);
       }
     }
-    widget_ = session_->get_widget(reqline.query_str_);
+    widget_ = session_->get_widget(reqline.path_);
     if (!widget_) {
-      widget_ = web::widget_new(reqline.query_str_);
-      const size_t key_len = strnlen(reqline.query_str_, conf::widget_key_size);
+      widget_ = /*take*/ factory();
+      const size_t key_len = strnlen(reqline.path_, conf::widget_key_size);
       if (key_len == conf::widget_key_size)
         throw "sock:key_len";
       // +1 for the \0 terminator
       char *key = new char[key_len + 1];
-      memcpy(key, reqline.query_str_, key_len + 1);
+      memcpy(key, reqline.path_, key_len + 1);
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
     reply x{fd_};
@@ -282,33 +311,37 @@ private:
       x.send_session_id_at_next_opportunity(session_->id());
       send_session_id_in_reply_ = false;
     }
-    const size_t content_len = content.content_len();
-    if (content_len) { // posting content to widget
-      widget_->on_content(x, nullptr, 0, 0, content_len);
-      // if client expects 100 continue before sending post
-      const char *expect = headers_["expect"];
-      if (expect and !strcmp(expect, "100-continue")) {
-        // 16 is string length
-        io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
-        state = receiving_content;
-        return;
-      }
-      const size_t rem = buf.remaining();
-      if (rem >= content_len) { // full content is in 'buf'
-        widget_->on_content(x, buf.ptr(), content_len, content_len,
-                            content_len);
-        state = next_request;
-        return;
-      } else {
-        // first part of the content is in 'buf'
-        // note. client might not have sent any content in the same packet
-        //       as the headers
-        if (rem) {
-          widget_->on_content(x, buf.ptr(), rem, rem, content_len);
-          content.unsafe_skip(rem);
+    const char *content_length_str = headers_["content-length"];
+    if (content_length_str) {
+      content.init_for_receive(content_length_str);
+      const size_t content_len = content.content_len();
+      if (content_len) { // posting content to widget
+        widget_->on_content(x, nullptr, 0, 0, content_len);
+        // if client expects 100 continue before sending post
+        const char *expect = headers_["expect"];
+        if (expect and !strcmp(expect, "100-continue")) {
+          // 16 is string length
+          io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
+          state = receiving_content;
+          return;
         }
-        state = receiving_content;
-        return;
+        const size_t rem = buf.remaining();
+        if (rem >= content_len) { // full content is in 'buf'
+          widget_->on_content(x, buf.ptr(), content_len, content_len,
+                              content_len);
+          state = next_request;
+          return;
+        } else {
+          // first part of the content is in 'buf'
+          // note. client might not have sent any content in the same packet
+          //       as the headers
+          if (rem) {
+            widget_->on_content(x, buf.ptr(), rem, rem, content_len);
+            content.unsafe_skip(rem);
+          }
+          state = receiving_content;
+          return;
+        }
       }
     }
     // requesting widget
@@ -462,33 +495,6 @@ private:
     state = next_request;
   }
 
-  void do_after_headers() {
-    const char *content_length_str = headers_["content-length"];
-    if (content_length_str) {
-      content.init_for_receive(content_length_str);
-    }
-    const char *path =
-        *reqline.path_ == '/' ? reqline.path_ + 1 : reqline.path_;
-    // printf("path: '%s'\nquery: '%s'\n",path,reqline.qs);
-    if (!*path and reqline.query_str_) {
-      do_serve_widget();
-      return;
-    }
-    const char *content_type = headers_["content-type"];
-    if (content_type and strstr(content_type, "file")) {
-      do_serve_upload();
-      return;
-    }
-    reply x{fd_};
-    if (!*path) { // uri '/'
-      stats.cache++;
-      homepage->to(x);
-      state = next_request;
-      return;
-    }
-    do_serve_file(x, path);
-  }
-
   static inline char *strtrm(char *p, char *e) {
     while (p != e and isspace(*p))
       p++;
@@ -496,6 +502,7 @@ private:
       *e-- = '\0';
     return p;
   }
+
   static inline void strlwr(char *p) {
     while (*p) {
       *p = char(tolower(*p));
