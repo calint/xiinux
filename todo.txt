@@ -10,7 +10,7 @@
     was added to 'strb' and several instances with different sizes
     were created with 'strb' template
 [ ] MIME type for ".js" files (warning in Firefox when absent)
-[ ] multi-threaded clients, chunky pause and resume when write would block
+[ ] multi-threading clients, chunky pause and resume when write would block
 [ ] ? headers in std::unordered_map
 [ ] qa: gnuplot
 [ ] hierarchial widgets
