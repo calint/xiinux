@@ -1,8 +1,5 @@
 [ ] review reply
 [ ] review doc. rename to cached
-[ ] examine if splicing can occur when doing:
-    std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));
-    xprinter &x = *y;
 [ ] review args
 [ ] sock: bind widget factories to paths
 [ ] access path, query, headers, session from widget
@@ -18,6 +15,11 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[x] examine if splicing can occur when doing:
+    std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));
+    xprinter &x = *y;
+    -> xprinter &x = *static_cast<xprinter *>(y.get()); is same but if known for supported
+       that y is a xprinter then ok
 [x] use c++ thread instead of pthread
 [x] consolidate sock.io_send, chunky.io_send and reply.send with a helper function
 [-] reply.http buffer_send=false

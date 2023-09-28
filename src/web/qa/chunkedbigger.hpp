@@ -7,9 +7,8 @@ namespace xiinux::web::qa {
 class chunkedbigger final : public widget {
 public:
   void to(reply &r) override {
-    std::unique_ptr<chunky> y(
-        /*take*/ r.reply_chunky("text/plain;charset=utf-8"));
-    xprinter &x = *y; //? splicing?
+    std::unique_ptr<chunky> y(r.reply_chunky("text/plain;charset=utf-8"));
+    xprinter &x = *y;
 
     constexpr size_t buf_len = 1024 * 1024;
     char buf[buf_len];
