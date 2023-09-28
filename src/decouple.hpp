@@ -1,6 +1,8 @@
 // reviewed: 2023-09-27
 #pragma once
 #include "stats.hpp"
+#include "defines.hpp"
+#include "conf.hpp"
 #include <cerrno>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -9,7 +11,8 @@
 // 'sock' uses 'epoll_fd', 'homepage' and 'widget_new'
 // 'sock' does not refer to 'server'
 // 'server' uses 'epoll_fd' and 'homepage'. refers to 'sock'
-// 'io_send()' used in 'sock', 'chunky' and 'reply'
+// 'io_send(...)' used in 'sock', 'chunky' and 'reply'
+// 'widget_new(...) used in 'sock'
 
 namespace xiinux {
 class doc;
