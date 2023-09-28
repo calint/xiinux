@@ -3,10 +3,9 @@
 #include "args.hpp"
 #include "defines.hpp"
 #include "sock.hpp"
-#include <memory>
+#include <thread>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <thread>
 
 namespace xiinux {
 class server final {
@@ -65,7 +64,7 @@ public:
     init_homepage();
 
     if (thdwatch_on) {
-      thdwatch = std::make_unique<std::thread>(thdwatch_run);
+      thdwatch = std::thread(thdwatch_run);
     }
 
     struct epoll_event events[conf::epoll_event_array_size];
@@ -141,7 +140,7 @@ public:
     delete homepage;
     if (thdwatch_on) {
       thdwatch_on = false;
-      thdwatch->join();
+      thdwatch.join();
     }
   }
 
@@ -159,7 +158,7 @@ private:
     homepage = new doc(buf);
   }
 
-  inline static std::unique_ptr<std::thread> thdwatch{};
+  inline static std::thread thdwatch{};
   inline static bool thdwatch_on = false;
   inline static bool thdwatch_stats_to_file = false;
   inline static void thdwatch_run() {
