@@ -3,8 +3,10 @@
 #include "args.hpp"
 #include "defines.hpp"
 #include "sock.hpp"
-#include <netinet/tcp.h>
+#include <memory>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <thread>
 
 namespace xiinux {
 class server final {
@@ -63,10 +65,7 @@ public:
     init_homepage();
 
     if (thdwatch_on) {
-      if (pthread_create(&thdwatch, nullptr, &thdwatch_run, nullptr)) {
-        puts("pthread_create");
-        exit(6);
-      }
+      thdwatch = std::make_unique<std::thread>(thdwatch_run);
     }
 
     struct epoll_event events[conf::epoll_event_array_size];
@@ -140,8 +139,10 @@ public:
 
   inline static void stop() {
     delete homepage;
-    thdwatch_on = false;
-    pthread_join(thdwatch, nullptr);
+    if (thdwatch_on) {
+      thdwatch_on = false;
+      thdwatch->join();
+    }
   }
 
 private:
@@ -158,10 +159,10 @@ private:
     homepage = new doc(buf);
   }
 
-  inline static bool thdwatch_stats_to_file = false;
-  inline static pthread_t thdwatch{};
+  inline static std::unique_ptr<std::thread> thdwatch{};
   inline static bool thdwatch_on = false;
-  inline static void *thdwatch_run(void *arg) {
+  inline static bool thdwatch_stats_to_file = false;
+  inline static void thdwatch_run() {
     stats.print_headers(stdout);
     while (thdwatch_on) {
       int n = 10;
@@ -176,7 +177,6 @@ private:
         fprintf(stdout, "\n");
       }
     }
-    return nullptr;
   }
 };
 } // namespace xiinux

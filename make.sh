@@ -24,14 +24,12 @@ DBG=""
 OPTS=-Os
 #OPTS=-O3
 #OPTS="-O3 -static"
-#LIB="-pthread -lgcov"
-LIB="-pthread"
 
 echo > all.src &&
 for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
 
 echo &&
-$CC -o $BIN $SRC $DBG $LIB $OPTS $WARNINGS && 
+$CC -o $BIN $SRC $DBG $OPTS $WARNINGS && 
 echo    "            lines   words   chars" &&
 echo -n "   source:" &&
 cat all.src|wc &&
@@ -43,4 +41,4 @@ rm all.src
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN
-#valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bv
+#valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm

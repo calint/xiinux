@@ -18,6 +18,7 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[x] use c++ thread instead of pthread
 [x] consolidate sock.io_send, chunky.io_send and reply.send with a helper function
 [-] reply.http buffer_send=false
     -> reply.http needs to know the size of the content
