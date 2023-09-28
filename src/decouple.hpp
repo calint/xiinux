@@ -7,12 +7,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-// shared by server and sock to avoid circular reference
+// solves circular references
+// shared by 'server', 'sock', 'reply' and 'chunky'
 // 'sock' uses 'epoll_fd', 'homepage' and 'widget_new'
-// 'sock' does not refer to 'server'
 // 'server' uses 'epoll_fd' and 'homepage'. refers to 'sock'
-// 'io_send(...)' used in 'sock', 'chunky' and 'reply'
-// 'widget_new(...) used in 'sock'
+// 'io_send(...)' used by 'sock', 'reply' and 'chunky'
+// 'widget_new(...) used by 'sock'
 
 namespace xiinux {
 class doc;
@@ -31,7 +31,7 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
     if (errno == EPIPE or errno == ECONNRESET)
       throw signal_connection_lost;
     stats.errors++;
-    throw "sock:io_send";
+    throw "io_send:1";
   }
   const size_t nbytes_sent = size_t(n);
   stats.output += nbytes_sent;
@@ -39,13 +39,13 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
   if (conf::print_traffic) {
     const ssize_t m = write(conf::print_traffic_fd, buf, nbytes_sent);
     if (m == -1 or m != n) {
-      perror("reply:io_send2");
+      perror("io_send:2");
     }
   }
 
   if (throw_if_send_not_complete and nbytes_sent != buf_len) {
     stats.errors++;
-    throw "sock:sendnotcomplete";
+    throw "io_send:3";
   }
 
   return nbytes_sent;
