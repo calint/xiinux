@@ -4,7 +4,7 @@
 # valgrind: 3.19.0
 
 #CC="g++ -std=c++23"
-#WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
+#WARNINGS="-Wall -Wextra -Wpedantic \
 #          -Weffc++ -Wconversion -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 #          -Wdisabled-optimization -Wlogical-op -Wmissing-declarations \
 #          -Wsign-conversion -Wold-style-cast -Wshadow -Wmissing-include-dirs \
@@ -13,21 +13,16 @@
 #          -Wnoexcept -Wno-unused-parameter"
 
 CC="clang++ -std=c++20"
-WARNINGS="-Weverything -Wfatal-errors \
-          -Weffc++ \
-          -Wno-unused-parameter \
-          -Wno-c++98-compat -Wno-weak-vtables \
-          -Wno-padded -Wno-global-constructors \
-          -Wno-exit-time-destructors -Wno-format-nonliteral"
+WARNINGS="-Weverything \
+          -Weffc++ -Wno-unused-parameter -Wno-c++98-compat -Wno-weak-vtables \
+          -Wno-padded -Wno-global-constructors -Wno-exit-time-destructors \
+          -Wno-format-nonliteral"
 
 BIN=xiinux
 SRC=src/main.cpp
-DBG=""
-#DBG="-g"
-#DBG="$DBG --coverage -fprofile-arcs -ftest-coverage"
-OPTS=-Os
-#OPTS=-O3
-#OPTS="-O3 -static"
+DBG=
+#DBG=-g3
+OPTS="-Os -Wfatal-errors"
 
 echo > all.src &&
 for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
