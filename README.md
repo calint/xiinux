@@ -23,8 +23,6 @@ howto:
 
 note. abandoned in favor of [bob](https://github.com/calint/bob)
 
-note. revived in active development.
-
 ```
 
             lines   words   chars
