@@ -5,12 +5,16 @@
 
 #CC="g++ -std=c++23"
 #WARNINGS="-Wall -Wextra -Wpedantic -Wfatal-errors \
-#          -Wsign-conversion -Wold-style-cast -Wshadow \
-#          -Wctad-maybe-unsupported \
-#          -Wno-unused-parameter"
+#          -Weffc++ -Wconversion -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
+#          -Wdisabled-optimization -Wlogical-op -Wmissing-declarations \
+#          -Wsign-conversion -Wold-style-cast -Wshadow -Wmissing-include-dirs \
+#          -Woverloaded-virtual -Wredundant-decls -Wshadow -Wctad-maybe-unsupported \
+#          -Wsign-promo -Wstrict-null-sentinel -Wswitch-default -Wundef -Wfloat-equal \
+#          -Wnoexcept -Wno-unused-parameter"
 
 CC="clang++ -std=c++20"
 WARNINGS="-Weverything -Wfatal-errors \
+          -Weffc++ \
           -Wno-unused-parameter \
           -Wno-c++98-compat -Wno-weak-vtables \
           -Wno-padded -Wno-global-constructors \

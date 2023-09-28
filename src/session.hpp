@@ -4,13 +4,14 @@
 
 namespace xiinux {
 class session final {
-  const char *id_;
-  lut<const char *> kvp_;
-  lut<widget *> widgets_;
+  const char *id_ = nullptr;
+  lut<const char *> kvp_{};
+  lut<widget *> widgets_{};
 
 public:
   inline session(/*take*/ const char *id) : id_{id} { stats.sessions++; }
-
+  inline session(const session &) = delete;
+  inline session &operator=(const session &) = delete;
   inline ~session() {
     stats.sessions--;
     delete[] id_;

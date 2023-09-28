@@ -16,7 +16,7 @@ public:
     char *p = buf;
     unsigned char ch = 0;
     for (unsigned i = 0; i < buf_len; i++) {
-      *p = 'a' + ch % 26;
+      *p = 'a' + char(ch % 26);
       p++;
       ch++;
     }

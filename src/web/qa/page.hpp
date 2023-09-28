@@ -1,8 +1,9 @@
 #pragma once
+#include "../../widget.hpp"
 
 namespace xiinux::web::qa {
 class page final : public widget {
-  strb<32 * K> txt;
+  strb<32 * K> txt{};
 
 public:
   void to(reply &x) override {

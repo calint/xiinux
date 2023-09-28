@@ -3,8 +3,8 @@
 
 namespace xiinux {
 class doc final {
-  char *buf_;
-  size_t len_;
+  char *buf_ = nullptr;
+  size_t len_ = 0;
 
 public:
   inline doc(/*copies*/ const char *data) {
@@ -15,6 +15,8 @@ public:
     buf_ = new char[len_];
     memcpy(buf_, data, len_);
   }
+  inline doc(const doc &) = delete;
+  inline doc &operator=(const doc &) = delete;
   inline ~doc() { delete[] buf_; }
   inline void to(reply &x) const { x.send(buf_, len_); }
 };

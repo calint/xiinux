@@ -17,6 +17,8 @@ class sock final {
 public:
   int fd_ = 0;
   inline sock(const int f = 0) : fd_{f} { stats.socks++; }
+  inline sock(const sock &) = delete;
+  inline sock &operator=(const sock &) = delete;
 
   inline ~sock() {
     content.free();
@@ -52,7 +54,7 @@ public:
         if (n == 0) // unexpected close from client
           throw signal_connection_lost;
         if (n < 0) {
-          if (errno == EAGAIN or errno == EWOULDBLOCK) {
+          if (errno == EAGAIN) {
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
@@ -77,7 +79,7 @@ public:
         if (n == 0)
           throw signal_connection_lost;
         if (n < 0) {
-          if (errno == EAGAIN or errno == EWOULDBLOCK) {
+          if (errno == EAGAIN) {
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
@@ -132,7 +134,7 @@ public:
           return;
         }
         if (n == -1) { // error or would block
-          if (errno == EAGAIN or errno == EWOULDBLOCK) {
+          if (errno == EAGAIN) {
             io_request_read();
             return;
           } else if (errno == ECONNRESET) {
@@ -549,19 +551,19 @@ private:
       offset_ = 0;
       count_ = 0;
     }
-  } file;
+  } file{};
 
   struct reqline {
     char *path_ = nullptr;
     char *query_str_ = nullptr;
     inline void rst() { path_ = query_str_ = nullptr; }
-  } reqline;
+  } reqline{};
 
   struct header {
     char *name_ = nullptr;
     char *value_ = nullptr;
     inline void rst() { name_ = value_ = nullptr; }
-  } header;
+  } header{};
 
   class content {
     size_t pos_ = 0;
@@ -606,7 +608,7 @@ private:
       }
       return n;
     }
-  } content;
+  } content{};
 
   class buf {
     char buf_[conf::sock_req_buf_size];
@@ -640,9 +642,9 @@ private:
       }
       return n;
     }
-  } buf;
+  } buf{};
 
-  lut<const char *> headers_;
+  lut<const char *> headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;
   session *session_ = nullptr;

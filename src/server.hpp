@@ -3,9 +3,9 @@
 #include "args.hpp"
 #include "defines.hpp"
 #include "sock.hpp"
-#include <thread>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <thread>
 
 namespace xiinux {
 class server final {
@@ -29,7 +29,7 @@ public:
     bzero(&sa, sa_sz);
     sa.sin_family = AF_INET;
     sa.sin_addr.s_addr = INADDR_ANY;
-    sa.sin_port = htons(port);
+    sa.sin_port = htons(uint16_t(port));
     server_socket.fd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket.fd_ == -1) {
       perror("socket");

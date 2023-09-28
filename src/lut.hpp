@@ -18,8 +18,8 @@ template <class T> class lut final {
         delete[] key_;
     }
   };
-  el **array_;
-  unsigned size_;
+  el **array_ = nullptr;
+  unsigned size_ = 0;
 
   // note. size must be 2^n because size-1 will be used for bitwise 'and'
   static inline unsigned hash(const char *key, const unsigned size) {
@@ -36,6 +36,8 @@ public:
   inline lut(const unsigned size = 8) : size_{size} {
     array_ = static_cast<el **>(calloc(size_t(size), sizeof(el *)));
   }
+  inline lut(const lut &) = delete;
+  inline lut &operator=(const lut &) = delete;
 
   inline ~lut() {
     clear();
