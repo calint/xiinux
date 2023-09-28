@@ -4,10 +4,10 @@
     std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));
     xprinter &x = *y;
 [ ] review args
-[ ] xprinter for sockets with buffered sends
 [ ] sock: bind widget factories to paths
 [ ] access path, query, headers, session from widget
 [ ] decode query string on demand
+[ ] xprinter for sockets with buffered sends
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
