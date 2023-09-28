@@ -1,4 +1,3 @@
-[ ] review doc. rename to cached
 [ ] review args
 [ ] sock: bind widget factories to paths
 [ ] access path, query, headers, session from widget
@@ -14,6 +13,7 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[x] review doc. rename to cached
 [x] review reply
 [x] examine if splicing can occur when doing:
     std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));

@@ -147,14 +147,14 @@ private:
   inline static void init_homepage() {
     char buf[4 * K];
     // +1 because of '\n' after 'application_name'
-    const int res = snprintf(
-        buf, sizeof(buf), "HTTP/1.1 200\r\nContent-Length: %zu\r\n\r\n%s\n",
+    const int n = snprintf(
+        buf, sizeof(buf), "HTTP/1.1 200\r\nContent-Length: %zu\r\nContent-Type: text/plain\r\n\r\n%s\n",
         strlen(conf::application_name) + 1, conf::application_name);
-    if (size_t(res) >= sizeof(buf)) {
+    if (n < 0 or size_t(n) >= sizeof(buf)) {
       puts("homepage does not fit in buffer");
       exit(7);
     }
-    homepage = std::make_unique<doc>(buf);
+    homepage = std::make_unique<doc>(buf, n);
   }
 
   inline static std::thread thdwatch{};

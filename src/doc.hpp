@@ -1,3 +1,4 @@
+// reviewed: 2023-09-28
 #pragma once
 #include "reply.hpp"
 
@@ -7,13 +8,9 @@ class doc final {
   size_t len_ = 0;
 
 public:
-  inline doc(/*copies*/ const char *data) {
-    const size_t maxlen = K * M;
-    len_ = strnlen(data, maxlen);
-    if (len_ == maxlen)
-      throw "doc:1";
+  inline doc(/*copies*/ const char *str, const size_t str_len) : len_{str_len} {
     buf_ = new char[len_];
-    memcpy(buf_, data, len_);
+    memcpy(buf_, str, len_);
   }
   inline doc(const doc &) = delete;
   inline doc &operator=(const doc &) = delete;
