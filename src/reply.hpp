@@ -1,3 +1,4 @@
+// reviewed: 2023-09-28
 #pragma once
 #include "chunky.hpp"
 #include "conf.hpp"
@@ -14,10 +15,10 @@ class reply final {
   const char *set_session_id_ = nullptr;
 
 public:
-  inline reply(const int fd = 0) : fd_{fd} {}
+  inline reply(const int fd) : fd_{fd} {}
   
   [[nodiscard]] inline /*give*/ chunky *
-  reply_chunky(const char *content_type = "text/html; charset=utf-8",
+  reply_chunky(const char *content_type = "text/html;charset=utf-8",
                const int response_code = 200) {
     chunky *rsp = new chunky(fd_);
     // 9 and 2 are length of strings
@@ -43,10 +44,10 @@ public:
 
   inline reply &http(const int code, const char *content = nullptr,
                      size_t len = 0,
-                     const char *content_type = "text/html; charset=utf-8") {
+                     const char *content_type = "text/html;charset=utf-8") {
     char header[256];
     if (content and len == 0) {
-      len = strnlen(content, K * M);
+      len = strnlen(content, conf::str_len_max);
     }
     int n = 0;
     if (set_session_id_) {
