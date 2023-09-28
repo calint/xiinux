@@ -15,7 +15,8 @@ class reply final {
 
 public:
   inline reply(const int fd = 0) : fd_{fd} {}
-  inline /*give*/ chunky *
+  
+  [[nodiscard]] inline /*give*/ chunky *
   reply_chunky(const char *content_type = "text/html; charset=utf-8",
                const int response_code = 200) {
     chunky *rsp = new chunky(fd_);
