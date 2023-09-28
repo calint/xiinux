@@ -4,7 +4,6 @@
     std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));
     xprinter &x = *y;
 [ ] review args
-[ ] consolidate sock.io_send, chunky.io_send and reply.send with a helper function
 [ ] xprinter for sockets with buffered sends
 [ ] sock: bind widget factories to paths
 [ ] access path, query, headers, session from widget
@@ -19,6 +18,7 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[x] consolidate sock.io_send, chunky.io_send and reply.send with a helper function
 [-] reply.http buffer_send=false
     -> reply.http needs to know the size of the content
 [x] reply.http content_type
