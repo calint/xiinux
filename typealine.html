@@ -9,21 +9,24 @@ function ajax_post(uri,data,on_done){
 	req.onreadystatechange=function(){
 		console.log("state: "+this.readyState);
 		switch(this.readyState){
-		case 1:console.log("  OPENED");
+		case XMLHttpRequest.OPENED:
+			console.log("  OPENED");
 			console.log("            status:"+this.status);
 			console.log("   response length:"+this.response.length);
 			this.setRequestHeader('Content-Type','text/plain;charset=utf-8');
 			this.send(data);
 			break;
-		case 2:console.log("  HEADERS_RECEIVED");
+		case XMLHttpRequest.HEADERS_RECEIVED:
+			console.log("  HEADERS_RECEIVED");
 			console.log("            status:"+this.status);
 			console.log("   response length:"+this.response.length);
 			break;
-		case 3:console.log("  LOADING");
+		case XMLHttpRequest.LOADING:
+			console.log("  LOADING");
 			console.log("            status:"+this.status);
 			console.log("   response length:"+this.response.length);
 			break;
-		case 4:// Loaded
+		case XMLHttpRequest.DONE:
 			console.log("  DONE");
 			console.log("            status:"+this.status);
 			console.log("   response length:"+this.response.length);
@@ -31,7 +34,7 @@ function ajax_post(uri,data,on_done){
 			console.log("\n-------------------------------------------------");
 			if(on_done)on_done(this);
 			break;
-		default:throw"unknownstate";
+		default:throw"unknown state";
 		}
 	};
 	req.onerror=function(){
