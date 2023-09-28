@@ -137,7 +137,6 @@ public:
   }
 
   inline static void stop() {
-    delete homepage;
     if (thdwatch_on) {
       thdwatch_on = false;
       thdwatch.join();
@@ -155,7 +154,7 @@ private:
       puts("homepage does not fit in buffer");
       exit(7);
     }
-    homepage = new doc(buf);
+    homepage = std::make_unique<doc>(buf);
   }
 
   inline static std::thread thdwatch{};

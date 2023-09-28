@@ -1,9 +1,10 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "stats.hpp"
-#include "defines.hpp"
 #include "conf.hpp"
+#include "defines.hpp"
+#include "stats.hpp"
 #include <cerrno>
+#include <memory>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -19,7 +20,7 @@ class doc;
 class widget;
 
 static int epoll_fd;
-static doc *homepage;
+static std::unique_ptr<doc> homepage;
 
 static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
                              const bool buffer_send = false,
