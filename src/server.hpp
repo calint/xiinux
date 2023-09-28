@@ -4,6 +4,7 @@
 #include "defines.hpp"
 #include "sock.hpp"
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 
 namespace xiinux {
 class server final {

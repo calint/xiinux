@@ -3,16 +3,14 @@
 #include "args.hpp"
 #include "conf.hpp"
 #include "decouple.hpp"
+#include "doc.hpp"
 #include "sessions.hpp"
 #include "web/web.hpp"
 #include "widget.hpp"
 #include <fcntl.h>
-#include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/sendfile.h>
-#include <sys/socket.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 namespace xiinux {
 class sock final {
@@ -104,7 +102,8 @@ public:
         if (::close(upload_fd_)) {
           perr("while closing upload file 2");
         }
-        io_send("HTTP/1.1 204\r\n\r\n", 16, true); // 16 is the length of string
+        // 16 is the length of string
+        io_send(fd_, "HTTP/1.1 204\r\n\r\n", 16);
         state = next_request;
       }
       if (state == next_request) {
@@ -287,7 +286,8 @@ private:
       // if client expects 100 continue before sending post
       const char *expect = headers_["expect"];
       if (expect and !strcmp(expect, "100-continue")) {
-        io_send("HTTP/1.1 100\r\n\r\n", 16, true);
+        // 16 is string length
+        io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
         state = receiving_content;
         return;
       }
@@ -330,7 +330,7 @@ private:
     const char *expect = headers_["expect"];
     if (expect and !strcmp(expect, "100-continue")) {
       // 16 is string length
-      io_send("HTTP/1.1 100\r\n\r\n", 16, true);
+      io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
       state = receiving_upload;
       return;
     }
@@ -355,7 +355,7 @@ private:
       }
       const char resp[] = "HTTP/1.1 204\r\n\r\n";
       // -1 to exclude '\0'
-      io_send(resp, sizeof(resp) - 1, true);
+      io_send(fd_, resp, sizeof(resp) - 1);
       state = next_request;
       return;
     }
@@ -402,7 +402,7 @@ private:
     if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
       constexpr char resp[] = "HTTP/1.1 304\r\n\r\n";
       // -1 to not include '\0'
-      io_send(resp, sizeof(resp) - 1, true);
+      io_send(fd_, resp, sizeof(resp) - 1);
       state = next_request;
       return;
     }
@@ -442,7 +442,7 @@ private:
     }
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw "sock:err1";
-    io_send(header_buf, size_t(header_buf_len), true, true);
+    io_send(fd_, header_buf, size_t(header_buf_len), true);
 
     const ssize_t n = file.resume_send_to(fd_);
     if (n < 0) {
@@ -621,7 +621,7 @@ private:
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline char unsafe_next_char() { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
-    
+
     inline ssize_t receive_from(const int fd_in) {
       const size_t nbytes_to_read = conf::sock_req_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
@@ -662,36 +662,6 @@ private:
     ev.events = EPOLLOUT;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodwrite";
-  }
-
-  inline size_t io_send(const char *ptr, size_t len,
-                        bool throw_if_send_not_complete = false,
-                        const bool buffer_send = false) {
-    stats.writes++;
-    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = send(fd_, ptr, len, flags);
-    if (n == -1) {
-      if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_lost;
-      stats.errors++;
-      throw "sock:io_send";
-    }
-    const size_t nbytes_sent = size_t(n);
-    stats.output += nbytes_sent;
-
-    if (conf::print_traffic) {
-      const ssize_t m = write(conf::print_traffic_fd, ptr, nbytes_sent);
-      if (m == -1 or m != n) {
-        perror("reply:io_send2");
-      }
-    }
-
-    if (throw_if_send_not_complete and nbytes_sent != len) {
-      stats.errors++;
-      throw "sock:sendnotcomplete";
-    }
-
-    return nbytes_sent;
   }
 } static server_socket;
 } // namespace xiinux

@@ -36,39 +36,6 @@ public:
     return rsp;
   }
 
-  inline size_t send(const char *buf, const size_t buf_len = 0,
-                     const bool buffer_send = true,
-                     bool throw_if_send_not_complete = false) {
-    stats.writes++;
-    const size_t nbytes_to_send =
-        buf_len ? buf_len : strnlen(buf, conf::str_len_max);
-    if (nbytes_to_send == conf::str_len_max)
-      throw "reply:send:str_len_max";
-    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = ::send(fd_, buf, nbytes_to_send, flags);
-    if (n == -1) {
-      if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_lost;
-      stats.errors++;
-      throw "reply:send";
-    }
-    stats.output += size_t(n);
-
-    if (conf::print_traffic) {
-      const ssize_t m = write(conf::print_traffic_fd, buf, size_t(n));
-      if (m == -1 or m != n) {
-        perror("reply:io_send");
-      }
-    }
-
-    if (throw_if_send_not_complete and size_t(n) != buf_len) {
-      stats.errors++;
-      throw "sendnotcomplete";
-    }
-
-    return size_t(n);
-  }
-
   inline void send_session_id_at_next_opportunity(const char *id) {
     set_session_id_ = id;
   }
@@ -97,11 +64,17 @@ public:
     if (n < 0 or size_t(n) >= sizeof(header))
       throw "reply:http:1";
 
-    send(header, size_t(n), content ? true : false, true);
+    io_send(fd_, header, size_t(n), content ? true : false);
     if (content) {
-      send(content, len, false, true);
+      io_send(fd_, content, len);
     }
     return *this;
+  }
+
+  inline size_t send(const char *ptr, size_t len,
+                     const bool buffer_send = false,
+                     bool throw_if_send_not_complete = true) {
+    return io_send(fd_, ptr, len, buffer_send, throw_if_send_not_complete);
   }
 };
 } // namespace xiinux

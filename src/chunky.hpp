@@ -1,6 +1,7 @@
 // reviewed: 2023-09-27
 #pragma once
 #include "conf.hpp"
+#include "decouple.hpp"
 #include "defines.hpp"
 #include "stats.hpp"
 #include "strb.hpp"
@@ -14,10 +15,10 @@ class chunky final : public xprinter {
   size_t len_ = 0;
   char buf_[conf::chunky_buf_size]; //? uninitialized
   bool finished_ = false;
-  int sockfd_;
+  int fd_;
 
 public:
-  inline chunky(int sockfd) : sockfd_{sockfd} {}
+  inline chunky(int sockfd) : fd_{sockfd} {}
   inline ~chunky() override {
     if (!finished_) {
       finish();
@@ -33,13 +34,15 @@ public:
     const int len = snprintf(buf, sizeof(buf), "%lx\r\n", len_);
     if (len < 0 or size_t(len) >= sizeof(buf))
       throw "chunky:1";
-    io_send(buf, size_t(len), true, true);
+
+    io_send(fd_, buf, size_t(len), true);
 
     size_t sent_total = 0;
     while (true) {
       while (true) {
         const size_t nsend = len_ - sent_total;
-        const size_t nsent = io_send(buf_ + sent_total, nsend, false, true);
+        const size_t nsent =
+            io_send(fd_, buf_ + sent_total, nsend, true, false);
         sent_total += nsent;
         if (nsent == nsend)
           break;
@@ -49,7 +52,7 @@ public:
       if (sent_total == len_)
         break;
     }
-    io_send("\r\n", 2, true, true); // 2 is string length
+    io_send(fd_, "\r\n", 2, true); // 2 is string length
     len_ = 0;
     return *this;
   }
@@ -60,14 +63,14 @@ public:
     flush();
     constexpr char fin[] = "0\r\n\r\n";
     // -1 to exclude terminator '\0'
-    io_send(fin, sizeof(fin) - 1, true, false);
+    io_send(fd_, fin, sizeof(fin) - 1);
     finished_ = true;
     return *this;
   }
 
   // sends current buffer as is
   inline chunky &send_response_header() {
-    io_send(buf_, len_, true, true);
+    io_send(fd_, buf_, len_, true);
     len_ = 0;
     return *this;
   }
@@ -146,32 +149,5 @@ public:
   }
 
   inline chunky &nl() override { return p('\n'); }
-
-private:
-  inline size_t io_send(const char *buf, size_t buf_len,
-                        bool throw_if_send_not_complete = false,
-                        const bool buffer_send = false) {
-    stats.writes++;
-    const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = send(sockfd_, buf, buf_len, flags);
-    if (n == -1) {
-      if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_lost;
-      stats.errors++;
-      throw "chunky:io_send";
-    }
-    stats.output += size_t(n);
-    if (conf::print_traffic) {
-      const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
-      if (m == -1 or m != n) {
-        perror("writing traffic");
-      }
-    }
-    if (throw_if_send_not_complete and size_t(n) != buf_len) {
-      stats.errors++;
-      throw "send not complete";
-    }
-    return size_t(n);
-  }
 };
 } // namespace xiinux

@@ -16,6 +16,6 @@ public:
     memcpy(buf_, data, len_);
   }
   inline ~doc() { delete[] buf_; }
-  inline void to(reply &x) const { x.send(buf_, len_, false); }
+  inline void to(reply &x) const { x.send(buf_, len_); }
 };
 } // namespace xiinux
