@@ -1,6 +1,7 @@
 HOST=localhost
 PORT=8088
 HTTP=http://$HOST:$PORT
+
 echo&&date&&echo coverage tests on $HTTP&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * small file"&&
@@ -8,9 +9,9 @@ curl -s $HTTP/qa/q01.txt>cmp&&
 diff -q cmp t01.cmp&&
 rm cmp&&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
-echo " * larger file 16k"&&
+echo " * larger file 16K"&&
 curl -s $HTTP/qa/ipsum16k.txt>cmp&&
-diff -q cmp ../qa/ipsum16k.txt&&
+diff -q cmp ipsum16k.txt&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 echo " * if-modified-since"&&

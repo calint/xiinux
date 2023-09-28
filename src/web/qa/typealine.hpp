@@ -2,9 +2,11 @@
 #pragma once
 // used in qa/test-coverage.sh
 namespace xiinux::web::qa {
-class typealine final: public widget {
+class typealine final : public widget {
 
-  void to(reply &x) override { x.http(403, "forbidden. intended for post only"); }
+  void to(reply &x) override {
+    x.http(403, "forbidden. intended for post only");
+  }
 
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
                   const size_t received_len,
@@ -15,7 +17,7 @@ class typealine final: public widget {
       x.send(sb.buf(), sb.len(), true, true);
       return;
     }
-    x.send(buf, buf_len, true, received_len != content_len);
+    x.send(buf, buf_len, received_len != content_len, true);
   }
 };
 } // namespace xiinux::web::qa

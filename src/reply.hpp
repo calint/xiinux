@@ -36,17 +36,21 @@ public:
     return rsp;
   }
 
-  inline size_t send(const char *buf, size_t buf_len,
-                     bool throw_if_send_not_complete = false,
-                     const bool buffer_send = false) {
+  inline size_t send(const char *buf, const size_t buf_len = 0,
+                     const bool buffer_send = true,
+                     bool throw_if_send_not_complete = false) {
     stats.writes++;
+    const size_t nbytes_to_send =
+        buf_len ? buf_len : strnlen(buf, conf::str_len_max);
+    if (nbytes_to_send == conf::str_len_max)
+      throw "reply:send:str_len_max";
     const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
-    const ssize_t n = ::send(fd_, buf, buf_len, flags);
+    const ssize_t n = ::send(fd_, buf, nbytes_to_send, flags);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
-      throw "reply:io_send";
+      throw "reply:send";
     }
     stats.output += size_t(n);
 
@@ -69,10 +73,9 @@ public:
     set_session_id_ = id;
   }
 
-  // todo: content_type
-  // todo: buffer_send=false
   inline reply &http(const int code, const char *content = nullptr,
-                     size_t len = 0) {
+                     size_t len = 0,
+                     const char *content_type = "text/html; charset=utf-8") {
     char header[256];
     if (content and len == 0) {
       len = strnlen(content, K * M);
@@ -82,19 +85,21 @@ public:
       n = snprintf(header, sizeof(header),
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
                    "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
-                   "GMT;SameSite=Lax\r\n\r\n",
-                   code, len, set_session_id_);
+                   "GMT;SameSite=Lax\r\nContent-Type: %s\r\n\r\n",
+                   code, len, set_session_id_, content_type);
       set_session_id_ = nullptr;
     } else {
-      n = snprintf(header, sizeof(header),
-                   "HTTP/1.1 %d\r\nContent-Length: %zu\r\n\r\n", code, len);
+      n = snprintf(
+          header, sizeof(header),
+          "HTTP/1.1 %d\r\nContent-Length: %zu\r\nContent-Type: %s\r\n\r\n",
+          code, len, content_type);
     }
     if (n < 0 or size_t(n) >= sizeof(header))
       throw "reply:http:1";
 
-    send(header, size_t(n), true, content ? true : false);
+    send(header, size_t(n), content ? true : false, true);
     if (content) {
-      send(content, len, true, false);
+      send(content, len, false, true);
     }
     return *this;
   }

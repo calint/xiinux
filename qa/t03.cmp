@@ -1,4 +1,5 @@
 HTTP/1.1 404
 Content-Length: 10
+Content-Type: text/html; charset=utf-8
 
 not found

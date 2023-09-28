@@ -1,10 +1,8 @@
+[ ] review reply
+[ ] review doc. rename to cached
 [ ] examine if splicing can occur when doing:
     std::unique_ptr<chunky> y(/*take*/ r.reply_chunky("text/plain;charset=utf-8"));
     xprinter &x = *y;
-[ ] reply.http buffer_send=false
-[ ] reply.http content_type
-[ ] review reply
-[ ] review doc. rename to cached
 [ ] review args
 [ ] consolidate sock.io_send, chunky.io_send and reply.send with a helper function
 [ ] xprinter for sockets with buffered sends
@@ -21,6 +19,9 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[-] reply.http buffer_send=false
+    -> reply.http needs to know the size of the content
+[x] reply.http content_type
 [x] review strb
 [x] review chunky
 [x] reduce packets count when sending files
