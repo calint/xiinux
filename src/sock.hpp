@@ -257,43 +257,9 @@ private:
 
   void do_serve_widget(widget *(*factory)()) {
     stats.widgets++;
-    const char *cookie = headers_["cookie"];
-    const char *session_id = nullptr;
-    if (cookie and strstr(cookie, "i=")) {
-      // -1 to exclude '\0'
-      session_id = cookie + sizeof("i=") - 1;
-    }
-    if (!session_id) {
-      // create session
-      time_t timer = time(nullptr);
-      struct tm *tm_info = gmtime(&timer);
-      // format to e.g. '20150411-225519-ieu44dn'
-      char *sid = new char[24];
-      if (!strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info)) {
-        throw "sock:do_serve_widget:1";
-      }
-      // 16 is len of "20150411-225519-"
-      char *sid_ptr = sid + 16;
-      for (unsigned i = 0; i < 7; i++) {
-        *sid_ptr++ = 'a' + char((random()) % 26);
-      }
-      *sid_ptr = '\0';
-      session_ = new session(/*give*/ sid);
-      sessions.put(session_, false);
-      send_session_id_in_reply_ = true;
-    } else {
-      session_ = sessions.get(session_id);
-      if (!session_) {
-        // 24 is the size of session id including '\0'
-        // e.g: "20150411-225519-ieu44dn\0"
-        char *sid = new char[24];
-        strncpy(sid, session_id, 23);
-        // make sure sid is terminated
-        sid[23] = '\0';
-        session_ = new session(/*give*/ sid);
-        sessions.put(/*give*/ session_, false);
-      }
-    }
+
+    init_session();
+
     widget_ = session_->get_widget(reqline.path_);
     if (!widget_) {
       widget_ = /*take*/ factory();
@@ -349,6 +315,50 @@ private:
 
     widget_->on_content(x, buf.ptr(), rem, rem, content_len);
     content.unsafe_skip(rem);
+  }
+
+  void init_session() {
+    const char *cookie = headers_["cookie"];
+    const char *session_id = nullptr;
+    if (cookie and strstr(cookie, "i=")) {
+      // -1 to exclude '\0'
+      session_id = cookie + sizeof("i=") - 1;
+    }
+    if (!session_id) {
+      // no session id, create session
+      time_t timer = time(nullptr);
+      struct tm *tm_info = gmtime(&timer);
+      // format to e.g. '20150411-225519-ieu44dn'
+      char *sid = new char[24];
+      if (!strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info)) {
+        throw "sock:do_serve_widget:1";
+      }
+      // 16 is len of "20150411-225519-"
+      char *sid_ptr = sid + 16;
+      for (unsigned i = 0; i < 7; i++) {
+        *sid_ptr++ = 'a' + char((random()) % 26);
+      }
+      *sid_ptr = '\0';
+      session_ = new session(/*give*/ sid);
+      sessions.put(session_, false);
+      send_session_id_in_reply_ = true;
+      return;
+    }
+
+    // try to get active session
+    session_ = sessions.get(session_id);
+    if (session_)
+      return;
+
+    // session not found, create
+    // 24 is the size of session id including '\0'
+    // e.g: "20150411-225519-ieu44dn\0"
+    char *sid = new char[24];
+    strncpy(sid, session_id, 23);
+    // make sure sid is terminated
+    sid[23] = '\0';
+    session_ = new session(/*give*/ sid);
+    sessions.put(/*give*/ session_, false);
   }
 
   void do_serve_upload() {
