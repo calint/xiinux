@@ -11,14 +11,16 @@ public:
     constexpr char html5_preamble[] =
         "<!doctype html><script src=/x.js></script><link "
         "rel=stylesheet href=/x.css>";
-    // -1 to not copy the terminator \0
-    // 7, 4 and 8 are the number of characters to copy
+    // -1 don't copy the terminating '\0'
+    // 7, 4 and 8 are string lengths
     s.p(html5_preamble, sizeof(html5_preamble) - 1);
     s.p("<title>", 7).p("page", 4).p("</title>", 8);
-    s.p("<input id=_btn type=button value=update "
-        "onclick=\"this.disabled=true;ajax_post('/"
-        "?page',$('_txt').value,function(r){console.log(r);$('_btn')."
-        "disabled=false;eval(r.responseText);})\">")
+
+    s.p("Type JavaScript to execute on client <input id=_btn type=button "
+        "value=run "
+        "onclick=\"this.disabled=true;ajax_post('/qa/"
+        "page',$('_txt').value,function(r){console.log(r.responseText);$('_btn'"
+        ").disabled=false;eval(r.responseText);})\">")
         .p("\n")
         .p("<textarea id=_txt class=big>")
         .p(txt)
@@ -40,7 +42,7 @@ public:
     txt.p(buf, buf_len);
 
     if (received_len == content_len) {
-      x.http(200, "location.reload();");
+      x.http(200, txt.buf(), txt.len());
     }
   }
 };

@@ -11,6 +11,7 @@
 [ ] ? headers in std::unordered_map
 [ ] qa: gnuplot
 [ ] hierarchial widgets
+[ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
 [x] widget map to path using function pointers
 [-] lut: return std::optional<const T&>
