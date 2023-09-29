@@ -13,7 +13,8 @@
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
 [x] examine if a const ref can be returned from lut to avoid copies of std::function
-    -> done and implemented
+    -> done and implemented. unclear whether comparing a string twice is cheaper
+       than copy a std::function
 [x] sock: bind widget factories to paths
 [x] review doc. rename to cached
 [x] review reply
