@@ -1,7 +1,7 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "../../widget.hpp"
 #include "../../chunky.hpp"
+#include "../../widget.hpp"
 #include <memory>
 
 // used in qa/test-coverage.sh
@@ -13,15 +13,12 @@ public:
     xprinter &x = *y;
 
     constexpr size_t buf_len = 1024 * 1024;
-    char buf[buf_len];
-    char *p = buf;
-    unsigned char ch = 0;
-    for (unsigned i = 0; i < buf_len; i++) {
-      *p = 'a' + char(ch % 26);
-      p++;
-      ch++;
+    strb<buf_len> sb{};
+    int i = 0;
+    while (sb.len() + 128 < buf_len) {
+      sb.p(i++).p(' ');
     }
-    x.p(buf, buf_len);
+    x.p(sb.buf(), sb.len());
   }
 };
 } // namespace xiinux::web::qa

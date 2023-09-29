@@ -44,7 +44,7 @@ public:
     txt.p(buf, buf_len);
 
     if (received_len == content_len) { // last call?
-      x.http(200, txt.buf(), txt.len());
+      x.http(200, txt.buf(), txt.len(), "text/plain;charset=utf-8");
     }
   }
 };

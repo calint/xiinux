@@ -18,16 +18,15 @@ public:
   int fd_ = 0;
   inline sock(const int f = 0) : fd_{f} {
     stats.socks++;
-    printf(". create sock %p\n", static_cast<void *>(this));
+    // printf("client create %p\n", static_cast<void *>(this));
   }
   inline sock(const sock &) = delete;
   inline sock &operator=(const sock &) = delete;
 
   inline ~sock() {
-    printf(". delete sock %p\n", static_cast<void *>(this));
     content.free();
     if (!::close(fd_)) {
-      printf(". closed sock %p\n", static_cast<void *>(this));
+      // printf("client close %p\n", static_cast<void *>(this));
       stats.socks--;
       return;
     }

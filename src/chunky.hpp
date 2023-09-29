@@ -26,17 +26,20 @@ public:
   }
 
   inline chunky &flush() {
+    // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
     if (len_ == 0)
       return *this;
 
-    // send header
-    char buf[32];
-    const int len = snprintf(buf, sizeof(buf), "%lx\r\n", len_);
-    if (len < 0 or size_t(len) >= sizeof(buf))
+    // chunk header
+    char hdr[32];
+    const int hdr_len = snprintf(hdr, sizeof(hdr), "%lx\r\n", len_);
+    if (hdr_len < 0 or size_t(hdr_len) >= sizeof(hdr))
       throw "chunky:1";
 
-    io_send(fd_, buf, size_t(len), true);
+    // send chunk header
+    io_send(fd_, hdr, size_t(hdr_len), true);
 
+    // send chunk
     size_t sent_total = 0;
     while (true) {
       while (true) {
@@ -52,6 +55,7 @@ public:
       if (sent_total == len_)
         break;
     }
+    // terminate the chunk
     io_send(fd_, "\r\n", 2, true); // 2 is string length
     len_ = 0;
     return *this;
@@ -80,7 +84,7 @@ public:
   }
 
   inline chunky &p(/*scans*/ const char *str, const size_t str_len) override {
-    const ssize_t buf_size = sizeof(buf_);
+    constexpr ssize_t buf_size = sizeof(buf_);
     const ssize_t buf_rem = buf_size - ssize_t(len_);
     ssize_t rem = buf_rem - ssize_t(str_len);
     if (rem >= 0) { // str fits in remaining buffer
@@ -89,20 +93,23 @@ public:
       return *this;
     }
     // str does not fit in buffer
-    // fill remaining buffer then flush
+    // fill remaining buffer and flush
     strncpy(buf_ + len_, str, size_t(buf_rem));
     len_ += size_t(buf_rem);
     flush();
-    // loop until done
+
+    // loop until remaining str fits in buffer
     const char *s = str + buf_rem; // pointer to remaining part of 'str'
     rem = -rem;                    // remaining chars to be sent from 'str'
     while (true) {
-      const ssize_t n = buf_size - ssize_t(len_);
-      const ssize_t m = rem <= n ? rem : n;
-      strncpy(buf_ + len_, s, size_t(m));
-      len_ += size_t(m);
-      flush();
+      // does remaining str fit in buffer?
+      const ssize_t m = rem <= buf_size ? rem : buf_size;
+      strncpy(buf_, s, size_t(m)); // ? if m==buf_size do io_send skipping copy to buffer
       rem -= ssize_t(m);
+      len_ += size_t(m);
+      if (len_ == buf_size) { // if buffer full
+        flush();
+      }
       if (rem == 0)
         return *this;
       s += m;

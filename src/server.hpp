@@ -53,8 +53,9 @@ public:
     }
 
     struct epoll_event server_ev;
-    server_ev.events = EPOLLIN | EPOLLRDHUP;
-    server_ev.data.fd = server_fd;
+    server_ev.events = EPOLLIN;
+    // address of server fd cannot be same as a client address
+    server_ev.data.ptr = &server_fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &server_ev)) {
       perror("epolladd");
       exit(5);
@@ -81,28 +82,28 @@ public:
       for (unsigned i = 0; i < unsigned(n); i++) {
         struct epoll_event &ev = events[i];
         // check if server socket
-        if (ev.data.fd == server_fd) {
+        if (ev.data.ptr == &server_fd) {
           // server, new connection
+          // printf("server accept %p %x\n", ev.data.ptr, ev.events);
           stats.accepts++;
-          const int fd = accept(server_fd, nullptr, nullptr);
-          if (fd == -1) {
+          const int client_fd = accept(server_fd, nullptr, nullptr);
+          if (client_fd == -1) {
             perror("accept");
             continue;
           }
-          int opts = fcntl(fd, F_GETFL);
+          int opts = fcntl(client_fd, F_GETFL);
           if (opts == -1) {
             perror("fncntl1");
             continue;
           }
           opts |= O_NONBLOCK;
-          if (fcntl(fd, F_SETFL, opts) == -1) {
+          if (fcntl(client_fd, F_SETFL, opts) == -1) {
             perror("fncntl2");
             continue;
           }
-          ev.data.fd = fd;
-          ev.data.ptr = new sock(fd);
+          ev.data.ptr = new sock(client_fd);
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
-          if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev)) {
+          if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev)) {
             perror("epoll_ctl");
             continue;
           }
@@ -112,7 +113,7 @@ public:
 
           if (option_benchmark_mode) {
             int flag = 1;
-            if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+            if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY,
                            static_cast<void *>(&flag), sizeof(int))) {
               perror("setsockopt TCP_NODELAY");
               continue;
@@ -121,7 +122,7 @@ public:
           continue;
         }
         // sock, read, write or hang-up available
-        printf(". epoll ev: %x\n", ev.events);
+        // printf("client event %p %x\n", ev.data.ptr, ev.events);
         sock *c = static_cast<sock *>(ev.data.ptr);
         if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
           delete c;

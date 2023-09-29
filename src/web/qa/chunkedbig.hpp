@@ -11,7 +11,7 @@ public:
     xprinter &x = *y;
 
     for (unsigned i = 0; i < 4 * 1024; i++) {
-      x.p("chunked response ");
+      x.p(" chunked response ").p(int(i));
     }
   }
 };
