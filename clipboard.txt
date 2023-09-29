@@ -1,5 +1,8 @@
 watch cat /proc/$(ps a|grep xiinux|head -n1|awk '{print $1}')/status
 
+# watch open sockets count
+XID=$(ps a|grep xiinux|head -n1|awk '{print $1}') watch -n 1 "lsof -a -p $XID -i | grep TCP | wc -l"
+
 TAG=$(date "+%Y-%m-%d--%H-%M") && git tag $TAG && git push origin $TAG
 
 git reset --hard HEAD
