@@ -228,10 +228,8 @@ public:
 
 private:
   void do_after_headers() {
-    const std::function<widget *()> &widget_factory =
-        web::widget_factory_for_path(reqline.path_);
-    if (widget_factory) {
-      do_serve_widget(widget_factory);
+    if (web::widget_factory_is_mapped_to_path(reqline.path_)) {
+      do_serve_widget(web::widget_factory_for_path(reqline.path_));
       return;
     }
 

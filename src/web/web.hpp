@@ -37,9 +37,13 @@ static inline void init_path_to_widget_factory_map() {
   });
 }
 
-static inline const std::function<widget *()> 
+static inline bool widget_factory_is_mapped_to_path(const char *path) {
+  return path_to_widget_factory_map.has(path);
+}
+
+static inline const std::function<widget *()> &
 widget_factory_for_path(const char *path) {
-  return path_to_widget_factory_map[path];
+  return path_to_widget_factory_map.get_ref_const(path);
 }
 
 } // namespace xiinux::web

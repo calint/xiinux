@@ -23,6 +23,7 @@ template <class T> class lut final {
   };
   el **array_ = nullptr;
   unsigned size_ = 0;
+  mutable el *has_found_el_ = nullptr;
 
   // note. size must be 2^n because size-1 will be used for bitwise 'and'
   static inline unsigned hash(const char *key, const unsigned size) {
@@ -47,7 +48,27 @@ public:
     free(array_);
   }
 
+  inline bool has(const char *key) const {
+    const unsigned h = hash(key, size_);
+    el *e = array_[h];
+    while (e) {
+      if (!strcmp(e->key_, key)) {
+        has_found_el_ = e;
+        return true;
+      }
+      e = e->nxt_;
+    }
+    return false;
+  }
+
   inline T operator[](const char *key) const {
+    if (has_found_el_) { // try the last found element from "has"
+      const el *e = has_found_el_;
+      has_found_el_ = nullptr;
+      if (!strcmp(e->key_, key)) {
+        return e->data_;
+      }
+    }
     const unsigned h = hash(key, size_);
     el *e = array_[h];
     while (e) {
@@ -56,6 +77,24 @@ public:
       e = e->nxt_;
     }
     return nullptr;
+  }
+
+  inline const T &get_ref_const(const char *key) const {
+    if (has_found_el_) { // try the last found element from "has"
+      const el *e = has_found_el_;
+      has_found_el_ = nullptr;
+      if (!strcmp(e->key_, key)) {
+        return e->data_;
+      }
+    }
+    const unsigned h = hash(key, size_);
+    el *e = array_[h];
+    while (e) {
+      if (!strcmp(e->key_, key))
+        return e->data_;
+      e = e->nxt_;
+    }
+    throw "lut:get_ref_const:not_found";
   }
 
   inline void put(const char *key, T data, bool allow_overwrite = true) {

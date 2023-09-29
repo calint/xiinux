@@ -1,5 +1,4 @@
 [ ] review args
-[ ] examine if a const ref can be returned from lut to avoid copies of std::function
 [ ] access path, query, headers, session from widget
 [ ] decode query string on demand
 [ ] xprinter for sockets with buffered sends
@@ -13,6 +12,8 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[x] examine if a const ref can be returned from lut to avoid copies of std::function
+    -> done and implemented
 [x] sock: bind widget factories to paths
 [x] review doc. rename to cached
 [x] review reply
