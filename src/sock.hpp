@@ -501,8 +501,6 @@ private:
 
   inline void io_request_read() {
     struct epoll_event ev;
-    // note. not necessary to assign 'ev.data.fd' because it is only used to
-    // compare with 'server_fd'
     ev.data.ptr = this;
     ev.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
@@ -511,7 +509,6 @@ private:
 
   inline void io_request_write() {
     struct epoll_event ev;
-    // see note in io_request_read
     ev.data.ptr = this;
     ev.events = EPOLLOUT | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
