@@ -677,7 +677,8 @@ private:
 
   inline void io_request_read() {
     struct epoll_event ev;
-    // note. not necessary to assign because it is used to compare with server socket
+    // note. not necessary to assign 'ev.data.fd' because it is only used to
+    // compare with 'server_fd'
     ev.data.fd = fd_;
     ev.data.ptr = this;
     ev.events = EPOLLIN;
