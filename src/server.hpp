@@ -61,7 +61,7 @@ public:
     }
 
     init_homepage();
-    
+
     web::widget_init_path_to_factory_map();
 
     if (thdwatch_on) {
@@ -121,6 +121,7 @@ public:
           continue;
         }
         // sock, read or write available
+        printf(". epoll ev: %ud\n", ev.events);
         sock *c = static_cast<sock *>(ev.data.ptr);
         try {
           c->run();

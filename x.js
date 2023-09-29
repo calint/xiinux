@@ -12,6 +12,8 @@ function ajax_post(uri,data,on_done){
 			dbg("            status:"+this.status);
 			dbg("   response length:"+this.response.length);
 			this.setRequestHeader('Content-Type','text/plain;charset=utf-8');
+			dbg("          data len:"+data.length);
+			dbg("              data:`"+data+"`");
 			this.send(data);
 			break;
 		case XMLHttpRequest.HEADERS_RECEIVED:
