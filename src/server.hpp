@@ -61,6 +61,7 @@ public:
     }
 
     init_homepage();
+    
     web::widget_init_path_to_factory_map();
 
     if (thdwatch_on) {

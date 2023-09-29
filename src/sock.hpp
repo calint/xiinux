@@ -677,6 +677,8 @@ private:
 
   inline void io_request_read() {
     struct epoll_event ev;
+    // note. not necessary to assign because it is used to compare with server socket
+    ev.data.fd = fd_;
     ev.data.ptr = this;
     ev.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
@@ -685,6 +687,8 @@ private:
 
   inline void io_request_write() {
     struct epoll_event ev;
+    // see note in io_request_read
+    ev.data.fd = fd_;
     ev.data.ptr = this;
     ev.events = EPOLLOUT;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
