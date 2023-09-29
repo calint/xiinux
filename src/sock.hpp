@@ -65,14 +65,14 @@ public:
           stats.errors++;
           throw "sock:receiving_content";
         }
-        const size_t un = size_t(n);
-        const size_t rem = content.remaining();
+        const size_t nbytes_read = size_t(n);
+        const size_t content_rem = content.remaining();
         const size_t content_len = content.content_len();
         reply x{fd_};
-        widget_->on_content(x, content.buf(), un, content.pos() + un,
-                            content_len);
-        if (rem > un) { // not finished
-          content.unsafe_skip(un);
+        widget_->on_content(x, content.buf(), nbytes_read,
+                            content.pos() + nbytes_read, content_len);
+        if (content_rem > nbytes_read) { // not finished
+          content.unsafe_skip(nbytes_read);
           continue;
         }
         // this was the last part
@@ -88,14 +88,15 @@ public:
           stats.errors++;
           throw "sock:receiving_upload";
         }
-        const size_t un = size_t(n);
-        const size_t rem = content.remaining();
-        const size_t nbytes_to_write = rem > un ? un : rem;
+        const size_t nbytes_read = size_t(n);
+        const size_t upload_rem = content.remaining();
+        const size_t nbytes_to_write =
+            upload_rem > nbytes_read ? nbytes_read : upload_rem;
         const ssize_t m = write(upload_fd_, content.buf(), nbytes_to_write);
         if (m == -1 or size_t(m) != nbytes_to_write) {
           stats.errors++;
           perror("sock:run:upload");
-          throw "sock:writing upload to file";
+          throw "sock:writing upload to file 1";
         }
         if (m != n)
           throw "sock:writing upload to file 2";
@@ -103,10 +104,11 @@ public:
         if (content.remaining())
           continue;
         if (::close(upload_fd_)) {
-          perr("while closing upload file 2");
+          perror("sock:closing upload file");
         }
-        // 16 is the length of string
-        io_send(fd_, "HTTP/1.1 204\r\n\r\n", 16);
+        constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
+        // -1 to not include '\0'
+        io_send(fd_, msg, sizeof(msg) - 1);
         state = next_request;
       }
       if (state == next_request) {
@@ -289,8 +291,9 @@ private:
     // if client expects 100 continue before sending post
     const char *expect = headers_["expect"];
     if (expect and !strcmp(expect, "100-continue")) {
-      // 16 is string length
-      io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
+      constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
+      // -1 to not include '\0'
+      io_send(fd_, msg, sizeof(msg) - 1);
       state = receiving_content;
       return;
     }
@@ -664,7 +667,6 @@ private:
     struct epoll_event ev;
     // note. not necessary to assign 'ev.data.fd' because it is only used to
     // compare with 'server_fd'
-    ev.data.fd = fd_;
     ev.data.ptr = this;
     ev.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
@@ -674,7 +676,6 @@ private:
   inline void io_request_write() {
     struct epoll_event ev;
     // see note in io_request_read
-    ev.data.fd = fd_;
     ev.data.ptr = this;
     ev.events = EPOLLOUT | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
