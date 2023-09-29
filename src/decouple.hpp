@@ -4,7 +4,6 @@
 #include "defines.hpp"
 #include "stats.hpp"
 #include <cerrno>
-#include <functional>
 #include <memory>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -55,8 +54,6 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
 } // namespace xiinux
 
 namespace xiinux::web {
-static inline void init_path_to_widget_factory_map();
-static inline bool widget_factory_is_mapped_to_path(const char *path);
-static inline const std::function<widget *()> &
-widget_factory_for_path(const char *path);
+static inline void widget_init_path_to_factory_map();
+static inline widget *(*widget_factory_for_path(const char *path))();
 } // namespace xiinux::web

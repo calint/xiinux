@@ -228,8 +228,9 @@ public:
 
 private:
   void do_after_headers() {
-    if (web::widget_factory_is_mapped_to_path(reqline.path_)) {
-      do_serve_widget(web::widget_factory_for_path(reqline.path_));
+    widget *(*factory)() = web::widget_factory_for_path(reqline.path_);
+    if (factory) {
+      do_serve_widget(factory);
       return;
     }
 
@@ -254,7 +255,7 @@ private:
     do_serve_file(x, path);
   }
 
-  void do_serve_widget(const std::function<widget *()> &factory) {
+  void do_serve_widget(widget *(*factory)()) {
     stats.widgets++;
     const char *cookie = headers_["cookie"];
     const char *session_id = nullptr;

@@ -9,41 +9,29 @@
 #include "qa/hello.hpp"
 #include "qa/page.hpp"
 #include "qa/typealine.hpp"
-#include <functional>
 
 namespace xiinux::web {
 
-inline static lut<std::function<widget *()>> path_to_widget_factory_map{};
+inline static lut<widget *(*)()> widget_path_to_factory_map{};
 
-static inline void init_path_to_widget_factory_map() {
-  path_to_widget_factory_map.put(
-      "/qa/hello", []() -> widget * { return new xiinux::web::qa::hello(); });
-  path_to_widget_factory_map.put("/qa/typealine", []() -> widget * {
-    return new xiinux::web::qa::typealine();
-  });
-  path_to_widget_factory_map.put("/qa/counter", []() -> widget * {
-    return new xiinux::web::qa::counter();
-  });
-  path_to_widget_factory_map.put(
-      "/qa/page", []() -> widget * { return new xiinux::web::qa::page(); });
-  path_to_widget_factory_map.put("/qa/chunked", []() -> widget * {
-    return new xiinux::web::qa::chunked();
-  });
-  path_to_widget_factory_map.put("/qa/chunkedbig", []() -> widget * {
-    return new xiinux::web::qa::chunkedbig();
-  });
-  path_to_widget_factory_map.put("/qa/chunkedbigger", []() -> widget * {
-    return new xiinux::web::qa::chunkedbigger();
-  });
+static inline widget *(*widget_factory_for_path(const char *path))(){
+  return widget_path_to_factory_map[path];
 }
 
-static inline bool widget_factory_is_mapped_to_path(const char *path) {
-  return path_to_widget_factory_map.has(path);
-}
+inline static widget *widget_create_hello() { return new qa::hello(); }
+inline static widget *widget_create_typealine() { return new qa::typealine(); }
+inline static widget *widget_create_counter() { return new qa::counter(); }
+inline static widget *widget_create_chunked() { return new qa::chunked(); }
+inline static widget *widget_create_chunkedbig() { return new qa::chunkedbig(); }
+inline static widget *widget_create_chunkedbigger() { return new qa::chunkedbigger(); }
 
-static inline const std::function<widget *()> &
-widget_factory_for_path(const char *path) {
-  return path_to_widget_factory_map.get_ref_const(path);
+static inline void widget_init_path_to_factory_map() {
+  widget_path_to_factory_map.put("/qa/hello", widget_create_hello);
+  widget_path_to_factory_map.put("/qa/typealine", widget_create_typealine);
+  widget_path_to_factory_map.put("/qa/counter", widget_create_counter);
+  widget_path_to_factory_map.put("/qa/chunked", widget_create_chunked);
+  widget_path_to_factory_map.put("/qa/chunkedbig", widget_create_chunkedbig);
+  widget_path_to_factory_map.put("/qa/chunkedbigger", widget_create_chunkedbigger);
 }
 
 } // namespace xiinux::web

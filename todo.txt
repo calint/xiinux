@@ -1,4 +1,3 @@
-[ ] lut: return std::optional<const T&>
 [ ] review args
 [ ] access path, query, headers, session from widget
 [ ] decode query string on demand
@@ -13,6 +12,9 @@
 [ ] qa: gnuplot
 [ ] hierarchial widgets
 --------------------------------------------------------------------------------..
+[x] widget map to path using function pointers
+[-] lut: return std::optional<const T&>
+    -> effort failed in complexity
 [x] examine if a const ref can be returned from lut to avoid copies of std::function
     -> done and implemented. unclear whether comparing a string twice is cheaper
        than copy a std::function

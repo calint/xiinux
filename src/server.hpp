@@ -62,7 +62,7 @@ public:
     }
 
     init_homepage();
-    web::init_path_to_widget_factory_map();
+    web::widget_init_path_to_factory_map();
 
     if (thdwatch_on) {
       thdwatch = std::thread(thdwatch_run);
