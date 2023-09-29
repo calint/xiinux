@@ -76,13 +76,11 @@ public:
           content.unsafe_skip(un);
           continue;
         }
-        // last chunk
+        // this was the last part
         state = next_request;
       } else if (state == receiving_upload) {
         const ssize_t n = content.receive_from(fd_);
-        if (n == 0)
-          throw signal_connection_lost;
-        if (n < 0) {
+        if (n == -1) {
           if (errno == EAGAIN) {
             io_request_read();
             return;
@@ -368,8 +366,9 @@ private:
     // check if client expects 100-continue before sending content
     const char *expect = headers_["expect"];
     if (expect and !strcmp(expect, "100-continue")) {
-      // 16 is string length
-      io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
+      constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
+      // -1 to not include '\0'
+      io_send(fd_, msg, sizeof(msg) - 1);
       state = receiving_upload;
       return;
     }
@@ -392,9 +391,9 @@ private:
       if (::close(upload_fd_)) {
         perr("while closing upload file");
       }
-      const char resp[] = "HTTP/1.1 204\r\n\r\n";
-      // -1 to exclude '\0'
-      io_send(fd_, resp, sizeof(resp) - 1);
+      constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
+      // -1 to not include '\0'
+      io_send(fd_, msg, sizeof(msg) - 1);
       state = next_request;
       return;
     }
@@ -410,24 +409,24 @@ private:
 
   void do_serve_file(reply &x, const char *path) {
     if (strstr(path, "..")) {
-      constexpr char err[] = "path contains ..\n";
+      constexpr char msg[] = "path contains ..\n";
       // -1 to not include '\0'
-      x.http(403, err, sizeof(err) - 1);
+      x.http(403, msg, sizeof(msg) - 1);
       state = next_request;
       return;
     }
     struct stat fdstat;
     if (stat(path, &fdstat)) {
-      constexpr char err[] = "not found\n";
+      constexpr char msg[] = "not found\n";
       // -1 to not include '\0'
-      x.http(404, err, sizeof(err) - 1);
+      x.http(404, msg, sizeof(msg) - 1);
       state = next_request;
       return;
     }
     if (S_ISDIR(fdstat.st_mode)) {
-      constexpr char err[] = "path is directory\n";
+      constexpr char msg[] = "path is directory\n";
       // -1 to not include '\0'
-      x.http(403, err, sizeof(err) - 1);
+      x.http(403, msg, sizeof(msg) - 1);
       state = next_request;
       return;
     }
@@ -439,16 +438,16 @@ private:
     }
     const char *lastmodstr = headers_["if-modified-since"];
     if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
-      constexpr char resp[] = "HTTP/1.1 304\r\n\r\n";
+      constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
       // -1 to not include '\0'
-      io_send(fd_, resp, sizeof(resp) - 1);
+      io_send(fd_, msg, sizeof(msg) - 1);
       state = next_request;
       return;
     }
     if (file.open(path) == -1) {
-      constexpr char err[] = "cannot open file\n";
+      constexpr char msg[] = "cannot open file\n";
       // -1 to not include '\0'
-      x.http(404, err, sizeof(err) - 1);
+      x.http(404, msg, sizeof(msg) - 1);
       state = next_request;
       return;
     }
@@ -484,7 +483,7 @@ private:
     io_send(fd_, header_buf, size_t(header_buf_len), true);
 
     const ssize_t n = file.resume_send_to(fd_);
-    if (n < 0) {
+    if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
@@ -534,8 +533,9 @@ private:
 
   public:
     inline void close() {
-      if (::close(fd_))
+      if (::close(fd_)) {
         perror("closefile");
+      }
     }
     inline ssize_t resume_send_to(const int out_fd) {
       stats.writes++;
@@ -677,7 +677,7 @@ private:
     // see note in io_request_read
     ev.data.fd = fd_;
     ev.data.ptr = this;
-    ev.events = EPOLLOUT;
+    ev.events = EPOLLOUT | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodwrite";
   }

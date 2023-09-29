@@ -16,7 +16,7 @@ class reply final {
 
 public:
   inline reply(const int fd) : fd_{fd} {}
-  
+
   [[nodiscard]] inline /*give*/ chunky *
   reply_chunky(const char *content_type = "text/html;charset=utf-8",
                const int response_code = 200) {
@@ -42,13 +42,9 @@ public:
     set_session_id_ = id;
   }
 
-  inline reply &http(const int code, const char *content = nullptr,
-                     size_t len = 0,
+  inline reply &http(const int code, const char *content, size_t len,
                      const char *content_type = "text/html;charset=utf-8") {
     char header[256];
-    if (content and len == 0) {
-      len = strnlen(content, conf::str_len_max);
-    }
     int n = 0;
     if (set_session_id_) {
       n = snprintf(header, sizeof(header),
@@ -73,10 +69,10 @@ public:
     return *this;
   }
 
-  inline size_t send(const char *ptr, size_t len,
+  inline size_t send(const char *buf, size_t len,
                      const bool buffer_send = false,
                      bool throw_if_send_not_complete = true) {
-    return io_send(fd_, ptr, len, buffer_send, throw_if_send_not_complete);
+    return io_send(fd_, buf, len, buffer_send, throw_if_send_not_complete);
   }
 };
 } // namespace xiinux
