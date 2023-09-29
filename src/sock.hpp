@@ -16,19 +16,25 @@ namespace xiinux {
 class sock final {
 public:
   int fd_ = 0;
-  inline sock(const int f = 0) : fd_{f} { stats.socks++; }
+  inline sock(const int f = 0) : fd_{f} {
+    stats.socks++;
+    printf(". create sock %p\n", static_cast<void *>(this));
+  }
   inline sock(const sock &) = delete;
   inline sock &operator=(const sock &) = delete;
 
   inline ~sock() {
+    printf(". delete sock %p\n", static_cast<void *>(this));
     content.free();
-    stats.socks--;
-    if (!::close(fd_))
+    if (!::close(fd_)) {
+      printf(". closed sock %p\n", static_cast<void *>(this));
+      stats.socks--;
       return;
+    }
     // note: epoll removes entry when all descriptions of fd_ are closed
     //       not needed: epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_, nullptr);
     stats.errors++;
-    perr("sockdel");
+    perror("sock:destructor");
   }
 
   inline void run() {
@@ -684,5 +690,5 @@ private:
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodwrite";
   }
-} static server_socket;
+} static server_socket{};
 } // namespace xiinux

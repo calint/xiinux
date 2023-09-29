@@ -138,6 +138,9 @@ public:
   }
 
   inline static void stop() {
+    if (close(epoll_fd)) {
+      perror("server:stop:close epoll_fd");
+    }
     if (thdwatch_on) {
       thdwatch_on = false;
       thdwatch.join();

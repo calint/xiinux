@@ -3,7 +3,7 @@
 
 namespace xiinux::web::qa {
 class page final : public widget {
-  strb<32 * K> txt{};
+  strb<8 * K> txt{};
 
 public:
   void to(reply &x) override {

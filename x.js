@@ -1,5 +1,5 @@
 function dbg(str){console.log(str)}
-function dbg(str){}
+//function dbg(str){}
 $=function(eid){return document.getElementById(eid);}
 function ajax_post(uri,data,on_done){
 	dbg("ajax post to "+uri+"\n"+data);
