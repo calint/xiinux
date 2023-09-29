@@ -690,5 +690,5 @@ private:
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodwrite";
   }
-} static server_socket{};
+};
 } // namespace xiinux

@@ -30,19 +30,18 @@ public:
     sa.sin_family = AF_INET;
     sa.sin_addr.s_addr = INADDR_ANY;
     sa.sin_port = htons(uint16_t(port));
-    server_socket.fd_ = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket.fd_ == -1) {
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd == -1) {
       perror("socket");
       exit(1);
     }
 
-    if (bind(server_socket.fd_, reinterpret_cast<struct sockaddr *>(&sa),
-             sa_sz)) {
+    if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&sa), sa_sz)) {
       perror("bind");
       exit(2);
     }
 
-    if (listen(server_socket.fd_, conf::epoll_event_array_size) == -1) {
+    if (listen(server_fd, conf::epoll_event_array_size) == -1) {
       perror("listen");
       exit(3);
     }
@@ -53,10 +52,10 @@ public:
       exit(4);
     }
 
-    struct epoll_event ev;
-    ev.events = EPOLLIN;
-    ev.data.ptr = &server_socket;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket.fd_, &ev)) {
+    struct epoll_event server_ev;
+    server_ev.events = EPOLLIN;
+    server_ev.data.fd = server_fd;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &server_ev)) {
       perror("epolladd");
       exit(5);
     }
@@ -79,12 +78,12 @@ public:
         continue;
       }
       for (unsigned i = 0; i < unsigned(n); i++) {
-        sock *c = static_cast<sock *>(events[i].data.ptr);
+        struct epoll_event &ev = events[i];
         // check if server socket
-        if (c->fd_ == server_socket.fd_) {
-          // new connection
+        if (ev.data.fd == server_fd) {
+          // server, new connection
           stats.accepts++;
-          const int fd = accept(server_socket.fd_, nullptr, nullptr);
+          const int fd = accept(server_fd, nullptr, nullptr);
           if (fd == -1) {
             perror("accept");
             continue;
@@ -99,6 +98,7 @@ public:
             perror("fncntl2");
             continue;
           }
+          ev.data.fd = fd;
           ev.data.ptr = new sock(fd);
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
           if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev)) {
@@ -119,7 +119,8 @@ public:
           }
           continue;
         }
-        // read or write available
+        // sock, read or write available
+        sock *c = static_cast<sock *>(ev.data.ptr);
         try {
           c->run();
         } catch (const char *msg) {
@@ -183,5 +184,7 @@ private:
       }
     }
   }
+
+  inline static int server_fd = 0;
 };
 } // namespace xiinux
