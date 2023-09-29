@@ -79,8 +79,9 @@ public:
       str_rem -= buf_rem;
       flush();
     }
-    // loop as long as rem is bigger or equal to a full buffer
+    // loop as long as remaining str to send is bigger or equal to a full buffer
     while (str_rem >= buf_size) {
+      // send a buffer sized chunk
       send_chunk(str, buf_size);
       str_rem -= buf_size;
       str += buf_size;
