@@ -311,41 +311,44 @@ private:
       send_session_id_in_reply_ = false;
     }
     const char *content_length_str = headers_["content-length"];
-    if (content_length_str) {
-      content.init_for_receive(content_length_str);
-      const size_t content_len = content.content_len();
-      if (content_len) { // posting content to widget
-        widget_->on_content(x, nullptr, 0, 0, content_len);
-        // if client expects 100 continue before sending post
-        const char *expect = headers_["expect"];
-        if (expect and !strcmp(expect, "100-continue")) {
-          // 16 is string length
-          io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
-          state = receiving_content;
-          return;
-        }
-        const size_t rem = buf.remaining();
-        if (rem >= content_len) { // full content is in 'buf'
-          widget_->on_content(x, buf.ptr(), content_len, content_len,
-                              content_len);
-          state = next_request;
-          return;
-        } else {
-          // first part of the content is in 'buf'
-          // note. client might not have sent any content in the same packet
-          //       as the headers
-          if (rem) {
-            widget_->on_content(x, buf.ptr(), rem, rem, content_len);
-            content.unsafe_skip(rem);
-          }
-          state = receiving_content;
-          return;
-        }
-      }
+    if (!content_length_str) {
+      // no content sent, render widget
+      widget_->to(x);
+      state = next_request;
+      return;
     }
-    // requesting widget
-    widget_->to(x);
-    state = next_request;
+
+    // content sent
+    content.init_for_receive(content_length_str);
+    const size_t content_len = content.content_len();
+    if (!content_len) // maybe 0
+      return;
+
+    // posting content to widget
+    widget_->on_content(x, nullptr, 0, 0, content_len);
+    // if client expects 100 continue before sending post
+    const char *expect = headers_["expect"];
+    if (expect and !strcmp(expect, "100-continue")) {
+      // 16 is string length
+      io_send(fd_, "HTTP/1.1 100\r\n\r\n", 16);
+      state = receiving_content;
+      return;
+    }
+    const size_t rem = buf.remaining();
+    if (rem >= content_len) { // full content is in 'buf'
+      widget_->on_content(x, buf.ptr(), content_len, content_len, content_len);
+      state = next_request;
+      return;
+    }
+    // first part of the content is in 'buf'
+    // note. client might not have sent any content in the same packet
+    //       as the headers
+    state = receiving_content;
+    if (!rem)
+      return;
+
+    widget_->on_content(x, buf.ptr(), rem, rem, content_len);
+    content.unsafe_skip(rem);
   }
 
   void do_serve_upload() {
