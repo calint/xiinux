@@ -12,14 +12,14 @@ URLS="http://$HOST:$PORT/ \
 for URL in $URLS; do
     echo $URL
     if [[ $URL == */ ]]; then
-        FILENAME=""
+        FILENAME="homepage"
     else
         FILENAME=$(basename "$URL" | cut -d '.' -f 1)
     fi
     NCLIENTS="1 10 100"
     for C in $NCLIENTS; do
         echo -n "$C "
-        hey -n 100000 -c $C $URL > $SERVER--$FILENAME--$C.txt
+        hey -n 100000 -c $C $URL > $FILENAME--$C--$SERVER.txt
     done
     echo
 done
