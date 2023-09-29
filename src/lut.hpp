@@ -23,7 +23,7 @@ template <class T> class lut final {
   };
   el **array_ = nullptr;
   unsigned size_ = 0;
-  mutable el *has_found_el_ = nullptr;
+  mutable const el *has_found_el_ = nullptr;
 
   // note. size must be 2^n because size-1 will be used for bitwise 'and'
   static inline unsigned hash(const char *key, const unsigned size) {
@@ -49,51 +49,19 @@ public:
   }
 
   inline bool has(const char *key) const {
-    const unsigned h = hash(key, size_);
-    el *e = array_[h];
-    while (e) {
-      if (!strcmp(e->key_, key)) {
-        has_found_el_ = e;
-        return true;
-      }
-      e = e->nxt_;
-    }
-    return false;
+    has_found_el_ = get_el_for_key(key);
+    return has_found_el_ != nullptr;
   }
 
   inline T operator[](const char *key) const {
-    if (has_found_el_) { // try the last found element from "has"
-      const el *e = has_found_el_;
-      has_found_el_ = nullptr;
-      if (!strcmp(e->key_, key)) {
-        return e->data_;
-      }
-    }
-    const unsigned h = hash(key, size_);
-    el *e = array_[h];
-    while (e) {
-      if (!strcmp(e->key_, key))
-        return e->data_;
-      e = e->nxt_;
-    }
-    return nullptr;
+    const el *e = get_el_for_key(key);
+    return e ? e->data_ : nullptr;
   }
 
   inline const T &get_ref_const(const char *key) const {
-    if (has_found_el_) { // try the last found element from "has"
-      const el *e = has_found_el_;
-      has_found_el_ = nullptr;
-      if (!strcmp(e->key_, key)) {
-        return e->data_;
-      }
-    }
-    const unsigned h = hash(key, size_);
-    el *e = array_[h];
-    while (e) {
-      if (!strcmp(e->key_, key))
-        return e->data_;
-      e = e->nxt_;
-    }
+    const el *e = get_el_for_key(key);
+    if (e)
+      return e->data_;
     throw "lut:get_ref_const:not_found";
   }
 
@@ -143,6 +111,24 @@ public:
       }
       array_[i] = nullptr;
     }
+  }
+
+private:
+  inline const el *get_el_for_key(const char *key) const {
+    if (has_found_el_) { // try the last found element from "has"
+      const el *e = has_found_el_;
+      has_found_el_ = nullptr;
+      if (!strcmp(e->key_, key))
+        return e;
+    }
+    const unsigned h = hash(key, size_);
+    el *e = array_[h];
+    while (e) {
+      if (!strcmp(e->key_, key))
+        return e;
+      e = e->nxt_;
+    }
+    return nullptr;
   }
 };
 } // namespace xiinux
