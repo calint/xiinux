@@ -35,10 +35,6 @@ public:
                   const size_t content_len) override {
 
     if (buf == nullptr) { // begin content receive
-      if (!content_len) { // is it empty content
-        x.http(200);
-        return;
-      }
       // non-empty content is being sent
       txt.rst();
       return;

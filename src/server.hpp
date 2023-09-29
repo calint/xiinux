@@ -53,7 +53,7 @@ public:
     }
 
     struct epoll_event server_ev;
-    server_ev.events = EPOLLIN;
+    server_ev.events = EPOLLIN | EPOLLRDHUP;
     server_ev.data.fd = server_fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &server_ev)) {
       perror("epolladd");
@@ -120,9 +120,13 @@ public:
           }
           continue;
         }
-        // sock, read or write available
-        printf(". epoll ev: %ud\n", ev.events);
+        // sock, read, write or hang-up available
+        printf(". epoll ev: %x\n", ev.events);
         sock *c = static_cast<sock *>(ev.data.ptr);
+        if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
+          delete c;
+          continue;
+        }
         try {
           c->run();
         } catch (const char *msg) {

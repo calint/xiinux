@@ -41,7 +41,7 @@ public:
     while (true) {
       if (state == resume_send_file) {
         const ssize_t n = file.resume_send_to(fd_);
-        if (n < 0) { // error or send buffer full
+        if (n == -1) { // error or send buffer full
           if (errno == EAGAIN) {
             io_request_write();
             return;
@@ -57,9 +57,7 @@ public:
         state = next_request;
       } else if (state == receiving_content) {
         const ssize_t n = content.receive_from(fd_);
-        if (n == 0) // unexpected close from client
-          throw signal_connection_lost;
-        if (n < 0) {
+        if (n == -1) {
           if (errno == EAGAIN) {
             io_request_read();
             return;
@@ -135,10 +133,6 @@ public:
       }
       if (!buf.has_more()) {
         const ssize_t n = buf.receive_from(fd_);
-        if (n == 0) { // closed by client
-          delete this;
-          return;
-        }
         if (n == -1) { // error or would block
           if (errno == EAGAIN) {
             io_request_read();
@@ -284,19 +278,16 @@ private:
     }
     const char *content_length_str = headers_["content-length"];
     if (!content_length_str) {
-      // no content sent, render widget
+      // no content from client, render widget
       widget_->to(x);
       state = next_request;
       return;
     }
 
-    // content sent
+    // content from client
     content.init_for_receive(content_length_str);
     const size_t content_len = content.content_len();
-    if (!content_len) // maybe 0
-      return;
-
-    // posting content to widget
+    // initiating call to widget with buf=nullptr
     widget_->on_content(x, nullptr, 0, 0, content_len);
     // if client expects 100 continue before sending post
     const char *expect = headers_["expect"];
@@ -312,15 +303,10 @@ private:
       state = next_request;
       return;
     }
-    // first part of the content is in 'buf'
-    // note. client might not have sent any content in the same packet
-    //       as the headers
-    state = receiving_content;
-    if (!rem)
-      return;
-
+    // beginning of the content is in 'buf'
     widget_->on_content(x, buf.ptr(), rem, rem, content_len);
     content.unsafe_skip(rem);
+    state = receiving_content;
   }
 
   void retrieve_or_create_session() {
@@ -681,7 +667,7 @@ private:
     // compare with 'server_fd'
     ev.data.fd = fd_;
     ev.data.ptr = this;
-    ev.events = EPOLLIN;
+    ev.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
       throw "sock:epollmodread";
   }
