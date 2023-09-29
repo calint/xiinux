@@ -2,6 +2,8 @@ watch cat /proc/$(ps a|grep xiinux|head -n1|awk '{print $1}')/status
 
 TAG=$(date "+%Y-%m-%d--%H-%M") && git tag $TAG && git push origin $TAG
 
+git reset --hard HEAD
+
 ./test-coverage.sh | tee test-coverage.log
 
 sudo tcpdump -A -i lo -n port 8088
