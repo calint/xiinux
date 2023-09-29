@@ -258,7 +258,7 @@ private:
   void do_serve_widget(widget *(*factory)()) {
     stats.widgets++;
 
-    init_session();
+    retrieve_or_create_session();
 
     widget_ = session_->get_widget(reqline.path_);
     if (!widget_) {
@@ -317,7 +317,7 @@ private:
     content.unsafe_skip(rem);
   }
 
-  void init_session() {
+  void retrieve_or_create_session() {
     const char *cookie = headers_["cookie"];
     const char *session_id = nullptr;
     if (cookie and strstr(cookie, "i=")) {
