@@ -144,6 +144,9 @@ public:
     if (close(epoll_fd)) {
       perror("server:stop:close epoll_fd");
     }
+    if (close(server_fd)) {
+      perror("server:stop:close server_fd");
+    }
     if (thdwatch_on) {
       thdwatch_on = false;
       thdwatch.join();
