@@ -19,7 +19,7 @@ for URL in $URLS; do
     NCLIENTS="1 10 100"
     for C in $NCLIENTS; do
         echo -n "$C "
-        hey -n 100000 -c $C $URL > $FILENAME--$C--$SERVER.txt
+        hey -n 100000 -c $C $URL > $FILENAME--$C--$SERVER.rep
     done
     echo
 done
