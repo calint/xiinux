@@ -26,37 +26,10 @@ public:
   }
 
   inline chunky &flush() {
-    // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
     if (len_ == 0)
       return *this;
 
-    // chunk header
-    char hdr[32];
-    const int hdr_len = snprintf(hdr, sizeof(hdr), "%lx\r\n", len_);
-    if (hdr_len < 0 or size_t(hdr_len) >= sizeof(hdr))
-      throw "chunky:1";
-
-    // send chunk header
-    io_send(fd_, hdr, size_t(hdr_len), true);
-
-    // send chunk
-    size_t sent_total = 0;
-    while (true) {
-      while (true) {
-        const size_t nsend = len_ - sent_total;
-        const size_t nsent =
-            io_send(fd_, buf_ + sent_total, nsend, true, false);
-        sent_total += nsent;
-        if (nsent == nsend)
-          break;
-        //?? blocking
-        perr("would block");
-      }
-      if (sent_total == len_)
-        break;
-    }
-    // terminate the chunk
-    io_send(fd_, "\r\n", 2, true); // 2 is string length
+    send_chunk(buf_, len_);
     len_ = 0;
     return *this;
   }

@@ -1,4 +1,3 @@
-[ ] chunky: consolidate flush() and send_chunk()
 [ ] ? close all sockets in epoll when server::stop to release the port
 [ ] ? std::string_view referring into sock.buf instead of const char*
 [ ] ? lut<std::string_view>
@@ -17,6 +16,7 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] chunky: consolidate flush() and send_chunk()
 [x] chunky: when sending string larger than buffer do io_send, skipping copy to buffer
 [x] epoll: register and handle client closes connection
 [x] qa::page sending an empty string from the browser
