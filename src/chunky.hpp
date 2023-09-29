@@ -84,36 +84,41 @@ public:
   }
 
   inline chunky &p(/*scans*/ const char *str, const size_t str_len) override {
-    constexpr ssize_t buf_size = sizeof(buf_);
-    const ssize_t buf_rem = buf_size - ssize_t(len_);
-    ssize_t rem = buf_rem - ssize_t(str_len);
-    if (rem >= 0) { // str fits in remaining buffer
+    constexpr size_t buf_size = sizeof(buf_);
+    // remaining space in buffer
+    const size_t buf_rem = buf_size - len_;
+    if (str_len <= buf_rem) {
+      // str fits in buffer
       strncpy(buf_ + len_, str, str_len);
       len_ += str_len;
+      if (len_ == buf_size) {
+        flush();
+      }
       return *this;
     }
     // str does not fit in buffer
-    // fill remaining buffer and flush
-    strncpy(buf_ + len_, str, size_t(buf_rem));
-    len_ += size_t(buf_rem);
-    flush();
-
-    // loop until remaining str fits in buffer
-    const char *s = str + buf_rem; // pointer to remaining part of 'str'
-    rem = -rem;                    // remaining chars to be sent from 'str'
-    while (true) {
-      // does remaining str fit in buffer?
-      const ssize_t m = rem <= buf_size ? rem : buf_size;
-      strncpy(buf_, s, size_t(m)); // ? if m==buf_size do io_send skipping copy to buffer
-      rem -= ssize_t(m);
-      len_ += size_t(m);
-      if (len_ == buf_size) { // if buffer full
-        flush();
-      }
-      if (rem == 0)
-        return *this;
-      s += m;
+    // if buffer is not empty then fill remaining buffer and flush
+    size_t str_rem = str_len;
+    if (len_ != 0) {
+      strncpy(buf_ + len_, str, buf_rem);
+      str += buf_rem; // pointer to remaining part of 'str'
+      len_ += buf_rem;
+      str_rem -= buf_rem;
+      flush();
     }
+    // loop as long as rem is bigger or equal to a full buffer
+    while (str_rem >= buf_size) {
+      send_chunk(str, buf_size);
+      str_rem -= buf_size;
+      str += buf_size;
+    }
+    // if there is str left copy to buffer
+    if (str_rem > 0) {
+      // copy the remaining str into buffer
+      strncpy(buf_, str, str_rem);
+      len_ += size_t(str_rem);
+    }
+    return *this;
   }
 
   inline chunky &p(const int i) override {
@@ -156,5 +161,36 @@ public:
   }
 
   inline chunky &nl() override { return p('\n'); }
+
+private:
+  inline void send_chunk(const char *buf, const size_t buf_len) {
+    // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
+    // chunk header
+    char hdr[32];
+    const int hdr_len = snprintf(hdr, sizeof(hdr), "%lx\r\n", buf_len);
+    if (hdr_len < 0 or size_t(hdr_len) >= sizeof(hdr))
+      throw "chunky:1";
+
+    // send chunk header
+    io_send(fd_, hdr, size_t(hdr_len), true);
+
+    // send chunk
+    size_t sent_total = 0;
+    while (true) {
+      while (true) {
+        const size_t nsend = buf_len - sent_total;
+        const size_t nsent = io_send(fd_, buf + sent_total, nsend, true, false);
+        sent_total += nsent;
+        if (nsent == nsend)
+          break;
+        //?? blocking
+        perr("would block");
+      }
+      if (sent_total == buf_len)
+        break;
+    }
+    // terminate the chunk
+    io_send(fd_, "\r\n", 2, true); // 2 is string length
+  }
 };
 } // namespace xiinux
