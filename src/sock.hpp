@@ -15,7 +15,6 @@
 namespace xiinux {
 class sock final {
 public:
-  int fd_ = 0;
   inline sock(const int f = 0) : fd_{f} {
     stats.socks++;
     // printf("client create %p\n", static_cast<void *>(this));
@@ -500,33 +499,24 @@ private:
     state = next_request;
   }
 
-  static inline char *strtrm(char *p, char *e) {
-    while (p != e and isspace(*p))
-      p++;
-    while (p != e and isspace(*e))
-      *e-- = '\0';
-    return p;
+  inline void io_request_read() {
+    struct epoll_event ev;
+    // note. not necessary to assign 'ev.data.fd' because it is only used to
+    // compare with 'server_fd'
+    ev.data.ptr = this;
+    ev.events = EPOLLIN | EPOLLRDHUP;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
+      throw "sock:epollmodread";
   }
 
-  static inline void strlwr(char *p) {
-    while (*p) {
-      *p = char(tolower(*p));
-      p++;
-    }
+  inline void io_request_write() {
+    struct epoll_event ev;
+    // see note in io_request_read
+    ev.data.ptr = this;
+    ev.events = EPOLLOUT | EPOLLRDHUP;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
+      throw "sock:epollmodwrite";
   }
-
-  enum state {
-    method,
-    uri,
-    query,
-    protocol,
-    header_key,
-    header_value,
-    resume_send_file,
-    receiving_content,
-    receiving_upload,
-    next_request
-  } state = method;
 
   class file {
     off_t offset_ = 0;
@@ -657,29 +647,39 @@ private:
     }
   } buf{};
 
+  enum state {
+    method,
+    uri,
+    query,
+    protocol,
+    header_key,
+    header_value,
+    resume_send_file,
+    receiving_content,
+    receiving_upload,
+    next_request
+  } state = method;
+  
+  int fd_ = 0;
   lut<const char *> headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;
   session *session_ = nullptr;
   bool send_session_id_in_reply_ = false;
 
-  inline void io_request_read() {
-    struct epoll_event ev;
-    // note. not necessary to assign 'ev.data.fd' because it is only used to
-    // compare with 'server_fd'
-    ev.data.ptr = this;
-    ev.events = EPOLLIN | EPOLLRDHUP;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
-      throw "sock:epollmodread";
+  static inline char *strtrm(char *p, char *e) {
+    while (p != e and isspace(*p))
+      p++;
+    while (p != e and isspace(*e))
+      *e-- = '\0';
+    return p;
   }
 
-  inline void io_request_write() {
-    struct epoll_event ev;
-    // see note in io_request_read
-    ev.data.ptr = this;
-    ev.events = EPOLLOUT | EPOLLRDHUP;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
-      throw "sock:epollmodwrite";
+  static inline void strlwr(char *p) {
+    while (*p) {
+      *p = char(tolower(*p));
+      p++;
+    }
   }
 };
 } // namespace xiinux
