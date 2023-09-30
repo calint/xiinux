@@ -5,14 +5,14 @@
 namespace xiinux {
 class session final {
   const char *id_ = nullptr;
-  lut<const char *> kvp_{};
+  lut_cstr kvp_{};
   lut<widget *> widgets_{};
 
 public:
   inline session(/*take*/ const char *id) : id_{id} { stats.sessions++; }
   inline session(const session &) = delete;
   inline session &operator=(const session &) = delete;
-  
+
   inline ~session() {
     stats.sessions--;
     delete[] id_;
@@ -23,7 +23,7 @@ public:
   inline const char *get_id() const { return id_; }
   inline const char *operator[](const char *key) const { return kvp_[key]; }
   inline widget *get_widget(const char *key) const { return widgets_[key]; }
-  inline lut<const char *> *get_lut() { return &kvp_; }
+  inline lut_cstr *get_lut() { return &kvp_; }
 
   inline void put(/*take*/ const char *key, /*take*/ const char *str) {
     kvp_.put(key, str);

@@ -1,9 +1,10 @@
+[ ] decode query string on demand
+[ ] uploaded file names are urlencoded
+[ ] uploaded file to session directory
 [ ] server: sockopt TCP_FASTOPEN
 [ ] sock: when sendfile returns 0 the file size has changed to less than current offset
-[ ] decode query string on demand
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>
-[ ] uploaded file names are urlencoded
 [ ] review throws messages
 [ ] review perror(...) messages
 [ ] review args

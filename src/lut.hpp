@@ -108,4 +108,7 @@ public:
     }
   }
 };
+
+using lut_cstr = lut<const char *>;
+
 } // namespace xiinux
