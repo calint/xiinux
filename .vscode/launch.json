@@ -5,7 +5,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/xiinux",
-            "args": [],
+            "args": [
+                "-b"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -7,6 +7,7 @@ namespace xiinux::conf {
 static constexpr const char *application_name = "xiinux web server";
 static constexpr int server_event_array_size = 128;
 static constexpr bool server_print_events = false;
+static constexpr bool server_print_listen_socket_conf = false;
 static constexpr bool server_print_client_socket_conf = false;
 static constexpr size_t sock_request_header_buf_size = K;
 static constexpr size_t sock_content_buf_size = 4 * K;

@@ -35,6 +35,13 @@ public:
       exit(1);
     }
 
+    if (conf::server_print_listen_socket_conf) {
+      printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
+             get_sock_option(server_fd, SO_SNDBUF, SOL_SOCKET),
+             get_sock_option(server_fd, TCP_NODELAY),
+             get_sock_option(server_fd, TCP_CORK));
+    }
+
     if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&sa), sa_sz)) {
       perror("bind");
       exit(2);
@@ -78,42 +85,36 @@ public:
         perror("epoll_wait");
         continue;
       }
+      if (conf::server_print_events) {
+        printf("events %d\n", n);
+      }
       for (unsigned i = 0; i < unsigned(n); i++) {
         struct epoll_event &ev = events[i];
         // check if server socket
         if (ev.data.ptr == &server_fd) {
           // server, new connection
-          if (conf::server_print_events) {
-            printf("client connect %x\n", ev.events);
-          }
           stats.accepts++;
-          const int client_fd = accept(server_fd, nullptr, nullptr);
+
+          struct sockaddr_in client_addr;
+          socklen_t client_addr_len;
+          const int client_fd = accept4(
+              server_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
+              &client_addr_len, SOCK_NONBLOCK);
           if (client_fd == -1) {
             perror("accept");
             continue;
           }
-          int opts = fcntl(client_fd, F_GETFL);
-          if (opts == -1) {
-            perror("fcntl1");
-            continue;
+
+          if (conf::server_print_events) {
+            printf("client connect: event=%x fd=%d\n", ev.events, client_fd);
           }
-          opts |= O_NONBLOCK;
-          if (fcntl(client_fd, F_SETFL, opts) == -1) {
-            perror("fcntl2");
-            continue;
-          }
-          ev.data.ptr = new sock(client_fd);
+
+          sock *client = new sock(client_fd);
+          ev.data.ptr = client;
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
           if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev)) {
             perror("epoll_ctl");
             continue;
-          }
-          
-          if (conf::server_print_client_socket_conf) {
-            printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
-                   get_sock_option(client_fd, SO_SNDBUF),
-                   get_sock_option(client_fd, TCP_NODELAY),
-                   get_sock_option(client_fd, TCP_CORK));
           }
 
           if (conf::sock_send_buffer_size) {
@@ -125,45 +126,45 @@ public:
           }
 
           if (option_benchmark_mode) {
+            // note. setsockopt may fail to set value without raising error
             int option = 1;
             if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &option,
                            sizeof(option))) {
               perror("setsockopt TCP_NODELAY");
-              continue;
             }
             option = 0;
             if (setsockopt(client_fd, IPPROTO_TCP, TCP_CORK, &option,
                            sizeof(option))) {
               perror("setsockopt TCP_CORK");
-              continue;
             }
           }
+
+          if (conf::server_print_client_socket_conf) {
+            printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
+                   get_sock_option(client_fd, SO_SNDBUF, SOL_SOCKET),
+                   get_sock_option(client_fd, TCP_NODELAY),
+                   get_sock_option(client_fd, TCP_CORK));
+          }
+
+          // run client right away without waiting for EPOLLIN
+          run_client(client);
+
           continue;
         }
+
         // sock, read, write or hang-up available
         if (conf::server_print_events) {
-          printf("client %p event %x\n", ev.data.ptr, ev.events);
+          printf("client %p event=%x\n", ev.data.ptr, ev.events);
         }
-        sock *c = static_cast<sock *>(ev.data.ptr);
+
+        sock *client = static_cast<sock *>(ev.data.ptr);
+
         if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
-          delete c;
+          delete client;
           continue;
         }
-        try {
-          c->run();
-        } catch (const char *msg) {
-          stats.errors++;
-          // todo: print timestamp, ip, session id
-          delete c;
-          if (msg == signal_connection_lost) {
-            stats.brkp++;
-            continue;
-          }
-          printf("!!! exception: %s\n", msg);
-        } catch (...) {
-          stats.errors++;
-          printf("!!! exception from %p\n", static_cast<void *>(c));
-        }
+
+        run_client(client);
       }
     }
   }
@@ -182,6 +183,24 @@ public:
   }
 
 private:
+  inline static void run_client(sock *c) {
+    try {
+      c->run();
+    } catch (const char *msg) {
+      stats.errors++;
+      // todo: print timestamp, ip, session id
+      delete c;
+      if (msg == signal_connection_lost) {
+        stats.brkp++;
+        return;
+      }
+      printf("!!! exception: %s\n", msg);
+    } catch (...) {
+      stats.errors++;
+      printf("!!! exception from %p\n", static_cast<void *>(c));
+    }
+  }
+
   inline static void init_homepage() {
     char buf[4 * K];
     // +1 because of '\n' after 'application_name'
@@ -218,10 +237,11 @@ private:
     }
   }
 
-  inline static int get_sock_option(const int fd, const int opt) {
-    int option = 0;
+  inline static int get_sock_option(const int fd, const int opt,
+                                    const int protocol = IPPROTO_TCP) {
+    int option = -1;
     socklen_t option_size = sizeof(option);
-    if (getsockopt(fd, SOL_SOCKET, opt, &option, &option_size) == -1) {
+    if (getsockopt(fd, protocol, opt, &option, &option_size) == -1) {
       perror("get_sock_option");
       return -1;
     }
