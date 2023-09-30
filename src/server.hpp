@@ -16,7 +16,6 @@ public:
     thdwatch_stats_to_file = a.has_option('f');
     const int port = atoi(a.get_option_value('p', "8088"));
     const bool option_benchmark_mode = a.has_option('b');
-    conf::print_traffic = a.has_option('t');
 
     printf("%s on port %d", conf::application_name, port);
     if (option_benchmark_mode) {
@@ -95,12 +94,12 @@ public:
           }
           int opts = fcntl(client_fd, F_GETFL);
           if (opts == -1) {
-            perror("fncntl1");
+            perror("fcntl1");
             continue;
           }
           opts |= O_NONBLOCK;
           if (fcntl(client_fd, F_SETFL, opts) == -1) {
-            perror("fncntl2");
+            perror("fcntl2");
             continue;
           }
           ev.data.ptr = new sock(client_fd);
