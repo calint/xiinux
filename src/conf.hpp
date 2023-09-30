@@ -13,6 +13,7 @@ static constexpr size_t chunky_buf_size = 4 * K;
 static constexpr size_t widget_key_size = 128;
 static constexpr size_t upload_path_size = 256;
 static constexpr size_t str_len_max = K * M;
+static constexpr unsigned path_to_widget_lut_size = 16;
 static bool print_traffic = false;
 static int print_traffic_fd = 1;
 } // namespace xiinux::conf

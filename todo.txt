@@ -1,7 +1,6 @@
 [ ] ? close all sockets in epoll when server::stop to release the port
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>
-[ ] lut.hash(...) based on pointer address of key
 [ ] examine why "qa/far_side_dog_ok.jpg" performance lower than nginx
 [ ] uploaded file names are urlencoded
 [ ] review throws messages
@@ -21,6 +20,8 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] lut.hash(...) based on pointer address of key
+    -> does not work because address might change although key is same
 [x] chunky: consolidate flush() and send_chunk()
 [x] chunky: when sending string larger than buffer do io_send, skipping copy to buffer
 [x] epoll: register and handle client closes connection
