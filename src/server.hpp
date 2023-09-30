@@ -147,12 +147,12 @@ public:
           }
 
           // run client right away without waiting for EPOLLIN
-          run_client(client);
+          // run_client(client);
 
           continue;
         }
 
-        // sock, read, write or hang-up available
+        // client sock, read, write or hang-up available
         if (conf::server_print_events) {
           printf("client %p event=%x\n", ev.data.ptr, ev.events);
         }

@@ -34,39 +34,3 @@ small--400--nginx.rep:  [200]	200000 responses
 small--400--xiinux.rep:  [200]	200000 responses
 small--800--nginx.rep:  [200]	200000 responses
 small--800--xiinux.rep:  [200]	200000 responses
-far_side_dog_ok 1 nginx.rep  Requests/sec:	6439.9310
-far_side_dog_ok 1 xiinux.rep  Requests/sec:	6946.4431
-far_side_dog_ok 10 nginx.rep  Requests/sec:	39185.2777
-far_side_dog_ok 10 xiinux.rep  Requests/sec:	29354.2737
-far_side_dog_ok 100 nginx.rep  Requests/sec:	39336.9311
-far_side_dog_ok 100 xiinux.rep  Requests/sec:	28165.5084
-far_side_dog_ok 200 nginx.rep  Requests/sec:	38010.5564
-far_side_dog_ok 200 xiinux.rep  Requests/sec:	27439.3695
-far_side_dog_ok 400 nginx.rep  Requests/sec:	36799.8110
-far_side_dog_ok 400 xiinux.rep  Requests/sec:	26618.6795
-far_side_dog_ok 800 nginx.rep  Requests/sec:	35509.6747
-far_side_dog_ok 800 xiinux.rep  Requests/sec:	10695.6364
-homepage 1 nginx.rep  Requests/sec:	10163.5774
-homepage 1 xiinux.rep  Requests/sec:	13307.0300
-homepage 10 nginx.rep  Requests/sec:	57964.1717
-homepage 10 xiinux.rep  Requests/sec:	93518.1889
-homepage 100 nginx.rep  Requests/sec:	45697.2002
-homepage 100 xiinux.rep  Requests/sec:	48689.4983
-homepage 200 nginx.rep  Requests/sec:	43575.6938
-homepage 200 xiinux.rep  Requests/sec:	49729.9521
-homepage 400 nginx.rep  Requests/sec:	41596.6336
-homepage 400 xiinux.rep  Requests/sec:	46819.0798
-homepage 800 nginx.rep  Requests/sec:	40405.2521
-homepage 800 xiinux.rep  Requests/sec:	45529.0276
-small 1 nginx.rep  Requests/sec:	10407.6766
-small 1 xiinux.rep  Requests/sec:	12116.7726
-small 10 nginx.rep  Requests/sec:	62661.5015
-small 10 xiinux.rep  Requests/sec:	64176.3292
-small 100 nginx.rep  Requests/sec:	46157.2857
-small 100 xiinux.rep  Requests/sec:	58788.0355
-small 200 nginx.rep  Requests/sec:	42695.3775
-small 200 xiinux.rep  Requests/sec:	52209.5404
-small 400 nginx.rep  Requests/sec:	40150.2369
-small 400 xiinux.rep  Requests/sec:	44850.2072
-small 800 nginx.rep  Requests/sec:	41333.9408
-small 800 xiinux.rep  Requests/sec:	44427.0252

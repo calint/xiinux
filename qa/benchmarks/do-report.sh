@@ -9,3 +9,4 @@ mv -f homepage.tbl.png ../report &&
 mv -f small.tbl.png ../report &&
 cd .. &&
 cp 0.summary-table.txt report/summary.txt
+cat 0.summary.txt | grep responses > report/requests-completed.txt

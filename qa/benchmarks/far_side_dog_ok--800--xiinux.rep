@@ -1,47 +1,46 @@
 
 Summary:
-  Total:	23.7719 secs
-  Slowest:	14.6163 secs
+  Total:	18.6992 secs
+  Slowest:	18.4799 secs
   Fastest:	0.0001 secs
-  Average:	0.0267 secs
-  Requests/sec:	8413.3018
+  Average:	0.0290 secs
+  Requests/sec:	10695.6364
   
-  Total data:	25616098212 bytes
+  Total data:	25640200000 bytes
   Size/request:	128201 bytes
 
 Response time histogram:
   0.000 [1]	|
-  1.462 [199309]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-  2.923 [152]	|
-  4.385 [156]	|
-  5.847 [10]	|
-  7.308 [58]	|
-  8.770 [0]	|
-  10.231 [0]	|
-  11.693 [0]	|
-  13.155 [2]	|
-  14.616 [124]	|
+  1.848 [199947]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  3.696 [30]	|
+  5.544 [14]	|
+  7.392 [0]	|
+  9.240 [0]	|
+  11.088 [0]	|
+  12.936 [0]	|
+  14.784 [0]	|
+  16.632 [0]	|
+  18.480 [8]	|
 
 
 Latency distribution:
-  10% in 0.0006 secs
-  25% in 0.0013 secs
-  50% in 0.0025 secs
-  75% in 0.0136 secs
-  90% in 0.0254 secs
-  95% in 0.0287 secs
-  99% in 0.1321 secs
+  10% in 0.0253 secs
+  25% in 0.0266 secs
+  50% in 0.0281 secs
+  75% in 0.0294 secs
+  90% in 0.0305 secs
+  95% in 0.0310 secs
+  99% in 0.0373 secs
 
 Details (average, fastest, slowest):
-  DNS+dialup:	0.0001 secs, 0.0001 secs, 14.6163 secs
-  DNS-lookup:	0.0006 secs, 0.0000 secs, 0.3773 secs
-  req write:	0.0002 secs, 0.0000 secs, 0.3328 secs
-  resp wait:	0.0242 secs, 0.0000 secs, 14.6162 secs
-  resp read:	0.0009 secs, 0.0000 secs, 0.3404 secs
+  DNS+dialup:	0.0000 secs, 0.0001 secs, 18.4799 secs
+  DNS-lookup:	0.0003 secs, 0.0000 secs, 0.0809 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0170 secs
+  resp wait:	0.0285 secs, 0.0000 secs, 18.4676 secs
+  resp read:	0.0002 secs, 0.0000 secs, 0.0310 secs
 
 Status code distribution:
-  [200]	199812 responses
+  [200]	200000 responses
 
-Error distribution:
-  [188]	Get http://localhost:8088/qa/files/far_side_dog_ok.jpg: net/http: request canceled (Client.Timeout exceeded while awaiting headers)
+
 
