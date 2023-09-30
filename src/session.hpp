@@ -19,7 +19,7 @@ public:
     widgets_.delete_content(true);
   }
 
-  inline const char *id() const { return id_; }
+  inline const char *get_id() const { return id_; }
   inline const char *operator[](const char *key) const { return kvp_[key]; }
   inline widget *get_widget(const char *key) const { return widgets_[key]; }
 

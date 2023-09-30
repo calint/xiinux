@@ -12,7 +12,7 @@ public:
   inline session *get(const char *sid) const { return all_[sid]; }
 
   inline void put(/*take*/ session *s, bool allow_overwrite = true) {
-    all_.put(s->id(), s, allow_overwrite);
+    all_.put(s->get_id(), s, allow_overwrite);
   }
 } static sessions;
 } // namespace xiinux

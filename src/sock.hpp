@@ -8,6 +8,7 @@
 #include "web/web.hpp"
 #include "widget.hpp"
 #include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
@@ -15,7 +16,7 @@
 namespace xiinux {
 class sock final {
 public:
-  inline sock(const int f = 0) : fd_{f} {
+  inline sock(const int fd, struct sockaddr_in sock_addr) : fd_{fd}, sock_addr_{sock_addr} {
     stats.socks++;
     // printf("client create %p\n", static_cast<void *>(this));
   }
@@ -224,6 +225,12 @@ public:
     }
   }
 
+  inline const struct sockaddr_in &get_socket_address() const {
+    return sock_addr_;
+  }
+
+  inline session *get_session() const { return session_; }
+
 private:
   void do_after_headers() {
     widget *(*factory)() = web::widget_factory_for_path(reqline.path_);
@@ -271,7 +278,7 @@ private:
     }
     reply x{fd_};
     if (send_session_id_in_reply_) {
-      x.send_session_id_at_next_opportunity(session_->id());
+      x.send_session_id_at_next_opportunity(session_->get_id());
       send_session_id_in_reply_ = false;
     }
     const char *content_length_str = headers_["content-length"];
@@ -529,8 +536,7 @@ private:
     inline ssize_t resume_send_to(const int out_fd) {
       stats.writes++;
       const size_t count = count_ - size_t(offset_);
-      const ssize_t n =
-          sendfile(out_fd, fd_, &offset_, count);
+      const ssize_t n = sendfile(out_fd, fd_, &offset_, count);
       if (n == -1) // error
         return n;
       // if (size_t(n) != count) {
@@ -629,7 +635,8 @@ private:
     inline void set_eos() { *(p_ - 1) = '\0'; }
 
     inline ssize_t receive_from(const int fd_in) {
-      const size_t nbytes_to_read = conf::sock_request_header_buf_size - size_t(p_ - buf_);
+      const size_t nbytes_to_read =
+          conf::sock_request_header_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
         throw "sock:buf:full";
       stats.reads++;
@@ -662,6 +669,7 @@ private:
   } state = method;
 
   int fd_ = 0;
+  struct sockaddr_in sock_addr_;
   lut<const char *> headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;

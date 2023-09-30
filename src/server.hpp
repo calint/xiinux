@@ -3,6 +3,9 @@
 #include "args.hpp"
 #include "defines.hpp"
 #include "sock.hpp"
+#include <arpa/inet.h>
+#include <iomanip>
+#include <iostream>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <thread>
@@ -23,16 +26,23 @@ public:
     }
     printf("\n");
 
-    struct sockaddr_in sa;
-    const ssize_t sa_sz = sizeof(sa);
-    bzero(&sa, sa_sz);
-    sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = INADDR_ANY;
-    sa.sin_port = htons(uint16_t(port));
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1) {
       perror("socket");
       exit(1);
+    }
+
+    int option = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
+                   sizeof(option))) {
+      perror("setsockopt SO_REUSEADDR");
+      exit(1);
+    }
+
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &option,
+                   sizeof(option))) {
+      perror("setsockopt SO_REUSEPORT");
+      exit(2);
     }
 
     if (conf::server_print_listen_socket_conf) {
@@ -42,7 +52,15 @@ public:
              get_sock_option(server_fd, TCP_CORK));
     }
 
-    if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&sa), sa_sz)) {
+    struct sockaddr_in server_addr;
+    const ssize_t server_addr_size = sizeof(server_addr);
+    bzero(&server_addr, server_addr_size);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(uint16_t(port));
+
+    if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&server_addr),
+             server_addr_size)) {
       perror("bind");
       exit(2);
     }
@@ -106,10 +124,11 @@ public:
           }
 
           if (conf::server_print_events) {
-            printf("client connect: event=%x fd=%d\n", ev.events, client_fd);
+            printf("client connect: event=%x fd=%d ip=%s\n", ev.events,
+                   client_fd, inet_ntoa(client_addr.sin_addr));
           }
 
-          sock *client = new sock(client_fd);
+          sock *client = new sock(client_fd, client_addr);
           ev.data.ptr = client;
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
           if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev)) {
@@ -127,7 +146,7 @@ public:
 
           if (option_benchmark_mode) {
             // note. setsockopt may fail to set value without raising error
-            int option = 1;
+            option = 1;
             if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &option,
                            sizeof(option))) {
               perror("setsockopt TCP_NODELAY");
@@ -183,22 +202,35 @@ public:
   }
 
 private:
-  inline static void run_client(sock *c) {
+  inline static void run_client(sock *client) {
     try {
-      c->run();
+      client->run();
     } catch (const char *msg) {
-      stats.errors++;
-      // todo: print timestamp, ip, session id
-      delete c;
       if (msg == signal_connection_lost) {
         stats.brkp++;
+        delete client;
         return;
       }
-      printf("!!! exception: %s\n", msg);
+      stats.errors++;
+      print_client_exception(client, msg);
+      delete client;
     } catch (...) {
       stats.errors++;
-      printf("!!! exception from %p\n", static_cast<void *>(c));
+      print_client_exception(client, "n/a due to catch(...)");
+      delete client;
     }
+  }
+
+  inline static void print_client_exception(const sock *client,
+                                            const char *msg) {
+    const session *sn = client->get_session();
+    const char *snid = sn ? sn->get_id() : "n/a";
+
+    const std::time_t t = std::time(nullptr);
+    const std::tm tm = *std::localtime(&t);
+    std::cout << "!!! exception " << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+              << "  " << inet_ntoa(client->get_socket_address().sin_addr)
+              << "  session=" << snid << "  msg=" << msg << std::endl;
   }
 
   inline static void init_homepage() {

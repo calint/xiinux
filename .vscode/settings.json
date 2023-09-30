@@ -48,6 +48,10 @@
         "stop_token": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "iomanip": "cpp",
+        "csignal": "cpp",
+        "istream": "cpp",
+        "sstream": "cpp"
     }
 }
