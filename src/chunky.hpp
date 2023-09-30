@@ -158,7 +158,7 @@ private:
         if (nsent == nsend)
           break;
         //?? blocking
-        perr("would block");
+        printf("!!! would block: sent=%zu of %zu\n", nsent, nsend);
       }
       if (sent_total == buf_len)
         break;

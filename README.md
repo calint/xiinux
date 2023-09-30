@@ -26,9 +26,9 @@ note. abandoned in favor of [bob](https://github.com/calint/bob)
 ```
 
             lines   words   chars
-   source:   1898    6238   53439
-  gzipped:     46     276   12462
+   source:   1920    6303   54265
+  gzipped:     50     254   12562
 
--rwxrwxr-x 1 c 66K sep 29 16:20 xiinux
+-rwxrwxr-x 1 c 66K sep 30 09:43 xiinux
 
 ```

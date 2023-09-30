@@ -1,5 +1,6 @@
 // reviewed: 2023-09-27
 #pragma once
+#include "defines.hpp"
 #include <cstddef>
 
 namespace xiinux::conf {

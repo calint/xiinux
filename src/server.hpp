@@ -109,14 +109,14 @@ public:
           }
 
           if (conf::sock_send_buffer_size) {
-            int sndbuf = 0;
-            socklen_t socklen_size = sizeof(sndbuf);
-            if (getsockopt(client_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf,
-                           &socklen_size) == -1) {
-              perror("getsockopt SO_SNDBUF");
-            } else {
-              printf("   getsockopt SO_SNDBUF: %d\n", sndbuf);
-            }
+            // int sndbuf = 0;
+            // socklen_t socklen_size = sizeof(sndbuf);
+            // if (getsockopt(client_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf,
+            //                &socklen_size) == -1) {
+            //   perror("getsockopt SO_SNDBUF");
+            // } else {
+            //   printf("   getsockopt SO_SNDBUF: %d\n", sndbuf);
+            // }           
             if (setsockopt(client_fd, SOL_SOCKET, SO_SNDBUF,
                            &conf::sock_send_buffer_size,
                            sizeof(conf::sock_send_buffer_size))) {
@@ -144,15 +144,17 @@ public:
         try {
           c->run();
         } catch (const char *msg) {
+          stats.errors++;
           // todo: print timestamp, ip, session id
           delete c;
           if (msg == signal_connection_lost) {
             stats.brkp++;
             continue;
           }
-          printf(" *** exception: %s\n", msg);
+          printf("!!! exception: %s\n", msg);
         } catch (...) {
-          printf(" *** exception from %p\n", static_cast<void *>(c));
+          stats.errors++;
+          printf("!!! exception from %p\n", static_cast<void *>(c));
         }
       }
     }

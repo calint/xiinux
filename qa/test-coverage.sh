@@ -102,7 +102,7 @@ curl -s $HTTP/qa/chunkedbig>cmp&&
 diff -q cmp t16.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked reply data larger than buffers >256K "&&
+echo " * chunked reply data larger than chunk buffer >256K "&&
 curl -s $HTTP/qa/chunkedbigger>cmp&&
 gunzip -fk t17.cmp.gz &&
 diff -q cmp t17.cmp&&
