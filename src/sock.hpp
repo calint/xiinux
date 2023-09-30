@@ -16,7 +16,8 @@
 namespace xiinux {
 class sock final {
 public:
-  inline sock(const int fd, struct sockaddr_in sock_addr) : fd_{fd}, sock_addr_{sock_addr} {
+  inline sock(const int fd, struct sockaddr_in sock_addr)
+      : fd_{fd}, sock_addr_{sock_addr} {
     stats.socks++;
     // printf("client create %p\n", static_cast<void *>(this));
   }
@@ -230,6 +231,9 @@ public:
   }
 
   inline session *get_session() const { return session_; }
+  inline const char *get_path() const { return reqline.path_; }
+  inline const char *get_query_string() const { return reqline.query_str_; }
+  inline const lut<const char *> &get_headers() const { return headers_; }
 
 private:
   void do_after_headers() {
