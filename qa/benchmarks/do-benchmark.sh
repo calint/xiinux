@@ -5,6 +5,7 @@ SERVER=$1
 HOST=$2
 PORT=$3
 NREQS=100000
+NCLIENTS="1 10 100 200"
 
 URLS="http://$HOST:$PORT/ \
       http://$HOST:$PORT/qa/files/small.txt \
@@ -20,7 +21,6 @@ for URL in $URLS; do
     else
         FILENAME=$(basename "$URL" | cut -d '.' -f 1)
     fi
-    NCLIENTS="1 10 100"
     for C in $NCLIENTS; do
         echo -n "$C "
         hey -n $NREQS -c $C $URL > $FILENAME--$C--$SERVER.rep

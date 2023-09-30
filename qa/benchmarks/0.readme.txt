@@ -1,5 +1,5 @@
 uri '/':
-  xiinux has homepage in memory while nginx is not configured to cache
+  xiinux has homepage in memory while nginx is the default configuration on ubuntu 23.04
 
 example:
 hey -n 1 -c 1 http://localhost:8088/
@@ -7,11 +7,8 @@ hey -n 1 -c 1 http://localhost:8088/qa/files/small.txt
 hey -n 1 -c 1 http://localhost:8088/qa/files/far_side_dog_ok.jpg
 
 how to benchmark:
-./do-benchmark.sh nginx localhost 80
-./do-benchmark.sh xiinux localhost 8088
+  ./do-benchmark.sh nginx localhost 80
+  ./do-benchmark.sh xiinux localhost 8088
 
-summarize:
-grep responses *.rep
-grep Requests *.rep
-grep Requests *.rep | grep -oE '([^\/]+)--[^:]+:  Requests/sec:\s+([0-9.]+)' | awk -F '--|: ' '{print $3, $4}'
-grep Requests *.rep | grep -oE '([^\/]+)--[^:]+:  Requests/sec:\s+([0-9.]+)' | awk -F '--|: ' '{print $1, $2, $3, $4}' > 0.summary.txt
+or
+  ./do-all-benchmarks.sh
