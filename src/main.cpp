@@ -14,8 +14,6 @@ int main(const int argc, const char *argv[]) {
   for (int i = 1; i < NSIG; i++) {
     signal(i, sigint);
   }
-  // if SIGPIPE not ignored 'sendfile' aborts program when 'Broken pipe'
-  signal(SIGPIPE, SIG_IGN);
-
+  signal(SIGPIPE, SIG_IGN); // 'sendfile' raises signal when 'Broken pipe'
   return xiinux::server::start(argc, argv);
 }

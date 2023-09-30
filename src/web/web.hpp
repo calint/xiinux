@@ -3,6 +3,7 @@
 #pragma once
 #include "../lut.hpp"
 #include "error404.hpp"
+#include "qa/bigresp.hpp"
 #include "qa/chunked.hpp"
 #include "qa/chunkedbig.hpp"
 #include "qa/chunkedbigger.hpp"
@@ -19,6 +20,7 @@ static inline widget *(*widget_factory_for_path(const char *path))() {
   return widget_path_to_factory_map[path];
 }
 
+static inline widget *widget_create_bigresp() { return new qa::bigresp(); }
 static inline widget *widget_create_chunked() { return new qa::chunked(); }
 static inline widget *widget_create_chunkedbig() {
   return new qa::chunkedbig();
@@ -34,6 +36,7 @@ static inline widget *widget_create_typealine() { return new qa::typealine(); }
 static inline void widget_init_path_to_factory_map() {
   widget_path_to_factory_map.put("/qa/hello", widget_create_hello);
   widget_path_to_factory_map.put("/qa/typealine", widget_create_typealine);
+  widget_path_to_factory_map.put("/qa/bigresp", widget_create_bigresp);
   widget_path_to_factory_map.put("/qa/counter", widget_create_counter);
   widget_path_to_factory_map.put("/qa/chunked", widget_create_chunked);
   widget_path_to_factory_map.put("/qa/chunkedbig", widget_create_chunkedbig);
