@@ -1,4 +1,3 @@
-[ ] server: retrieve client ip
 [ ] server: sockopt TCP_FASTOPEN
 [ ] sock: when sendfile returns 0 the file size has changed to less than current offset
 [ ] access path, query, headers, session from widget
@@ -24,6 +23,7 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] server: retrieve client ip
 [x] server: use accept4 when connecting client
 [x] examine why "qa/far_side_dog_ok.jpg" performance lower than nginx when more than 1 client
     -> running nginx on 1 worker thread (config "worker_processes 1;") performs similar (lower)

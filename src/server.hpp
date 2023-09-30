@@ -36,13 +36,13 @@ public:
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
                    sizeof(option))) {
       perror("setsockopt SO_REUSEADDR");
-      exit(1);
+      exit(2);
     }
 
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &option,
                    sizeof(option))) {
       perror("setsockopt SO_REUSEPORT");
-      exit(2);
+      exit(3);
     }
 
     if (conf::server_print_listen_socket_conf) {
@@ -62,18 +62,18 @@ public:
     if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&server_addr),
              server_addr_size)) {
       perror("bind");
-      exit(2);
+      exit(4);
     }
 
     if (listen(server_fd, conf::server_event_array_size) == -1) {
       perror("listen");
-      exit(3);
+      exit(5);
     }
 
     epoll_fd = epoll_create(conf::server_event_array_size);
     if (epoll_fd == -1) {
       perror("epollcreate");
-      exit(4);
+      exit(6);
     }
 
     struct epoll_event server_ev;
@@ -82,7 +82,7 @@ public:
     server_ev.data.ptr = &server_fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &server_ev)) {
       perror("epolladd");
-      exit(5);
+      exit(7);
     }
 
     init_homepage();
@@ -244,7 +244,7 @@ private:
                  conf::application_name);
     if (n < 0 or size_t(n) >= sizeof(buf)) {
       puts("homepage does not fit in buffer");
-      exit(7);
+      exit(8);
     }
     homepage = std::make_unique<doc>(buf, size_t(n));
   }
