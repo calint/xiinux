@@ -114,7 +114,7 @@ rm cmp t17.cmp&&
 #diff -q cmp t17.cmp&&
 #rm cmp t17.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * widget posts zero length content "&&
+echo " * widget zero length content post"&&
 curl -s \
     --header "Content-Type:text/plain;charset=utf-8" \
     --header "Cookie: i=20230926--2020-abcdef" \

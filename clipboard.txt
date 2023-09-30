@@ -7,6 +7,9 @@ TAG=$(date "+%Y-%m-%d--%H-%M") && git tag $TAG && git push origin $TAG
 
 git reset --hard HEAD
 
+ulimit -n
+ulimit -n 4000
+
 ./test-coverage.sh | tee test-coverage.log
 
 sudo tcpdump -A -i lo -n port 8088

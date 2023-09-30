@@ -16,5 +16,6 @@ int main(const int argc, const char *argv[]) {
     signal(i, sigint);
   }
   signal(SIGPIPE, SIG_IGN); // 'sendfile' raises signal when 'Broken pipe'
+  signal(28, SIG_IGN); // 'Window changed'
   return xiinux::server::start(argc, argv);
 }

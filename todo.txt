@@ -1,6 +1,7 @@
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
 [ ] uploaded file to session directory
+[ ] better handling of "accept: Too many open files"
 [ ] server: sockopt TCP_FASTOPEN
 [ ] sock: when sendfile returns 0 the file size has changed to less than current offset
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
