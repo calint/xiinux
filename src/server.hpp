@@ -128,10 +128,16 @@ public:
           }
 
           if (option_benchmark_mode) {
-            int flag = 1;
+            int option = 1;
             if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY,
-                           static_cast<void *>(&flag), sizeof(int))) {
+                           static_cast<void *>(&option), sizeof(int))) {
               perror("setsockopt TCP_NODELAY");
+              continue;
+            }
+            option = 0;
+            if (setsockopt(client_fd, IPPROTO_TCP, TCP_CORK, &option,
+                           sizeof(option))) {
+              perror("setsockopt TCP_CORK");
               continue;
             }
           }
