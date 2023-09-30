@@ -108,8 +108,21 @@ public:
             continue;
           }
 
-          // int bufsize = 8192;
-          // setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(int));
+          if (conf::sock_send_buffer_size) {
+            int sndbuf = 0;
+            socklen_t socklen_size = sizeof(sndbuf);
+            if (getsockopt(client_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf,
+                           &socklen_size) == -1) {
+              perror("getsockopt SO_SNDBUF");
+            } else {
+              printf("   getsockopt SO_SNDBUF: %d\n", sndbuf);
+            }
+            if (setsockopt(client_fd, SOL_SOCKET, SO_SNDBUF,
+                           &conf::sock_send_buffer_size,
+                           sizeof(conf::sock_send_buffer_size))) {
+              perror("setsockopt SO_SNDBUF");
+            }
+          }
 
           if (option_benchmark_mode) {
             int flag = 1;
