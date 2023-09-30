@@ -12,3 +12,7 @@ how to benchmark:
 
 or
   ./do-all-benchmarks.sh
+
+or
+  ./do-report.sh
+which does all benchmarks, plots and puts the result in directory "report"
