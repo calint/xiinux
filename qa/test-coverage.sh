@@ -115,9 +115,9 @@ rm cmp t17.cmp&&
 #rm cmp t17.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * widget 'counter' "&&
-curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter>cmp&&
+curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter?a=1+2 >cmp&&
 diff -q cmp t19_1.cmp&&
-curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter>cmp&&
+curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter?a=3+4 >cmp&&
 diff -q cmp t19_2.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * abuse request >1K "&&

@@ -53,6 +53,8 @@ public:
   }
 
   inline chunky &p(/*scans*/ const char *str) override {
+    if (!str)
+      return *this;
     return p(str, strlen(str)); //? strnlen
   }
 

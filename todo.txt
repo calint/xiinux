@@ -1,8 +1,6 @@
-[ ] access path, query, headers, session from widget
 [ ] server: sockopt TCP_FASTOPEN
 [ ] sock: when sendfile returns 0 the file size has changed to less than current offset
 [ ] decode query string on demand
-[ ] ? close all sockets in epoll when server::stop to release the port
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>
 [ ] uploaded file names are urlencoded
@@ -19,10 +17,15 @@
 [ ] multi-threading file downloads
     (for nginx performance on multiple worker threads configuration)
 [ ] ? headers in std::unordered_map
-[ ] qa: gnuplot
 [ ] hierarchial widgets
+[ ] sock: session id from cookie accessible in requests for file and upload
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] qa: gnuplot
+[x] access path, query, headers, session from widget
+    -> access through 'reply'
+[x] ? close all sockets in epoll when server::stop to release the port
+    -> sockopt SO_REUSEADDR, SO_REUSEPORT set to 1
 [x] server: retrieve client ip
 [x] server: use accept4 when connecting client
 [x] examine why "qa/far_side_dog_ok.jpg" performance lower than nginx when more than 1 client

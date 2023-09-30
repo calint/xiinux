@@ -69,7 +69,8 @@ public:
         const size_t nbytes_read = size_t(n);
         const size_t content_rem = content.remaining();
         const size_t content_len = content.content_len();
-        reply x{fd_};
+        reply x(fd_, reqline.path_, reqline.query_, headers_,
+                session_->get_lut());
         widget_->on_content(x, content.buf(), nbytes_read,
                             content.pos() + nbytes_read, content_len);
         if (content_rem > nbytes_read) { // not finished
@@ -164,7 +165,7 @@ public:
             break;
           } else if (ch == '?') {
             buf.set_eos();
-            reqline.query_str_ = buf.ptr();
+            reqline.query_ = buf.ptr();
             state = query;
             break;
           }
@@ -230,10 +231,10 @@ public:
     return sock_addr_;
   }
 
-  inline session *get_session() const { return session_; }
   inline const char *get_path() const { return reqline.path_; }
-  inline const char *get_query_string() const { return reqline.query_str_; }
+  inline const char *get_query() const { return reqline.query_; }
   inline const lut<const char *> &get_headers() const { return headers_; }
+  inline session *get_session() const { return session_; }
 
 private:
   void do_after_headers() {
@@ -250,7 +251,7 @@ private:
       return;
     }
 
-    reply x{fd_};
+    reply x(fd_, reqline.path_, reqline.query_, headers_, nullptr);
 
     const char *path =
         *reqline.path_ == '/' ? reqline.path_ + 1 : reqline.path_;
@@ -280,11 +281,14 @@ private:
       memcpy(key, reqline.path_, key_len + 1);
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
-    reply x{fd_};
+
+    reply x(fd_, reqline.path_, reqline.query_, headers_, session_->get_lut());
+
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());
       send_session_id_in_reply_ = false;
     }
+
     const char *content_length_str = headers_["content-length"];
     if (!content_length_str) {
       // no content from client, render widget
@@ -569,8 +573,8 @@ private:
 
   struct reqline {
     char *path_ = nullptr;
-    char *query_str_ = nullptr;
-    inline void rst() { path_ = query_str_ = nullptr; }
+    char *query_ = nullptr;
+    inline void rst() { path_ = query_ = nullptr; }
   } reqline{};
 
   struct header {

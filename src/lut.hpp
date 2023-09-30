@@ -39,7 +39,7 @@ public:
   inline lut(const unsigned size = 8) : size_{size} {
     array_ = static_cast<el **>(calloc(size_t(size), sizeof(el *)));
   }
-  inline lut(const lut &) = delete;
+  inline lut(const lut &) = default;
   inline lut &operator=(const lut &) = delete;
 
   inline ~lut() {
@@ -47,7 +47,7 @@ public:
     free(array_);
   }
 
-  inline T operator[](const char *key) const {
+  inline T get(const char *key) const {
     const unsigned h = hash(key, size_);
     el *e = array_[h];
     while (e) {
@@ -57,6 +57,8 @@ public:
     }
     return nullptr;
   }
+
+  inline T operator[](const char *key) const { return get(key); }
 
   inline void put(const char *key, T data, bool allow_overwrite = true) {
     const unsigned h = hash(key, size_);

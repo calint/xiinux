@@ -3,6 +3,7 @@
 #include "reply.hpp"
 
 namespace xiinux {
+
 class widget {
 public:
   virtual ~widget() {}

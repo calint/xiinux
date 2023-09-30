@@ -23,6 +23,8 @@ public:
   }
 
   inline strb &p(/*copies*/ const char *str) override {
+    if (!str)
+      return *this;
     const size_t str_len = strnlen(str, sizeof(buf_));
     // note. next statement will throw if buffer is overrun
     return p(str, str_len);

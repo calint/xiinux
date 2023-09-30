@@ -1,2 +1,6 @@
+path: /qa/counter
+query: a=1+2
+cookie: i=20230926--2020-abcdef
+session value: 
 counter in this instance: 1
 counter in this class: 1
