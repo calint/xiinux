@@ -550,6 +550,10 @@ private:
       // if (size_t(n) != count) {
       //   printf("sock:file:resume_send_to sent %zd of %zu\n", n, count_);
       // }
+      if (n == 0) { // file truncated
+        stats.errors++;
+        throw "sock:file:resume_send_to sendfile 0";
+      }
       stats.output += size_t(n);
       return n;
     }
@@ -617,6 +621,11 @@ private:
       const ssize_t n = recv(fd_in, buf_, conf::sock_content_buf_size, 0);
       if (n == -1) // error
         return n;
+      if (n == 0) { // file truncated
+        stats.errors++;
+        throw "sock:content:receive_from recv 0";
+      }
+
       stats.input += size_t(n);
       if (conf::print_traffic) {
         const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
@@ -651,6 +660,11 @@ private:
       const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
       if (n == -1)
         return n;
+      // when "Too many open files" recv returns 0 making a busy loop
+      if (n == 0) {
+        stats.errors++;
+        throw "sock:buf:receive_from recv 0";
+      }
       stats.input += size_t(n);
       e_ = p_ + n;
       if (conf::print_traffic) {

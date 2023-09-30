@@ -1,0 +1,191 @@
+
+Summary:
+  Total:	14.2967 secs
+  Slowest:	2.5434 secs
+  Fastest:	0.0001 secs
+  Average:	0.1346 secs
+  Requests/sec:	13989.2132
+  
+  Total data:	3595788 bytes
+  Size/request:	18 bytes
+
+Response time histogram:
+  0.000 [1]	|
+  0.254 [167035]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.509 [29158]	|■■■■■■■
+  0.763 [3033]	|■
+  1.017 [423]	|
+  1.272 [87]	|
+  1.526 [10]	|
+  1.780 [9]	|
+  2.035 [4]	|
+  2.289 [2]	|
+  2.543 [4]	|
+
+
+Latency distribution:
+  10% in 0.0052 secs
+  25% in 0.0369 secs
+  50% in 0.0894 secs
+  75% in 0.2034 secs
+  90% in 0.3163 secs
+  95% in 0.3957 secs
+  99% in 0.5847 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0074 secs, 0.0001 secs, 2.5434 secs
+  DNS-lookup:	0.0022 secs, 0.0000 secs, 0.1610 secs
+  req write:	0.0001 secs, 0.0000 secs, 0.0559 secs
+  resp wait:	0.0279 secs, 0.0000 secs, 2.4738 secs
+  resp read:	0.0530 secs, 0.0000 secs, 0.5373 secs
+
+Status code distribution:
+  [200]	199766 responses
+
+Error distribution:
+  [85]	Get http://localhost:80/: EOF
+  [6]	Get http://localhost:80/: http: server closed idle connection
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:32771->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33139->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33141->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33145->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33147->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33213->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33215->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33305->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:33341->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34068->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34148->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34700->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34783->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34785->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34889->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34891->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34893->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34895->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34897->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34899->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:34901->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36157->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36159->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36161->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36199->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36201->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36203->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36205->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36207->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36209->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36223->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36225->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36557->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36599->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36601->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:36603->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:40979->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:40991->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:40993->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:40995->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41030->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41034->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41050->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41053->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41055->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41057->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41059->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41060->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41067->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41069->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41071->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41073->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41075->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41077->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41079->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41081->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41083->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41089->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41092->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41112->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41127->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41136->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41141->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41143->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41145->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41147->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41150->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41178->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:41198->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:42914->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:42957->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:42983->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:42985->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:42987->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:43019->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45642->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45645->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45647->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45648->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45649->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45679->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45687->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45689->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45696->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45697->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45699->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45701->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45703->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45711->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45713->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45719->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45722->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45723->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45724->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45733->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45735->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45737->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45738->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45739->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45770->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45782->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45790->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45808->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45818->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:45870->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50111->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50113->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50117->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50127->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50145->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50147->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50195->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50197->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50199->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50201->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50203->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50221->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50247->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:50249->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:53070->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:53084->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:54393->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:55465->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:55467->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:55469->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:55471->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56735->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56737->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56739->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56741->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56743->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56749->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56757->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56765->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56807->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56813->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56815->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56817->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56827->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56829->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:56839->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:59639->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/: read tcp 127.0.0.1:59641->127.0.0.1:80: read: connection reset by peer
+

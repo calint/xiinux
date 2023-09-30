@@ -44,6 +44,12 @@ public:
     txt.p(buf, buf_len);
 
     if (received_len == content_len) { // last call?
+      if (!txt.len()) {
+        txt.p("alert('enter javascript code');");
+        x.http(200, txt.buf(), txt.len(), "text/plain;charset=utf-8");
+        txt.rst();
+        return;
+      }
       x.http(200, txt.buf(), txt.len(), "text/plain;charset=utf-8");
     }
   }

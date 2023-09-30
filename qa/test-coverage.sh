@@ -114,6 +114,13 @@ rm cmp t17.cmp&&
 #diff -q cmp t17.cmp&&
 #rm cmp t17.cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * widget posts zero length content "&&
+curl -s \
+    --header "Content-Type:text/plain;charset=utf-8" \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --data-binary "" $HTTP/qa/page >cmp&&
+diff -q cmp t20.cmp&&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * widget 'counter' "&&
 curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter?a=1+2 >cmp&&
 diff -q cmp t19_1.cmp&&

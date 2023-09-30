@@ -1,0 +1,57 @@
+
+Summary:
+  Total:	15.9782 secs
+  Slowest:	13.2101 secs
+  Fastest:	0.0001 secs
+  Average:	0.1245 secs
+  Requests/sec:	12517.0371
+  
+  Total data:	2592746 bytes
+  Size/request:	13 bytes
+
+Response time histogram:
+  0.000 [1]	|
+  1.321 [199297]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  2.642 [107]	|
+  3.963 [2]	|
+  5.284 [5]	|
+  6.605 [13]	|
+  7.926 [3]	|
+  9.247 [0]	|
+  10.568 [0]	|
+  11.889 [0]	|
+  13.210 [14]	|
+
+
+Latency distribution:
+  10% in 0.0028 secs
+  25% in 0.0302 secs
+  50% in 0.0803 secs
+  75% in 0.1736 secs
+  90% in 0.2902 secs
+  95% in 0.3792 secs
+  99% in 0.5888 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0068 secs, 0.0001 secs, 13.2101 secs
+  DNS-lookup:	0.0034 secs, 0.0000 secs, 0.4246 secs
+  req write:	0.0002 secs, 0.0000 secs, 0.0805 secs
+  resp wait:	0.0323 secs, 0.0000 secs, 12.8394 secs
+  resp read:	0.0422 secs, 0.0000 secs, 0.5663 secs
+
+Status code distribution:
+  [200]	199442 responses
+
+Error distribution:
+  [528]	Get http://localhost:80/qa/files/small.txt: EOF
+  [21]	Get http://localhost:80/qa/files/small.txt: http: server closed idle connection
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53686->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53706->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53718->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53814->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53838->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53840->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:53860->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:54236->127.0.0.1:80: read: connection reset by peer
+  [1]	Get http://localhost:80/qa/files/small.txt: read tcp 127.0.0.1:57288->127.0.0.1:80: read: connection reset by peer
+

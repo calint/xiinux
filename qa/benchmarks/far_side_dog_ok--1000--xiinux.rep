@@ -1,0 +1,47 @@
+
+Summary:
+  Total:	23.1393 secs
+  Slowest:	4.8944 secs
+  Fastest:	0.0001 secs
+  Average:	0.0353 secs
+  Requests/sec:	8643.3196
+  
+  Total data:	25637764181 bytes
+  Size/request:	128201 bytes
+
+Response time histogram:
+  0.000 [1]	|
+  0.490 [199841]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.979 [15]	|
+  1.468 [12]	|
+  1.958 [16]	|
+  2.447 [15]	|
+  2.937 [13]	|
+  3.426 [14]	|
+  3.916 [16]	|
+  4.405 [19]	|
+  4.894 [19]	|
+
+
+Latency distribution:
+  10% in 0.0304 secs
+  25% in 0.0328 secs
+  50% in 0.0347 secs
+  75% in 0.0367 secs
+  90% in 0.0386 secs
+  95% in 0.0397 secs
+  99% in 0.0442 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0002 secs, 0.0001 secs, 4.8944 secs
+  DNS-lookup:	0.0003 secs, 0.0000 secs, 0.1212 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0434 secs
+  resp wait:	0.0344 secs, 0.0000 secs, 4.8942 secs
+  resp read:	0.0002 secs, 0.0000 secs, 0.1135 secs
+
+Status code distribution:
+  [200]	199981 responses
+
+Error distribution:
+  [19]	Get http://localhost:8088/qa/files/far_side_dog_ok.jpg: net/http: request canceled (Client.Timeout exceeded while awaiting headers)
+
