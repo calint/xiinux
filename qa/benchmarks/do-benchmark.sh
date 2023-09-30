@@ -4,8 +4,8 @@ set -e
 SERVER=$1
 HOST=$2
 PORT=$3
-NREQS=100000
-NCLIENTS="1 10 100 200"
+NREQS=200000
+NCLIENTS="1 10 100 200 400 800"
 
 URLS="http://$HOST:$PORT/ \
       http://$HOST:$PORT/qa/files/small.txt \
