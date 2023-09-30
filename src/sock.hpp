@@ -615,7 +615,7 @@ private:
   } content{};
 
   class buf {
-    char buf_[conf::sock_req_buf_size];
+    char buf_[conf::sock_request_header_buf_size];
     char *p_ = buf_;
     char *e_ = buf_;
 
@@ -629,7 +629,7 @@ private:
     inline void set_eos() { *(p_ - 1) = '\0'; }
 
     inline ssize_t receive_from(const int fd_in) {
-      const size_t nbytes_to_read = conf::sock_req_buf_size - size_t(p_ - buf_);
+      const size_t nbytes_to_read = conf::sock_request_header_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
         throw "sock:buf:full";
       stats.reads++;

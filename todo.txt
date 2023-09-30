@@ -1,4 +1,8 @@
 [ ] examine why "qa/far_side_dog_ok.jpg" performance lower than nginx when more than 1 client
+[ ] server: use accept4 when connecting client
+[ ] server: retrieve client ip
+[ ] server: sockopt TCP_FASTOPEN
+[ ] sock: when sendfile returns 0 the file size has changed to less than current offset
 [ ] ? close all sockets in epoll when server::stop to release the port
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>

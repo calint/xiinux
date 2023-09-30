@@ -108,18 +108,15 @@ public:
             perror("epoll_ctl");
             continue;
           }
+          
+          if (conf::server_print_client_socket_conf) {
+            printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
+                   get_sock_option(client_fd, SO_SNDBUF),
+                   get_sock_option(client_fd, TCP_NODELAY),
+                   get_sock_option(client_fd, TCP_CORK));
+          }
 
           if (conf::sock_send_buffer_size) {
-            if (conf::sock_print_getsock_len) {
-              int sndbuf = 0;
-              socklen_t socklen_size = sizeof(sndbuf);
-              if (getsockopt(client_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf,
-                             &socklen_size) == -1) {
-                perror("getsockopt SO_SNDBUF");
-              } else {
-                printf("   getsockopt SO_SNDBUF: %d\n", sndbuf);
-              }
-            }
             if (setsockopt(client_fd, SOL_SOCKET, SO_SNDBUF,
                            &conf::sock_send_buffer_size,
                            sizeof(conf::sock_send_buffer_size))) {
@@ -129,8 +126,8 @@ public:
 
           if (option_benchmark_mode) {
             int option = 1;
-            if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY,
-                           static_cast<void *>(&option), sizeof(int))) {
+            if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &option,
+                           sizeof(option))) {
               perror("setsockopt TCP_NODELAY");
               continue;
             }
@@ -219,6 +216,16 @@ private:
         fprintf(stdout, "\n");
       }
     }
+  }
+
+  inline static int get_sock_option(const int fd, const int opt) {
+    int option = 0;
+    socklen_t option_size = sizeof(option);
+    if (getsockopt(fd, SOL_SOCKET, opt, &option, &option_size) == -1) {
+      perror("get_sock_option");
+      return -1;
+    }
+    return option;
   }
 
   inline static int server_fd = 0;

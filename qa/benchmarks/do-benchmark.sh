@@ -4,10 +4,14 @@ set -e
 SERVER=$1
 HOST=$2
 PORT=$3
+NREQS=100000
 
 URLS="http://$HOST:$PORT/ \
       http://$HOST:$PORT/qa/files/small.txt \
       http://$HOST:$PORT/qa/files/far_side_dog_ok.jpg"
+
+#URLS="http://$HOST:$PORT/qa/files/small.txt \
+#      http://$HOST:$PORT/qa/files/far_side_dog_ok.jpg"
 
 for URL in $URLS; do
     echo $URL
@@ -19,7 +23,7 @@ for URL in $URLS; do
     NCLIENTS="1 10 100"
     for C in $NCLIENTS; do
         echo -n "$C "
-        hey -n 100000 -c $C $URL > $FILENAME--$C--$SERVER.rep
+        hey -n $NREQS -c $C $URL > $FILENAME--$C--$SERVER.rep
     done
     echo
 done

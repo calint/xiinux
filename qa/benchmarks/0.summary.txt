@@ -1,18 +1,49 @@
-far_side_dog_ok 1 nginx.rep  Requests/sec:	3671.7828
-far_side_dog_ok 1 xiinux.rep  Requests/sec:	3761.8445
-far_side_dog_ok 10 nginx.rep  Requests/sec:	43472.4289
-far_side_dog_ok 10 xiinux.rep  Requests/sec:	29225.4777
-far_side_dog_ok 100 nginx.rep  Requests/sec:	43330.8348
-far_side_dog_ok 100 xiinux.rep  Requests/sec:	28136.3028
-homepage 1 nginx.rep  Requests/sec:	9321.4001
-homepage 1 xiinux.rep  Requests/sec:	7148.3759
-homepage 10 nginx.rep  Requests/sec:	58768.6383
-homepage 10 xiinux.rep  Requests/sec:	96279.8734
-homepage 100 nginx.rep  Requests/sec:	43308.0205
-homepage 100 xiinux.rep  Requests/sec:	52061.8521
-small 1 nginx.rep  Requests/sec:	7030.0630
-small 1 xiinux.rep  Requests/sec:	6968.5523
-small 10 nginx.rep  Requests/sec:	66776.3347
-small 10 xiinux.rep  Requests/sec:	63898.1273
-small 100 nginx.rep  Requests/sec:	47010.2454
-small 100 xiinux.rep  Requests/sec:	60686.3257
+lör 30 sep 2023 14:11:01 CEST
+far_side_dog_ok--1--bob.rep:  [200]	100000 responses
+far_side_dog_ok--1--nginx.rep:  [200]	100000 responses
+far_side_dog_ok--1--xiinux.rep:  [200]	100000 responses
+far_side_dog_ok--10--bob.rep:  [200]	100000 responses
+far_side_dog_ok--10--nginx.rep:  [200]	100000 responses
+far_side_dog_ok--10--xiinux.rep:  [200]	100000 responses
+far_side_dog_ok--100--bob.rep:  [200]	100000 responses
+far_side_dog_ok--100--nginx.rep:  [200]	100000 responses
+far_side_dog_ok--100--xiinux.rep:  [200]	100000 responses
+homepage--1--nginx.rep:  [200]	100000 responses
+homepage--1--xiinux.rep:  [200]	100000 responses
+homepage--10--nginx.rep:  [200]	100000 responses
+homepage--10--xiinux.rep:  [200]	100000 responses
+homepage--100--nginx.rep:  [200]	100000 responses
+homepage--100--xiinux.rep:  [200]	100000 responses
+small--1--bob.rep:  [200]	100000 responses
+small--1--nginx.rep:  [200]	100000 responses
+small--1--xiinux.rep:  [200]	100000 responses
+small--10--bob.rep:  [200]	100000 responses
+small--10--nginx.rep:  [200]	100000 responses
+small--10--xiinux.rep:  [200]	100000 responses
+small--100--bob.rep:  [200]	100000 responses
+small--100--nginx.rep:  [200]	100000 responses
+small--100--xiinux.rep:  [200]	100000 responses
+far_side_dog_ok 1 bob.rep  Requests/sec:	5953.3106
+far_side_dog_ok 1 nginx.rep  Requests/sec:	6277.4526
+far_side_dog_ok 1 xiinux.rep  Requests/sec:	6866.8777
+far_side_dog_ok 10 bob.rep  Requests/sec:	20550.2671
+far_side_dog_ok 10 nginx.rep  Requests/sec:	33439.5453
+far_side_dog_ok 10 xiinux.rep  Requests/sec:	28640.8404
+far_side_dog_ok 100 bob.rep  Requests/sec:	19693.0140
+far_side_dog_ok 100 nginx.rep  Requests/sec:	29888.1512
+far_side_dog_ok 100 xiinux.rep  Requests/sec:	28663.3228
+homepage 1 nginx.rep  Requests/sec:	10839.3092
+homepage 1 xiinux.rep  Requests/sec:	12963.2581
+homepage 10 nginx.rep  Requests/sec:	66064.2703
+homepage 10 xiinux.rep  Requests/sec:	93946.0991
+homepage 100 nginx.rep  Requests/sec:	45711.9277
+homepage 100 xiinux.rep  Requests/sec:	51412.8405
+small 1 bob.rep  Requests/sec:	9872.9547
+small 1 nginx.rep  Requests/sec:	10664.8963
+small 1 xiinux.rep  Requests/sec:	11606.1776
+small 10 bob.rep  Requests/sec:	75787.1840
+small 10 nginx.rep  Requests/sec:	69035.2141
+small 10 xiinux.rep  Requests/sec:	59142.7314
+small 100 bob.rep  Requests/sec:	65225.1281
+small 100 nginx.rep  Requests/sec:	46230.3392
+small 100 xiinux.rep  Requests/sec:	54981.4371
