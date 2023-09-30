@@ -1,5 +1,7 @@
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
+[ ] sock: consolidate recv(...) in content and buf
+[ ] sock: session id from cookie accessible in requests for file and upload
 [ ] uploaded file to session directory
 [ ] better handling of "accept: Too many open files"
 [ ] server: sockopt TCP_FASTOPEN
@@ -20,7 +22,6 @@
     (for nginx performance on multiple worker threads configuration)
 [ ] ? headers in std::unordered_map
 [ ] hierarchial widgets
-[ ] sock: session id from cookie accessible in requests for file and upload
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
 [x] qa: gnuplot
