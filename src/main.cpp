@@ -4,7 +4,8 @@
 #include <cstring>
 
 [[noreturn]] static void sigint(int signum) {
-  printf("caught signal: %s (%d)\nexiting\n", strsignal(signum), signum);
+  printf("\n!!! caught signal %d: %s\n!!! exiting\n", signum,
+         strsignal(signum));
   xiinux::server::stop();
   exit(-signum);
 }

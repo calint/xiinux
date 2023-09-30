@@ -41,12 +41,12 @@ public:
       exit(2);
     }
 
-    if (listen(server_fd, conf::epoll_event_array_size) == -1) {
+    if (listen(server_fd, conf::server_event_array_size) == -1) {
       perror("listen");
       exit(3);
     }
 
-    epoll_fd = epoll_create(conf::epoll_event_array_size);
+    epoll_fd = epoll_create(conf::server_event_array_size);
     if (epoll_fd == -1) {
       perror("epollcreate");
       exit(4);
@@ -69,10 +69,10 @@ public:
       thdwatch = std::thread(thdwatch_run);
     }
 
-    struct epoll_event events[conf::epoll_event_array_size];
+    struct epoll_event events[conf::server_event_array_size];
     while (true) {
       const int n =
-          epoll_wait(epoll_fd, events, conf::epoll_event_array_size, -1);
+          epoll_wait(epoll_fd, events, conf::server_event_array_size, -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok
@@ -84,7 +84,9 @@ public:
         // check if server socket
         if (ev.data.ptr == &server_fd) {
           // server, new connection
-          // printf("server accept %p %x\n", ev.data.ptr, ev.events);
+          if (conf::server_print_events) {
+            printf("client connect %x\n", ev.events);
+          }
           stats.accepts++;
           const int client_fd = accept(server_fd, nullptr, nullptr);
           if (client_fd == -1) {
@@ -109,14 +111,16 @@ public:
           }
 
           if (conf::sock_send_buffer_size) {
-            // int sndbuf = 0;
-            // socklen_t socklen_size = sizeof(sndbuf);
-            // if (getsockopt(client_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf,
-            //                &socklen_size) == -1) {
-            //   perror("getsockopt SO_SNDBUF");
-            // } else {
-            //   printf("   getsockopt SO_SNDBUF: %d\n", sndbuf);
-            // }           
+            if (conf::sock_print_getsock_len) {
+              int sndbuf = 0;
+              socklen_t socklen_size = sizeof(sndbuf);
+              if (getsockopt(client_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf,
+                             &socklen_size) == -1) {
+                perror("getsockopt SO_SNDBUF");
+              } else {
+                printf("   getsockopt SO_SNDBUF: %d\n", sndbuf);
+              }
+            }
             if (setsockopt(client_fd, SOL_SOCKET, SO_SNDBUF,
                            &conf::sock_send_buffer_size,
                            sizeof(conf::sock_send_buffer_size))) {
@@ -135,7 +139,9 @@ public:
           continue;
         }
         // sock, read, write or hang-up available
-        // printf("client event %p %x\n", ev.data.ptr, ev.events);
+        if (conf::server_print_events) {
+          printf("client %p event %x\n", ev.data.ptr, ev.events);
+        }
         sock *c = static_cast<sock *>(ev.data.ptr);
         if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
           delete c;

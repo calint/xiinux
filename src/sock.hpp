@@ -528,12 +528,14 @@ private:
     }
     inline ssize_t resume_send_to(const int out_fd) {
       stats.writes++;
+      const size_t count = count_ - size_t(offset_);
       const ssize_t n =
-          sendfile(out_fd, fd_, &offset_, count_ - size_t(offset_));
+          sendfile(out_fd, fd_, &offset_, count);
       if (n == -1) // error
         return n;
-      if (size_t(n) != count_)
-        printf("sent: %zd of %zu\n", n, count_);
+      // if (size_t(n) != count) {
+      //   printf("sock:file:resume_send_to sent %zd of %zu\n", n, count_);
+      // }
       stats.output += size_t(n);
       return n;
     }
