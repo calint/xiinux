@@ -532,6 +532,8 @@ private:
           sendfile(out_fd, fd_, &offset_, count_ - size_t(offset_));
       if (n == -1) // error
         return n;
+      if (size_t(n) != count_)
+        printf("sent: %zd of %zu\n", n, count_);
       stats.output += size_t(n);
       return n;
     }
@@ -656,7 +658,7 @@ private:
     receiving_upload,
     next_request
   } state = method;
-  
+
   int fd_ = 0;
   lut<const char *> headers_{};
   int upload_fd_ = 0;

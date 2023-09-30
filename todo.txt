@@ -1,7 +1,7 @@
+[ ] examine why "qa/far_side_dog_ok.jpg" performance lower than nginx when more than 1 client
 [ ] ? close all sockets in epoll when server::stop to release the port
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>
-[ ] examine why "qa/far_side_dog_ok.jpg" performance lower than nginx
 [ ] uploaded file names are urlencoded
 [ ] review throws messages
 [ ] review perror(...) messages
