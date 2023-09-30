@@ -1,6 +1,6 @@
+[ ] access path, query, headers, session from widget
 [ ] server: sockopt TCP_FASTOPEN
 [ ] sock: when sendfile returns 0 the file size has changed to less than current offset
-[ ] access path, query, headers, session from widget
 [ ] decode query string on demand
 [ ] ? close all sockets in epoll when server::stop to release the port
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
