@@ -14,7 +14,7 @@
 // 'sock' uses 'epoll_fd', 'homepage' and 'widget_new'
 // 'server' uses 'epoll_fd' and 'homepage'. refers to 'sock'
 // 'io_send(...)' used by 'sock', 'reply' and 'chunky'
-// 'widget_new(...) used by 'sock'
+// 'widget_factory_for_path(...) used by 'sock'
 
 namespace xiinux {
 

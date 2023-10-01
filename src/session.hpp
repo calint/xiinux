@@ -10,8 +10,6 @@ class session final {
 
 public:
   inline session(std::string id) : id_{id} { stats.sessions++; }
-  inline session(const session &) = delete;
-  inline session &operator=(const session &) = delete;
 
   inline ~session() { stats.sessions--; }
 
