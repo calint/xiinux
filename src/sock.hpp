@@ -73,8 +73,8 @@ public:
         const size_t nbytes_read = size_t(n);
         const size_t content_rem = content_.remaining();
         const size_t content_len = content_.content_len();
-        reply x{fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
-                headers_, &session_->get_lut()};
+        reply x{fd_, reqline_.path_, reqline_.query_, headers_,
+                &session_->get_lut()};
         widget_->on_content(x, content_.buf(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
         if (content_rem > nbytes_read) { // not finished
@@ -155,7 +155,7 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             state_ = uri;
-            reqline_.path_start_ = reqbuf_.ptr();
+            reqline_.begin_ = reqbuf_.ptr();
             break;
           }
         }
@@ -165,15 +165,17 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
-            reqline_.path_ = {reqline_.path_start_,
-                              size_t(reqbuf_.ptr() - reqline_.path_start_ - 1)};
+            reqline_.path_ = {reqline_.begin_,
+                              size_t(reqbuf_.ptr() - reqline_.begin_ - 1)};
+            reqline_.begin_ = reqbuf_.ptr();
             state_ = protocol;
             break;
           } else if (ch == '?') {
             reqbuf_.set_eos();
-            reqline_.path_ = {reqline_.path_start_,
-                              size_t(reqbuf_.ptr() - reqline_.path_start_ - 1)};
-            reqline_.query_ = reqbuf_.ptr();
+            // -1 because reqbuf.ptr is one step past '\+'
+            reqline_.path_ = {reqline_.begin_,
+                              size_t(reqbuf_.ptr() - reqline_.begin_ - 1)};
+            reqline_.begin_ = reqbuf_.ptr();
             state_ = query;
             break;
           }
@@ -184,6 +186,9 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
+            // -1 because reqbuf.ptr is one step past '\+'
+            reqline_.query_ = {reqline_.begin_,
+                               size_t(reqbuf_.ptr() - reqline_.begin_ - 1)};
             state_ = protocol;
             break;
           }
@@ -251,7 +256,7 @@ public:
   }
 
   inline std::string_view get_path() const { return reqline_.path_; }
-  inline const char *get_query() const { return reqline_.query_; }
+  inline std::string_view get_query() const { return reqline_.query_; }
   inline const map_headers &get_headers() const { return headers_; }
   inline session *get_session() const { return session_; }
 
@@ -270,8 +275,7 @@ private:
       return;
     }
 
-    reply x{fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
-            headers_, nullptr};
+    reply x{fd_, reqline_.path_, reqline_.query_, headers_, nullptr};
 
     const char *path = reqline_.path_.at(0) == '/' ? reqline_.path_.data() + 1
                                                    : reqline_.path_.data();
@@ -297,8 +301,8 @@ private:
       session_->put_widget(std::string{reqline_.path_}, std::move(wup));
     }
 
-    reply x{fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
-            headers_, &session_->get_lut()};
+    reply x{fd_, reqline_.path_, reqline_.query_, headers_,
+            &session_->get_lut()};
 
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());
@@ -591,12 +595,13 @@ private:
   } file_{};
 
   struct reqline {
-    const char *path_start_{nullptr};
+    const char *begin_{nullptr};
     std::string_view path_{};
-    char *query_ = nullptr;
+    std::string_view query_{};
     inline void rst() {
       path_ = {};
-      query_ = nullptr;
+      query_ = {};
+      begin_ = nullptr;
     }
   } reqline_{};
 
