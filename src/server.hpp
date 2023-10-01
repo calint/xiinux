@@ -116,8 +116,8 @@ public:
           stats.accepts++;
 
           struct sockaddr_in client_addr;
-          bzero(&server_addr, sizeof(client_addr));
-          socklen_t client_addr_len = 0;
+          bzero(&client_addr, sizeof(client_addr));
+          socklen_t client_addr_len = sizeof(client_addr);
           const int client_fd = accept4(
               server_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
               &client_addr_len, SOCK_NONBLOCK);
@@ -127,8 +127,10 @@ public:
           }
 
           if (conf::server_print_events) {
+            char ip[INET_ADDRSTRLEN];
             printf("client connect: event=%x fd=%d ip=%s\n", ev.events,
-                   client_fd, inet_ntoa(client_addr.sin_addr));
+                   client_fd,
+                   ip_addr_to_str(ip, &(client_addr.sin_addr.s_addr)));
           }
 
           sock *client = new sock(client_fd, client_addr);
@@ -228,12 +230,21 @@ private:
                                             const char *msg) {
     const session *sn = client->get_session();
     const std::string &snid = sn ? sn->get_id() : "n/a";
-
+    char ip_addr_str[32];
+    in_addr_t inaddr = client->get_socket_address().sin_addr.s_addr;
     const std::time_t t = std::time(nullptr);
     const std::tm tm = *std::localtime(&t);
     std::cout << "!!! exception " << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
-              << "  " << inet_ntoa(client->get_socket_address().sin_addr)
+              << "  " << ip_addr_to_str(ip_addr_str, &inaddr)
               << "  session=" << snid << "  msg=" << msg << std::endl;
+  }
+
+  inline static char *ip_addr_to_str(char dst[], void *s_addr) {
+    if (!inet_ntop(AF_INET, s_addr, dst, INET_ADDRSTRLEN)) {
+      perror("ip address to text");
+      dst[0] = 0;
+    }
+    return dst;
   }
 
   inline static void init_homepage() {
