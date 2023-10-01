@@ -8,6 +8,7 @@
 #include "web/web.hpp"
 #include "widget.hpp"
 #include <fcntl.h>
+#include <iostream>
 #include <memory>
 #include <netinet/in.h>
 #include <string_view>
@@ -198,7 +199,7 @@ public:
         while (reqbuf_.has_more()) {
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == '\n') {
-            header_.name_ = reqbuf_.ptr();
+            header_.begin_ = reqbuf_.ptr();
             state_ = header_key;
             break;
           }
@@ -212,7 +213,13 @@ public:
             break;
           } else if (ch == ':') {
             reqbuf_.set_eos();
-            header_.value_ = reqbuf_.ptr();
+            strlwr(header_.begin_); // to lower string
+            // -1 because reqbuf.ptr is one character ahead
+            header_.name_ = {header_.begin_,
+                             size_t(reqbuf_.ptr() - header_.begin_ - 1)};
+            header_.name_ = trim(header_.name_);
+            // set begin_ to the start of the value part of the header
+            header_.begin_ = reqbuf_.ptr();
             state_ = header_value;
             break;
           }
@@ -223,13 +230,13 @@ public:
           const char c = reqbuf_.unsafe_next_char();
           if (c == '\n') {
             reqbuf_.set_eos();
-            // -2 to skip '\0' and place pointer on last character in the key
-            header_.name_ = strtrm(header_.name_, header_.value_ - 2);
+            header_.value_ = {header_.begin_,
+                             size_t(reqbuf_.ptr() - header_.begin_ - 1)};
             // RFC 2616: header field names are case-insensitive
-            strlwr(header_.name_);
-            // -2 to skip '\0' and place pointer on last character in the value
-            header_.value_ = strtrm(header_.value_, reqbuf_.ptr() - 2);
-            // printf("%s: %s\n",hdrparser.key,hdrparser.value);
+            header_.value_ = trim(header_.value_);
+
+            // std::cout << "key :'" << header_.name_ << "' value '"
+            //           << header_.value_ << "'\n";
 
             // headers_.insert({std::string_view{header_.name_},
             //                  std::string_view{header_.value_}});
@@ -242,7 +249,7 @@ public:
 
             headers_[header_.name_] = header_.value_;
 
-            header_.name_ = reqbuf_.ptr();
+            header_.begin_ = reqbuf_.ptr();
             state_ = header_key;
             break;
           }
@@ -606,9 +613,14 @@ private:
   } reqline_{};
 
   struct header {
-    char *name_ = nullptr;
-    char *value_ = nullptr;
-    inline void rst() { name_ = value_ = nullptr; }
+    char *begin_{nullptr};
+    std::string_view name_{};
+    std::string_view value_{};
+    inline void rst() {
+      name_ = {};
+      value_ = {};
+      begin_ = nullptr;
+    }
   } header_{};
 
   class content {
@@ -728,6 +740,20 @@ private:
     while (p != e and isspace(*e))
       *e-- = '\0';
     return p;
+  }
+
+  std::string_view trim(std::string_view in) {
+    auto left = in.begin();
+    for (;; ++left) {
+      if (left == in.end())
+        return std::string_view();
+      if (!isspace(*left))
+        break;
+    }
+    auto right = in.end() - 1;
+    for (; right > left && isspace(*right); --right)
+      ;
+    return std::string_view(left, size_t(std::distance(left, right) + 1));
   }
 
   static inline void strlwr(char *p) {
