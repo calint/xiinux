@@ -21,7 +21,7 @@ WARNINGS="-Weverything \
 BIN=xiinux
 SRC=src/main.cpp
 DBG=
-DBG=-g
+#DBG=-g
 OPTS=-Wfatal-errors
 #OPTS="-Os -Wfatal-errors"
 

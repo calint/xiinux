@@ -1,10 +1,12 @@
-[ ] consider going full C++ using std::string and std::unordered_map<...>
-[ ] examine why using lut<...>, std::put_time(...) and std::cout increases the
-    size of binary so much (~75K -> ~275K)
+[ ] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
+    instead of lut<...>
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
     were created with 'strb' template
+[x] examine why using lut<...>, std::put_time(...) and std::cout increases the
+    size of binary so much (~75K -> ~275K)
+    => -g was on now ~75K -> ~130K
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>
 [ ] decode query string on demand

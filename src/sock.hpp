@@ -69,7 +69,7 @@ public:
         const size_t nbytes_read = size_t(n);
         const size_t content_rem = content_.remaining();
         const size_t content_len = content_.content_len();
-        reply x(fd_, reqline.path_, reqline.query_, &headers_,
+        reply x(fd_, reqline_.path_, reqline_.query_, &headers_,
                 session_->get_lut());
         widget_->on_content(x, content_.buf(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
@@ -122,9 +122,9 @@ public:
         }
         stats.requests++;
         file_.rst();
-        reqline.rst();
+        reqline_.rst();
         reqbuf_.rst();
-        header.rst();
+        header_.rst();
         content_.rst();
         headers_.clear();
         upload_fd_ = 0;
@@ -151,7 +151,7 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             state_ = uri;
-            reqline.path_ = reqbuf_.ptr();
+            reqline_.path_ = reqbuf_.ptr();
             break;
           }
         }
@@ -165,7 +165,7 @@ public:
             break;
           } else if (ch == '?') {
             reqbuf_.set_eos();
-            reqline.query_ = reqbuf_.ptr();
+            reqline_.query_ = reqbuf_.ptr();
             state_ = query;
             break;
           }
@@ -185,7 +185,7 @@ public:
         while (reqbuf_.has_more()) {
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == '\n') {
-            header.name_ = reqbuf_.ptr();
+            header_.name_ = reqbuf_.ptr();
             state_ = header_key;
             break;
           }
@@ -199,7 +199,7 @@ public:
             break;
           } else if (ch == ':') {
             reqbuf_.set_eos();
-            header.value_ = reqbuf_.ptr();
+            header_.value_ = reqbuf_.ptr();
             state_ = header_value;
             break;
           }
@@ -211,14 +211,14 @@ public:
           if (c == '\n') {
             reqbuf_.set_eos();
             // -2 to skip '\0' and place pointer on last character in the key
-            header.name_ = strtrm(header.name_, header.value_ - 2);
+            header_.name_ = strtrm(header_.name_, header_.value_ - 2);
             // RFC 2616: header field names are case-insensitive
-            strlwr(header.name_);
+            strlwr(header_.name_);
             // -2 to skip '\0' and place pointer on last character in the value
-            header.value_ = strtrm(header.value_, reqbuf_.ptr() - 2);
+            header_.value_ = strtrm(header_.value_, reqbuf_.ptr() - 2);
             // printf("%s: %s\n",hdrparser.key,hdrparser.value);
-            headers_.put(header.name_, header.value_);
-            header.name_ = reqbuf_.ptr();
+            headers_.put(header_.name_, header_.value_);
+            header_.name_ = reqbuf_.ptr();
             state_ = header_key;
             break;
           }
@@ -231,14 +231,14 @@ public:
     return sock_addr_;
   }
 
-  inline const char *get_path() const { return reqline.path_; }
-  inline const char *get_query() const { return reqline.query_; }
+  inline const char *get_path() const { return reqline_.path_; }
+  inline const char *get_query() const { return reqline_.query_; }
   inline const lut<const char *> &get_headers() const { return headers_; }
   inline session *get_session() const { return session_; }
 
 private:
   void do_after_headers() {
-    widget *(*factory)() = web::widget_factory_for_path(reqline.path_);
+    widget *(*factory)() = web::widget_factory_for_path(reqline_.path_);
     if (factory) {
       do_serve_widget(factory);
       return;
@@ -251,10 +251,10 @@ private:
       return;
     }
 
-    reply x(fd_, reqline.path_, reqline.query_, &headers_, nullptr);
+    reply x(fd_, reqline_.path_, reqline_.query_, &headers_, nullptr);
 
     const char *path =
-        *reqline.path_ == '/' ? reqline.path_ + 1 : reqline.path_;
+        *reqline_.path_ == '/' ? reqline_.path_ + 1 : reqline_.path_;
     if (!*path) { // uri '/'
       stats.cache++;
       homepage->to(x);
@@ -270,19 +270,19 @@ private:
 
     retrieve_or_create_session();
 
-    widget_ = session_->get_widget(reqline.path_);
+    widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
       widget_ = /*take*/ factory();
-      const size_t key_len = strnlen(reqline.path_, conf::widget_key_size);
+      const size_t key_len = strnlen(reqline_.path_, conf::widget_key_size);
       if (key_len == conf::widget_key_size)
         throw "sock:key_len";
       // +1 for the \0 terminator
       char *key = new char[key_len + 1];
-      memcpy(key, reqline.path_, key_len + 1);
+      memcpy(key, reqline_.path_, key_len + 1);
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
 
-    reply x(fd_, reqline.path_, reqline.query_, &headers_, session_->get_lut());
+    reply x(fd_, reqline_.path_, reqline_.query_, &headers_, session_->get_lut());
 
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());
@@ -372,7 +372,7 @@ private:
     // file upload
     char pth[conf::upload_path_size];
     // +1 to skip the leading '/'
-    const int res = snprintf(pth, sizeof(pth), "upload/%s", reqline.path_ + 1);
+    const int res = snprintf(pth, sizeof(pth), "upload/%s", reqline_.path_ + 1);
     if (res < 0 or size_t(res) >= sizeof(pth))
       throw "sock:pathtrunc";
     upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC, 0664);
@@ -580,13 +580,13 @@ private:
     char *path_ = nullptr;
     char *query_ = nullptr;
     inline void rst() { path_ = query_ = nullptr; }
-  } reqline{};
+  } reqline_{};
 
   struct header {
     char *name_ = nullptr;
     char *value_ = nullptr;
     inline void rst() { name_ = value_ = nullptr; }
-  } header{};
+  } header_{};
 
   class content {
     size_t pos_ = 0;
