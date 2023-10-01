@@ -13,8 +13,8 @@ public:
         "rel=stylesheet href=/x.css>";
     // -1 don't copy the terminating '\0'
     // 7, 4 and 8 are string lengths
-    s.p(html5_preamble, sizeof(html5_preamble) - 1);
-    s.p("<title>", 7).p("page", 4).p("</title>", 8);
+    s.p({html5_preamble, sizeof(html5_preamble) - 1});
+    s.p({"<title>", 7}).p({"page", 4}).p({"</title>", 8});
 
     s.p("Type JavaScript to execute on client <input id=_btn type=button "
         "value=run "
@@ -41,7 +41,7 @@ public:
     }
 
     // add content to 'txt'
-    txt.p(buf, buf_len);
+    txt.p({buf, buf_len});
 
     if (received_len == content_len) { // last call?
       if (!txt.len()) {

@@ -16,19 +16,19 @@ class sock;
 class reply final {
   int fd_ = 0;
   const char *path_;
-  const char *query_;
+  std::string_view query_;
   const map_headers &req_headers_;
   map_session *session_;
   std::string_view set_session_id_{};
 
 public:
-  inline reply(const int fd, const char *path, const char *query,
+  inline reply(const int fd, const char *path, std::string_view query,
                const map_headers &req_headers, map_session *session)
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
   inline const char *get_path() const { return path_; }
-  inline const char *get_query() const { return query_; }
+  inline std::string_view get_query() const { return query_; }
   inline const map_headers &get_req_headers() const { return req_headers_; }
   inline map_session *get_session() const { return session_; }
 
@@ -37,18 +37,18 @@ public:
                const int response_code = 200) {
     chunky *rsp = new chunky(fd_);
     // 9 and 2 are length of strings
-    rsp->p("HTTP/1.1 ", 9).p(response_code).p("\r\n", 2);
+    rsp->p({"HTTP/1.1 ", 9}).p(response_code).p({"\r\n", 2});
     if (!set_session_id_.empty()) {
       // 14 and 60 are length of strings
-      rsp->p("Set-Cookie: i=", 14)
+      rsp->p({"Set-Cookie: i=", 14})
           .p(set_session_id_)
-          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n",
-             60);
+          .p({";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n",
+              60});
     }
     // 41 and 4 are length of strings
-    rsp->p("Transfer-Encoding:chunked\r\nContent-Type: ", 41)
+    rsp->p({"Transfer-Encoding:chunked\r\nContent-Type: ", 41})
         .p(content_type)
-        .p("\r\n\r\n", 4);
+        .p({"\r\n\r\n", 4});
     rsp->send_response_header();
     return rsp;
   }

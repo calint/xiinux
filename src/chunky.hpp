@@ -53,16 +53,8 @@ public:
   }
 
   inline chunky &p(const std::string_view sv) override {
-    return p(sv.data(), sv.size());
-  }
-
-  inline chunky &p(/*scans*/ const char *str) override {
-    if (!str)
-      return *this;
-    return p(str, strlen(str)); //? strnlen
-  }
-
-  inline chunky &p(/*scans*/ const char *str, const size_t str_len) override {
+    const char *str = sv.data();
+    const size_t str_len = sv.size();
     constexpr size_t buf_size = sizeof(buf_);
     // remaining space in buffer
     const size_t buf_rem = buf_size - len_;
@@ -106,7 +98,7 @@ public:
     const int n = snprintf(str, sizeof(str), "%d", i);
     if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:2";
-    return p(str, size_t(n));
+    return p({str, size_t(n)});
   }
 
   inline chunky &p(const size_t sz) override {
@@ -114,7 +106,7 @@ public:
     const int n = snprintf(str, sizeof(str), "%zu", sz);
     if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:3";
-    return p(str, size_t(n));
+    return p({str, size_t(n)});
   }
 
   inline chunky &p_ptr(const void *ptr) override {
@@ -122,7 +114,7 @@ public:
     const int n = snprintf(str, sizeof(str), "%p", ptr);
     if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:4";
-    return p(str, size_t(n));
+    return p({str, size_t(n)});
   }
 
   inline chunky &p_hex(const int i) override {
@@ -130,7 +122,7 @@ public:
     const int n = snprintf(str, sizeof(str), "%x", i);
     if (n < 0 or size_t(n) >= sizeof(str))
       throw "chunky:5";
-    return p(str, size_t(n));
+    return p({str, size_t(n)});
   }
 
   inline chunky &p(const char ch) override {

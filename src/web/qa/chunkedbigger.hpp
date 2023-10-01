@@ -18,7 +18,7 @@ public:
     while (sb.len() + 128 < buf_len) {
       sb.p(i++).p(' ');
     }
-    x.p(sb.buf(), sb.len());
+    x.p({sb.buf(), sb.len()});
   }
 };
 } // namespace xiinux::web::qa
