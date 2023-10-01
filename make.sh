@@ -37,8 +37,9 @@ echo -n "  gzipped:" &&
 cat all.src|gzip|wc &&
 echo && ls -ho --color $BIN &&
 echo &&
-rm all.src
+rm all.src &&
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
+echo

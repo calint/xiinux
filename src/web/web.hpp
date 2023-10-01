@@ -13,11 +13,17 @@
 #include "qa/typealine.hpp"
 
 namespace xiinux::web {
+
+using map_widget_factories = std::unordered_map<std::string, widget *(*)()>;
+inline static map_widget_factories path_to_widget_map{};
 inline static lut<widget *(*)(), false, false> widget_path_to_factory_map{
     conf::path_to_widget_lut_size};
 
-static inline widget *(*widget_factory_for_path(const char *path))() {
-  return widget_path_to_factory_map[path];
+static inline widget *(*widget_factory_for_path(const std::string &path))() {
+  auto it = path_to_widget_map.find(path);
+  if (it != path_to_widget_map.end())
+    return it->second;
+  return nullptr;
 }
 
 static inline widget *widget_create_bigresp() { return new qa::bigresp(); }
@@ -34,15 +40,14 @@ static inline widget *widget_create_page() { return new qa::page(); }
 static inline widget *widget_create_typealine() { return new qa::typealine(); }
 
 static inline void widget_init_path_to_factory_map() {
-  widget_path_to_factory_map.put("/qa/hello", widget_create_hello);
-  widget_path_to_factory_map.put("/qa/typealine", widget_create_typealine);
-  widget_path_to_factory_map.put("/qa/bigresp", widget_create_bigresp);
-  widget_path_to_factory_map.put("/qa/counter", widget_create_counter);
-  widget_path_to_factory_map.put("/qa/chunked", widget_create_chunked);
-  widget_path_to_factory_map.put("/qa/chunkedbig", widget_create_chunkedbig);
-  widget_path_to_factory_map.put("/qa/chunkedbigger",
-                                 widget_create_chunkedbigger);
-  widget_path_to_factory_map.put("/qa/page", widget_create_page);
+  path_to_widget_map["/qa/typealine"] = widget_create_typealine;
+  path_to_widget_map["/qa/bigresp"] = widget_create_bigresp;
+  path_to_widget_map["/qa/hello"] = widget_create_hello;
+  path_to_widget_map["/qa/counter"] = widget_create_counter;
+  path_to_widget_map["/qa/chunked"] = widget_create_chunked;
+  path_to_widget_map["/qa/chunkedbig"] = widget_create_chunkedbig;
+  path_to_widget_map["/qa/chunkedbigger"] = widget_create_chunkedbigger;
+  path_to_widget_map["/qa/page"] = widget_create_page;
 }
 
 } // namespace xiinux::web
