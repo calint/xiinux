@@ -27,7 +27,7 @@ public:
         .p("</textarea>")
         .p("<script>$('_txt').focus()</script>")
         .nl();
-    x.http(200, s.buf(), s.len());
+    x.http(200, {s.buf(), s.len()});
   }
 
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
@@ -46,11 +46,11 @@ public:
     if (received_len == content_len) { // last call?
       if (!txt.len()) {
         txt.p("alert('enter javascript code');");
-        x.http(200, txt.buf(), txt.len(), "text/plain;charset=utf-8");
+        x.http(200, {txt.buf(), txt.len()}, "text/plain;charset=utf-8");
         txt.rst();
         return;
       }
-      x.http(200, txt.buf(), txt.len(), "text/plain;charset=utf-8");
+      x.http(200, {txt.buf(), txt.len()}, "text/plain;charset=utf-8");
     }
   }
 };

@@ -7,7 +7,7 @@ class typealine final : public widget {
   void to(reply &x) override {
     constexpr const char msg[] = "forbidden. intended for post only.";
     // -1 ignores the terminating '\0'
-    x.http(403, msg, sizeof(msg) - 1);
+    x.http(403, {msg, sizeof(msg) - 1});
   }
 
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,

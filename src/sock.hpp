@@ -73,8 +73,8 @@ public:
         const size_t nbytes_read = size_t(n);
         const size_t content_rem = content_.remaining();
         const size_t content_len = content_.content_len();
-        reply x(fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
-                headers_, &session_->get_lut());
+        reply x{fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
+                headers_, &session_->get_lut()};
         widget_->on_content(x, content_.buf(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
         if (content_rem > nbytes_read) { // not finished
@@ -436,7 +436,7 @@ private:
     if (strstr(path, "..")) {
       constexpr char msg[] = "path contains ..\n";
       // -1 to not include '\0'
-      x.http(403, msg, sizeof(msg) - 1);
+      x.http(403, {msg, sizeof(msg) - 1});
       state_ = next_request;
       return;
     }
@@ -444,14 +444,14 @@ private:
     if (stat(path, &fdstat)) {
       constexpr char msg[] = "not found\n";
       // -1 to not include '\0'
-      x.http(404, msg, sizeof(msg) - 1);
+      x.http(404, {msg, sizeof(msg) - 1});
       state_ = next_request;
       return;
     }
     if (S_ISDIR(fdstat.st_mode)) {
       constexpr char msg[] = "path is directory\n";
       // -1 to not include '\0'
-      x.http(403, msg, sizeof(msg) - 1);
+      x.http(403, {msg, sizeof(msg) - 1});
       state_ = next_request;
       return;
     }
@@ -472,7 +472,7 @@ private:
     if (file_.open(path) == -1) {
       constexpr char msg[] = "cannot open file\n";
       // -1 to not include '\0'
-      x.http(404, msg, sizeof(msg) - 1);
+      x.http(404, {msg, sizeof(msg) - 1});
       state_ = next_request;
       return;
     }

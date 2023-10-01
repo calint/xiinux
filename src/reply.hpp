@@ -57,7 +57,7 @@ public:
     set_session_id_ = id;
   }
 
-  inline reply &http(const int code, const char *content, size_t len,
+  inline reply &http(const int code, std::string_view content,
                      const char *content_type = "text/html;charset=utf-8") {
     char header[256];
     int n = 0;
@@ -66,20 +66,20 @@ public:
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
                    "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
                    "GMT;SameSite=Lax\r\nContent-Type: %s\r\n\r\n",
-                   code, len, set_session_id_.data(), content_type);
+                   code, content.size(), set_session_id_.data(), content_type);
       set_session_id_ = {};
     } else {
       n = snprintf(
           header, sizeof(header),
           "HTTP/1.1 %d\r\nContent-Length: %zu\r\nContent-Type: %s\r\n\r\n",
-          code, len, content_type);
+          code, content.size(), content_type);
     }
     if (n < 0 or size_t(n) >= sizeof(header))
       throw "reply:http:1";
 
-    io_send(fd_, header, size_t(n), content ? true : false);
-    if (content) {
-      io_send(fd_, content, len);
+    io_send(fd_, header, size_t(n), !content.empty());
+    if (!content.empty()) {
+      io_send(fd_, content.data(), content.size());
     }
     return *this;
   }

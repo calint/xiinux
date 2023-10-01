@@ -11,7 +11,7 @@ class bigresp final : public widget {
     while (sb.len() + 128 < buf_len) {
       sb.p(i++).p(' ');
     }
-    x.http(200, sb.buf(), sb.len());
+    x.http(200, {sb.buf(), sb.len()});
   }
 };
 } // namespace xiinux::web::qa

@@ -34,7 +34,7 @@ public:
 
     sb.p("counter in this instance: ").p(counter_).nl();
     sb.p("counter in this class: ").p(counter::atomic_counter).nl();
-    r.http(200, sb.buf(), sb.len(), "text/plain");
+    r.http(200, {sb.buf(), sb.len()}, "text/plain");
   }
 };
 } // namespace xiinux::web::qa

@@ -3,10 +3,6 @@
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
     were created with 'strb' template
-[x] examine why using lut<...>, std::put_time(...) and std::cout increases the
-    size of binary so much (~75K -> ~275K)
-    => -g was on now ~75K -> ~130K
-    => -Os enabled now ~76K
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
 [ ] sock: consolidate recv(...) in content and buf
@@ -25,6 +21,10 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] examine why using lut<...>, std::put_time(...) and std::cout increases the
+    size of binary so much (~75K -> ~275K)
+    => -g was on now ~75K -> ~130K
+    => -Os enabled now ~76K
 [x] ? lut<std::string_view>
     => deleted
 [x] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
