@@ -155,7 +155,7 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             state_ = uri;
-            reqline_.path_ = reqbuf_.ptr();
+            reqline_.path_start_ = reqbuf_.ptr();
             break;
           }
         }
@@ -165,10 +165,14 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
+            reqline_.path_ = {reqline_.path_start_,
+                              size_t(reqbuf_.ptr() - reqline_.path_start_ - 1)};
             state_ = protocol;
             break;
           } else if (ch == '?') {
             reqbuf_.set_eos();
+            reqline_.path_ = {reqline_.path_start_,
+                              size_t(reqbuf_.ptr() - reqline_.path_start_ - 1)};
             reqline_.query_ = reqbuf_.ptr();
             state_ = query;
             break;
@@ -246,7 +250,7 @@ public:
     return sock_addr_;
   }
 
-  inline const char *get_path() const { return reqline_.path_; }
+  inline std::string_view get_path() const { return reqline_.path_; }
   inline const char *get_query() const { return reqline_.query_; }
   inline const map_headers &get_headers() const { return headers_; }
   inline session *get_session() const { return session_; }
@@ -269,8 +273,8 @@ private:
     reply x{fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
             headers_, nullptr};
 
-    const char *path =
-        *reqline_.path_ == '/' ? reqline_.path_ + 1 : reqline_.path_;
+    const char *path = reqline_.path_.at(0) == '/' ? reqline_.path_.data() + 1
+                                                   : reqline_.path_.data();
     if (!*path) { // uri '/'
       stats.cache++;
       homepage->to(x);
@@ -290,7 +294,7 @@ private:
     if (!widget_) {
       std::unique_ptr<widget> wup{factory()};
       widget_ = wup.get();
-      session_->put_widget(reqline_.path_, std::move(wup));
+      session_->put_widget(std::string{reqline_.path_}, std::move(wup));
     }
 
     reply x{fd_, reqline_.path_, reqline_.query_ ? reqline_.query_ : "",
@@ -380,7 +384,9 @@ private:
     // file upload
     char pth[conf::upload_path_size];
     // +1 to skip the leading '/'
-    const int res = snprintf(pth, sizeof(pth), "upload/%s", reqline_.path_ + 1);
+    const int res =
+        snprintf(pth, sizeof(pth), "upload/%s",
+                 reqline_.path_.substr(1, reqline_.path_.size() - 1).data());
     if (res < 0 or size_t(res) >= sizeof(pth))
       throw "sock:pathtrunc";
     upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC, 0664);
@@ -585,9 +591,13 @@ private:
   } file_{};
 
   struct reqline {
-    char *path_ = nullptr;
+    const char *path_start_{nullptr};
+    std::string_view path_{};
     char *query_ = nullptr;
-    inline void rst() { path_ = query_ = nullptr; }
+    inline void rst() {
+      path_ = {};
+      query_ = nullptr;
+    }
   } reqline_{};
 
   struct header {

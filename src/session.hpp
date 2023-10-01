@@ -19,8 +19,8 @@ public:
   inline const std::string &operator[](const std::string &key) const {
     return kvp_.at(key);
   }
-  inline widget *get_widget(const std::string &key) const {
-    auto it = widgets_.find(key);
+  inline widget *get_widget(std::string_view key) const {
+    auto it = widgets_.find(std::string{key}); //? creates a string
     if (it != widgets_.end())
       return it->second.get();
     return nullptr;

@@ -17,8 +17,8 @@ using map_widget_factories = std::unordered_map<std::string, widget *(*)()>;
 
 inline static map_widget_factories path_to_widget_map{};
 
-static inline widget *(*widget_factory_for_path(const std::string &path))() {
-  auto it = path_to_widget_map.find(path);
+static inline widget *(*widget_factory_for_path(std::string_view path))() {
+  auto it = path_to_widget_map.find(std::string{path}); //? creates a string
   if (it != path_to_widget_map.end())
     return it->second;
   return nullptr;

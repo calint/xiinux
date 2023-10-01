@@ -15,19 +15,19 @@ class sock;
 
 class reply final {
   int fd_ = 0;
-  const char *path_;
+  std::string_view path_;
   std::string_view query_;
   const map_headers &req_headers_;
   map_session *session_;
   std::string_view set_session_id_{};
 
 public:
-  inline reply(const int fd, const char *path, std::string_view query,
+  inline reply(const int fd, std::string_view path, std::string_view query,
                const map_headers &req_headers, map_session *session)
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
-  inline const char *get_path() const { return path_; }
+  inline std::string_view get_path() const { return path_; }
   inline std::string_view get_query() const { return query_; }
   inline const map_headers &get_req_headers() const { return req_headers_; }
   inline map_session *get_session() const { return session_; }

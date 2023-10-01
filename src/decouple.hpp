@@ -61,6 +61,6 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
 namespace xiinux::web {
 
 static inline void widget_init_path_to_factory_map();
-static inline widget *(*widget_factory_for_path(const std::string &path))();
+static inline widget *(*widget_factory_for_path(std::string_view path))();
 
 } // namespace xiinux::web
