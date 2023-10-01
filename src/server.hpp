@@ -233,8 +233,8 @@ private:
     char ip_addr_str[32];
     in_addr_t inaddr = client->get_socket_address().sin_addr.s_addr;
     const std::time_t t = std::time(nullptr);
-    const std::tm tm = *std::localtime(&t);
-    std::cout << "!!! exception " << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+    const std::tm now = *std::localtime(&t);
+    std::cout << "!!! exception " << std::put_time(&now, "%F %T")
               << "  " << ip_addr_to_str(ip_addr_str, &inaddr)
               << "  session=" << snid << "  msg=" << msg << std::endl;
   }
