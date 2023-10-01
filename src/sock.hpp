@@ -156,7 +156,7 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             state_ = uri;
-            reqbuf_.mark();
+            reqbuf_.set_mark();
             break;
           }
         }
@@ -166,13 +166,13 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
-            reqline_.path_ = reqbuf_.mark_done();
+            reqline_.path_ = reqbuf_.string_view_from_mark();
             state_ = protocol;
             break;
           } else if (ch == '?') {
             reqbuf_.set_eos();
             // -1 because reqbuf.ptr is one step past '\+'
-            reqline_.path_ = reqbuf_.mark_done();
+            reqline_.path_ = reqbuf_.string_view_from_mark();
             state_ = query;
             break;
           }
@@ -184,7 +184,7 @@ public:
           if (ch == ' ') {
             reqbuf_.set_eos();
             // -1 because reqbuf.ptr is one step past '\+'
-            reqline_.query_ = reqbuf_.mark_done();
+            reqline_.query_ = reqbuf_.string_view_from_mark();
             state_ = protocol;
             break;
           }
@@ -194,7 +194,7 @@ public:
         while (reqbuf_.has_more()) {
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == '\n') {
-            reqbuf_.mark();
+            reqbuf_.set_mark();
             state_ = header_key;
             break;
           }
@@ -210,7 +210,7 @@ public:
             reqbuf_.set_eos();
             strlwr(reqbuf_.get_mark()); // to lower string
             // -1 because reqbuf.ptr is one character ahead
-            header_.name_ = reqbuf_.mark_done();
+            header_.name_ = reqbuf_.string_view_from_mark();
             header_.name_ = trim(header_.name_);
             // set begin_ to the start of the value part of the header
             state_ = header_value;
@@ -223,7 +223,7 @@ public:
           const char c = reqbuf_.unsafe_next_char();
           if (c == '\n') {
             reqbuf_.set_eos();
-            header_.value_ = reqbuf_.mark_done();
+            header_.value_ = reqbuf_.string_view_from_mark();
             // RFC 2616: header field names are case-insensitive
             header_.value_ = trim(header_.value_);
 
@@ -669,14 +669,14 @@ private:
   public:
     inline void rst() { p_ = e_ = buf_; }
     inline char *ptr() const { return p_; }
-    inline void mark() { mark_ = p_; }
+    inline void set_mark() { mark_ = p_; }
     inline char *get_mark() const { return mark_; }
     inline bool has_more() const { return p_ != e_; }
     inline size_t remaining() const { return size_t(e_ - p_); }
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline char unsafe_next_char() { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
-    inline std::string_view mark_done() {
+    inline std::string_view string_view_from_mark() {
       char *m = mark_;
       mark_ = p_;
       return {m, size_t(p_ - m - 1)};
