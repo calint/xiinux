@@ -11,12 +11,14 @@ class typealine final : public widget {
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
                   const size_t received_len,
                   const size_t content_len) override {
+    
     if (!buf) { // begin content receive
       strb<128> sb;
       sb.p("HTTP/1.1 200\r\nContent-Length: "sv).p(content_len).p("\r\n\r\n"sv);
       x.send(sb.string_view(), true);
       return;
     }
+
     x.send({buf, buf_len}, received_len != content_len);
   }
 };

@@ -8,7 +8,7 @@ class chunkedbig final : public widget {
 public:
   void to(reply &r) override {
     auto x = r.reply_chunky("text/plain;charset=utf-8"sv);
-    for (unsigned i = 0; i < 4 * 1024; i++) {
+    for (unsigned i = 0; i < 4 * K; i++) {
       x->p(" chunked response "sv).p(int(i));
     }
   }

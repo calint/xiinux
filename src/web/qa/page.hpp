@@ -9,19 +9,17 @@ public:
   void to(reply &x) override {
     strb<32 * K> s;
     s.p("<!doctype html><script src=/x.js></script><link "
-        "rel=stylesheet href=/x.css>"sv);
-    s.p("<title>"sv).p("page"sv).p("</title>"sv);
-
-    s.p("Type JavaScript to execute on client <input id=_btn type=button "
-        "value=run "
-        "onclick=\"this.disabled=true;ajax_post('/qa/"
-        "page',$('_txt').value,function(r){console.log(r.responseText);$('_btn'"
-        ").disabled=false;eval(r.responseText);})\">\n"sv)
+        "rel=stylesheet href=/x.css>"sv)
+        .p("<title>page</title>"sv)
+        .p("Type JavaScript to execute on client <input id=_btn type=button "
+           "value=run onclick=\"this.disabled=true;ajax_post('/qa/"
+           "page',$('_txt').value,function(r){console.log(r.responseText);$('_"
+           "btn').disabled=false;eval(r.responseText);})\">\n"sv)
         .p("<textarea id=_txt class=big>"sv)
         .p(txt)
-        .p("</textarea>"sv)
-        .p("<script>$('_txt').focus()</script>"sv)
+        .p("</textarea><script>$('_txt').focus()</script>"sv)
         .nl();
+
     x.http(200, s.string_view());
   }
 

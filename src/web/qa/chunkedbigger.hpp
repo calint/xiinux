@@ -10,7 +10,7 @@ class chunkedbigger final : public widget {
 public:
   void to(reply &r) override {
     auto x = r.reply_chunky("text/plain;charset=utf-8"sv);
-    constexpr size_t buf_len = 1024 * 1024;
+    constexpr size_t buf_len = K * K;
     strb<buf_len> sb{};
     int i = 0;
     while (sb.len() + 128 < buf_len) {

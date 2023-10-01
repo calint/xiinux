@@ -13,9 +13,11 @@ public:
   void to(reply &r) override {
     counter_++;
     counter::atomic_counter++;
+
     strb<256> sb;
     sb.p("path: "sv).p(r.get_path()).nl();
     sb.p("query: "sv).p(r.get_query()).nl();
+
     const map_headers &hdrs{r.get_req_headers()};
     sb.p("cookie: "sv).p(hdrs.at("cookie"sv )).nl();
 
@@ -26,6 +28,7 @@ public:
 
     sb.p("counter in this instance: "sv).p(counter_).nl();
     sb.p("counter in this class: "sv).p(counter::atomic_counter).nl();
+    
     r.http(200, sb.string_view(), "text/plain"sv);
   }
 };
