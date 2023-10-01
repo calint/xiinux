@@ -18,6 +18,9 @@
 
 namespace xiinux {
 
+using namespace std::string_view_literals;
+using namespace std::string_literals;
+
 class doc;
 class widget;
 
@@ -55,6 +58,13 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
     throw "io_send:3";
 
   return nbytes_sent;
+}
+
+static inline size_t io_send(const int fd, std::string_view sv,
+                             const bool buffer_send = false,
+                             const bool throw_if_send_not_complete = true) {
+  return io_send(fd, sv.data(), sv.size(), buffer_send,
+                 throw_if_send_not_complete);
 }
 } // namespace xiinux
 

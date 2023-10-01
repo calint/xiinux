@@ -13,10 +13,8 @@ namespace xiinux {
 
 class sock;
 
-using namespace std::string_view_literals;
-
 class reply final {
-  int fd_ = 0;
+  int fd_{};
   std::string_view path_;
   std::string_view query_;
   const map_headers &req_headers_;
@@ -37,7 +35,9 @@ public:
   [[nodiscard]] inline std::unique_ptr<chunky>
   reply_chunky(std::string_view content_type = "text/html;charset=utf-8"sv,
                const int response_code = 200) {
+
     auto rsp{std::make_unique<chunky>(fd_)};
+
     rsp->p("HTTP/1.1 "sv).p(response_code).p("\r\n"sv);
     if (!set_session_id_.empty()) {
       rsp->p("Set-Cookie: i="sv)
@@ -48,6 +48,7 @@ public:
         .p(content_type)
         .p("\r\n\r\n"sv)
         .send_response_header();
+
     return rsp;
   }
 

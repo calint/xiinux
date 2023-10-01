@@ -12,10 +12,10 @@
 
 namespace xiinux {
 class chunky final : public xprinter {
-  size_t len_ = 0;
+  size_t len_{};
   char buf_[conf::chunky_buf_size]; //? uninitialized
-  bool finished_ = false;
-  int fd_;
+  bool finished_{};
+  int fd_{};
 
 public:
   inline chunky(int sockfd) : fd_{sockfd} {}
@@ -38,9 +38,7 @@ public:
     if (finished_)
       throw "chunky:already finished";
     flush();
-    constexpr char fin[] = "0\r\n\r\n";
-    // -1 to exclude terminator '\0'
-    io_send(fd_, fin, sizeof(fin) - 1);
+    io_send(fd_, "0\r\n\r\n"sv);
     finished_ = true;
     return *this;
   }

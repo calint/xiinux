@@ -9,14 +9,14 @@ namespace xiinux::web::qa {
 class chunkedbigger final : public widget {
 public:
   void to(reply &r) override {
-    auto x = r.reply_chunky("text/plain;charset=utf-8");
+    auto x = r.reply_chunky("text/plain;charset=utf-8"sv);
     constexpr size_t buf_len = 1024 * 1024;
     strb<buf_len> sb{};
     int i = 0;
     while (sb.len() + 128 < buf_len) {
       sb.p(i++).p(' ');
     }
-    x->p({sb.buf(), sb.len()});
+    x->p(sb.string_view());
   }
 };
 } // namespace xiinux::web::qa

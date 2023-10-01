@@ -5,9 +5,7 @@ namespace xiinux::web::qa {
 class typealine final : public widget {
 
   void to(reply &x) override {
-    constexpr const char msg[] = "forbidden. intended for post only.";
-    // -1 ignores the terminating '\0'
-    x.http(403, {msg, sizeof(msg) - 1});
+    x.http(403, "forbidden. intended for post only."sv);
   }
 
   void on_content(reply &x, /*scan*/ const char *buf, const size_t buf_len,
@@ -15,7 +13,7 @@ class typealine final : public widget {
                   const size_t content_len) override {
     if (!buf) { // begin content receive
       strb<128> sb;
-      sb.p("HTTP/1.1 200\r\nContent-Length: ").p(content_len).p("\r\n\r\n");
+      sb.p("HTTP/1.1 200\r\nContent-Length: "sv).p(content_len).p("\r\n\r\n"sv);
       x.send(sb.string_view(), true);
       return;
     }

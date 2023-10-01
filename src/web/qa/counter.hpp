@@ -14,19 +14,19 @@ public:
     counter_++;
     counter::atomic_counter++;
     strb<256> sb;
-    sb.p("path: ").p(r.get_path()).nl();
-    sb.p("query: ").p(r.get_query()).nl();
+    sb.p("path: "sv).p(r.get_path()).nl();
+    sb.p("query: "sv).p(r.get_query()).nl();
     const map_headers &hdrs{r.get_req_headers()};
-    sb.p("cookie: ").p(hdrs.at("cookie")).nl();
+    sb.p("cookie: "sv).p(hdrs.at("cookie"sv )).nl();
 
     map_session *ses = r.get_session();
-    auto it{ses->find("x")};
-    sb.p("session value: ").p(it != ses->end() ? it->second : "").nl();
-    ses->insert({"x", "abc"});
+    auto it{ses->find("x"s)};
+    sb.p("session value: "sv).p(it != ses->end() ? it->second : ""sv).nl();
+    ses->insert({"x"s, "abc"s});
 
-    sb.p("counter in this instance: ").p(counter_).nl();
-    sb.p("counter in this class: ").p(counter::atomic_counter).nl();
-    r.http(200, {sb.buf(), sb.len()}, "text/plain");
+    sb.p("counter in this instance: "sv).p(counter_).nl();
+    sb.p("counter in this class: "sv).p(counter::atomic_counter).nl();
+    r.http(200, sb.string_view(), "text/plain"sv);
   }
 };
 } // namespace xiinux::web::qa
