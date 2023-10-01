@@ -389,7 +389,7 @@ private:
       throw "sock:pathtrunc";
     upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (upload_fd_ == -1) {
-      perror("while creating file for upload");
+      perror("sock:do_server_upload 1");
       throw "sock:err7";
     }
     // check if client expects 100-continue before sending content
@@ -411,14 +411,14 @@ private:
       // the whole file is in 'buf'
       const ssize_t n = write(upload_fd_, reqbuf_.ptr(), content_len);
       if (n == -1 or size_t(n) != content_len) {
-        perror("could not write");
+        perror("sock:do_server_upload 2");
         throw "sock:err4";
       }
       if (size_t(n) != content_len) {
-        throw "sock:incomplete upload";
+        throw "sock:incomplete upload 3";
       }
       if (::close(upload_fd_)) {
-        perr("while closing upload file");
+        perror("sock:do_server_upload 4");
       }
       constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
       // -1 to not include '\0'
@@ -429,7 +429,7 @@ private:
     // start of the file is in 'buf'
     const ssize_t n = write(upload_fd_, reqbuf_.ptr(), remaining);
     if (n == -1 or size_t(n) != remaining) {
-      perror("while writing upload to file2");
+      perror("sock:do_server_upload 5");
       throw "sock:err6";
     }
     content_.unsafe_skip(size_t(n));
