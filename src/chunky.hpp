@@ -52,6 +52,10 @@ public:
     return *this;
   }
 
+  inline chunky &p(const std::string_view sv) {
+    return p(sv.data(), sv.size());
+  }
+
   inline chunky &p(/*scans*/ const char *str) override {
     if (!str)
       return *this;

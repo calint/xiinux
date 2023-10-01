@@ -22,6 +22,8 @@ public:
     return *this;
   }
 
+  inline strb &p(const std::string_view sv) { return p(sv.data(), sv.size()); }
+
   inline strb &p(/*copies*/ const char *str) override {
     if (!str)
       return *this;

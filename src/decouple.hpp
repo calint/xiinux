@@ -7,6 +7,7 @@
 #include <memory>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <unordered_map>
 
 // solves circular references
 // shared by 'server', 'sock', 'reply' and 'chunky'
@@ -18,6 +19,7 @@
 namespace xiinux {
 class doc;
 class widget;
+using map_headers = std::unordered_map<std::string_view, std::string_view>;
 
 static int epoll_fd;
 static std::unique_ptr<doc> homepage;

@@ -18,8 +18,6 @@
 
 namespace xiinux {
 
-using map_headers = std::unordered_map<std::string_view, std::string_view>;
-
 class sock final {
 public:
   inline sock(const int fd, struct sockaddr_in sock_addr)
@@ -75,7 +73,7 @@ public:
         const size_t nbytes_read = size_t(n);
         const size_t content_rem = content_.remaining();
         const size_t content_len = content_.content_len();
-        reply x(fd_, reqline_.path_, reqline_.query_, &headers_,
+        reply x(fd_, reqline_.path_, reqline_.query_, headers_,
                 session_->get_lut());
         widget_->on_content(x, content_.buf(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
@@ -121,8 +119,8 @@ public:
       }
       if (state_ == next_request) {
         // if previous request had header 'Connection: close'
-        const char *connection = headers_["connection"];
-        if (connection and !strcmp("close", connection)) {
+        auto connection = headers_["connection"];
+        if (connection == "close") {
           delete this;
           return;
         }
@@ -223,7 +221,7 @@ public:
             // -2 to skip '\0' and place pointer on last character in the value
             header_.value_ = strtrm(header_.value_, reqbuf_.ptr() - 2);
             // printf("%s: %s\n",hdrparser.key,hdrparser.value);
-            headers_.put(header_.name_, header_.value_);
+            headers_[header_.name_] = header_.value_;
             header_.name_ = reqbuf_.ptr();
             state_ = header_key;
             break;
@@ -239,7 +237,7 @@ public:
 
   inline const char *get_path() const { return reqline_.path_; }
   inline const char *get_query() const { return reqline_.query_; }
-  inline const lut<const char *> &get_headers() const { return headers_; }
+  inline const map_headers &get_headers() const { return headers_; }
   inline session *get_session() const { return session_; }
 
 private:
@@ -250,14 +248,14 @@ private:
       return;
     }
 
-    const char *content_type = headers_["content-type"];
-    if (content_type and strstr(content_type, "file")) {
+    auto content_type = headers_["content-type"];
+    if (content_type == "file") {
       content_.init_for_receive(headers_["content-length"]);
       do_serve_upload();
       return;
     }
 
-    reply x(fd_, reqline_.path_, reqline_.query_, &headers_, nullptr);
+    reply x(fd_, reqline_.path_, reqline_.query_, headers_, nullptr);
 
     const char *path =
         *reqline_.path_ == '/' ? reqline_.path_ + 1 : reqline_.path_;
@@ -288,7 +286,7 @@ private:
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
 
-    reply x(fd_, reqline_.path_, reqline_.query_, &headers_,
+    reply x(fd_, reqline_.path_, reqline_.query_, headers_,
             session_->get_lut());
 
     if (send_session_id_in_reply_) {
@@ -296,8 +294,8 @@ private:
       send_session_id_in_reply_ = false;
     }
 
-    const char *content_length_str = headers_["content-length"];
-    if (!content_length_str) {
+    auto content_length_str = headers_["content-length"];
+    if (content_length_str.empty()) {
       // no content from client, render widget
       widget_->to(x);
       state_ = next_request;
@@ -310,8 +308,8 @@ private:
     // initiating call to widget with buf=nullptr
     widget_->on_content(x, nullptr, 0, 0, content_len);
     // if client expects 100 continue before sending post
-    const char *expect = headers_["expect"];
-    if (expect and !strcmp(expect, "100-continue")) {
+    auto expect = headers_["expect"];
+    if (expect == "100-continue") {
       constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
@@ -332,18 +330,18 @@ private:
   }
 
   void retrieve_or_create_session() {
-    const char *cookie = headers_["cookie"];
-    const char *session_id = nullptr;
-    if (cookie and strstr(cookie, "i=")) {
+    auto cookie = headers_["cookie"];
+    std::string_view session_id{};
+    if (cookie.starts_with("i=")) {
       // -1 to exclude '\0'
-      session_id = cookie + sizeof("i=") - 1;
+      session_id = cookie.substr(2, cookie.size() - 2);
     }
-    if (!session_id) {
+    if (session_id.empty()) {
       // no session id, create session
       time_t timer = time(nullptr);
       struct tm *tm_info = gmtime(&timer);
       // format to e.g. '20150411-225519-ieu44dn'
-      char *sid = new char[24];
+      char sid[24];
       if (!strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info)) {
         throw "sock:do_serve_widget:1";
       }
@@ -366,13 +364,7 @@ private:
       return;
 
     // session not found, create
-    // 24 is the size of session id including '\0'
-    // e.g: "20150411-225519-ieu44dn\0"
-    char *sid = new char[24];
-    strncpy(sid, session_id, 23);
-    // make sure sid is terminated
-    sid[23] = '\0';
-    auto ups = std::make_unique<session>(sid);
+    auto ups = std::make_unique<session>(std::string{session_id});
     session_ = ups.get();
     sessions.put(std::move(ups));
   }
@@ -390,8 +382,8 @@ private:
       throw "sock:err7";
     }
     // check if client expects 100-continue before sending content
-    const char *expect = headers_["expect"];
-    if (expect and !strcmp(expect, "100-continue")) {
+    auto expect = headers_["expect"];
+    if (expect == "100-continue") {
       constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
@@ -462,8 +454,8 @@ private:
     if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm)) {
       throw "sock:strftime";
     }
-    const char *lastmodstr = headers_["if-modified-since"];
-    if (lastmodstr and !strcmp(lastmodstr, lastmod)) {
+    auto lastmodstr = headers_["if-modified-since"];
+    if (lastmodstr == lastmod) {
       constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
@@ -478,12 +470,12 @@ private:
       return;
     }
     stats.files++;
-    const char *range = headers_["range"];
+    auto range = headers_["range"];
     char header_buf[512];
     int header_buf_len = 0;
-    if (range and *range) {
+    if (!range.empty()) {
       off_t offset = 0;
-      if (sscanf(range, "bytes=%jd", &offset) == EOF) {
+      if (sscanf(range.data(), "bytes=%jd", &offset) == EOF) {
         stats.errors++;
         perr("range");
         throw "sock:errrorscanning";
@@ -616,9 +608,9 @@ private:
     inline void unsafe_skip(const size_t n) { pos_ += n; }
     inline size_t content_len() const { return len_; }
 
-    inline void init_for_receive(const char *content_length_str) {
+    inline void init_for_receive(const std::string_view content_length_str) {
       pos_ = 0;
-      len_ = size_t(atoll(content_length_str));
+      len_ = size_t(atoll(content_length_str.data()));
       // todo: abuse len
       // todo: atoll error
       if (!buf_) {
@@ -702,7 +694,7 @@ private:
 
   int fd_ = 0;
   struct sockaddr_in sock_addr_;
-  lut_cstr<false, false> headers_{};
+  map_headers headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;
   session *session_{};

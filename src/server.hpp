@@ -227,7 +227,7 @@ private:
   inline static void print_client_exception(const sock *client,
                                             const char *msg) {
     const session *sn = client->get_session();
-    const char *snid = sn ? sn->get_id() : "n/a";
+    const std::string &snid = sn ? sn->get_id() : "n/a";
 
     const std::time_t t = std::time(nullptr);
     const std::tm tm = *std::localtime(&t);

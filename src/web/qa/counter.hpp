@@ -24,7 +24,8 @@ public:
     strb<256> sb;
     sb.p("path: ").p(r.get_path()).nl();
     sb.p("query: ").p(r.get_query()).nl();
-    sb.p("cookie: ").p(r.get_req_headers()->get("cookie")).nl();
+    const map_headers &hdrs{r.get_req_headers()};
+    sb.p("cookie: ").p(hdrs.at("cookie")).nl();
     sb.p("session value: ").p(r.get_session()->get("x")).nl();
     r.get_session()->put(dup("x"), dup("abc"));
     sb.p("counter in this instance: ").p(counter_).nl();

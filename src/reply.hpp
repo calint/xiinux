@@ -18,22 +18,20 @@ class reply final {
   int fd_ = 0;
   const char *path_;
   const char *query_;
-  const lut_cstr<false, false> *req_headers_;
+  const map_headers &req_headers_;
   lut_cstr<true, true, true> *session_;
-  const char *set_session_id_ = nullptr;
+  std::string_view set_session_id_{};
 
 public:
   inline reply(const int fd, const char *path, const char *query,
-               const lut_cstr<false, false> *req_headers,
+               const map_headers &req_headers,
                lut_cstr<true, true, true> *session)
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
   inline const char *get_path() const { return path_; }
   inline const char *get_query() const { return query_; }
-  inline const lut_cstr<false, false> *get_req_headers() const {
-    return req_headers_;
-  }
+  inline const map_headers &get_req_headers() const { return req_headers_; }
   inline lut_cstr<true, true, true> *get_session() const { return session_; }
 
   [[nodiscard]] inline /*give*/ chunky *
@@ -42,7 +40,7 @@ public:
     chunky *rsp = new chunky(fd_);
     // 9 and 2 are length of strings
     rsp->p("HTTP/1.1 ", 9).p(response_code).p("\r\n", 2);
-    if (set_session_id_) {
+    if (!set_session_id_.empty()) {
       // 14 and 60 are length of strings
       rsp->p("Set-Cookie: i=", 14)
           .p(set_session_id_)
@@ -57,7 +55,7 @@ public:
     return rsp;
   }
 
-  inline void send_session_id_at_next_opportunity(const char *id) {
+  inline void send_session_id_at_next_opportunity(std::string_view id) {
     set_session_id_ = id;
   }
 
@@ -65,13 +63,13 @@ public:
                      const char *content_type = "text/html;charset=utf-8") {
     char header[256];
     int n = 0;
-    if (set_session_id_) {
+    if (!set_session_id_.empty()) {
       n = snprintf(header, sizeof(header),
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
                    "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
                    "GMT;SameSite=Lax\r\nContent-Type: %s\r\n\r\n",
-                   code, len, set_session_id_, content_type);
-      set_session_id_ = nullptr;
+                   code, len, set_session_id_.data(), content_type);
+      set_session_id_={};
     } else {
       n = snprintf(
           header, sizeof(header),

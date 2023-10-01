@@ -4,21 +4,18 @@
 
 namespace xiinux {
 class session final {
-  const char *id_ = nullptr;
+  const std::string id_;
   lut_cstr<true, true, true> kvp_{};
   lut<widget *, true, true> widgets_{};
 
 public:
-  inline session(/*take*/ const char *id) : id_{id} { stats.sessions++; }
+  inline session(std::string id) : id_{id} { stats.sessions++; }
   inline session(const session &) = delete;
   inline session &operator=(const session &) = delete;
 
-  inline ~session() {
-    stats.sessions--;
-    delete[] id_;
-  }
+  inline ~session() { stats.sessions--; }
 
-  inline const char *get_id() const { return id_; }
+  inline const std::string &get_id() const { return id_; }
   inline const char *operator[](const char *key) const { return kvp_[key]; }
   inline widget *get_widget(const char *key) const { return widgets_[key]; }
   inline lut_cstr<true, true, true> *get_lut() { return &kvp_; }

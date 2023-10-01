@@ -13,7 +13,7 @@ class sessions final {
   map_sessions sessions_{};
 
 public:
-  inline session *get(std::string id) { return sessions_[id].get(); }
+  inline session *get(std::string_view id) { return sessions_[std::string{id}].get(); }
 
   inline void put(std::unique_ptr<session> ses) {
     sessions_[std::string{ses->get_id()}] = std::move(ses);
