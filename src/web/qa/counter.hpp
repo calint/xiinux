@@ -26,8 +26,9 @@ public:
     sb.p("query: ").p(r.get_query()).nl();
     const map_headers &hdrs{r.get_req_headers()};
     sb.p("cookie: ").p(hdrs.at("cookie")).nl();
-    sb.p("session value: ").p(r.get_session()->get("x")).nl();
-    r.get_session()->put(dup("x"), dup("abc"));
+    map_session *ses = r.get_session();
+    sb.p("session value: ").p(ses->at("x")).nl();
+    ses->insert({"x", "abc"});
     sb.p("counter in this instance: ").p(counter_).nl();
     sb.p("counter in this class: ").p(counter::atomic_counter).nl();
     r.http(200, sb.buf(), sb.len(), "text/plain");

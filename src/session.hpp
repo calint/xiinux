@@ -5,7 +5,7 @@
 namespace xiinux {
 class session final {
   const std::string id_;
-  lut_cstr<true, true, true> kvp_{};
+  map_session kvp_{};
   lut<widget *, true, true> widgets_{};
 
 public:
@@ -16,13 +16,13 @@ public:
   inline ~session() { stats.sessions--; }
 
   inline const std::string &get_id() const { return id_; }
-  inline const char *operator[](const char *key) const { return kvp_[key]; }
-  inline widget *get_widget(const char *key) const { return widgets_[key]; }
-  inline lut_cstr<true, true, true> *get_lut() { return &kvp_; }
-
-  inline void put(/*take*/ const char *key, /*take*/ const char *str) {
-    kvp_.put(key, str);
+  inline const std::string &operator[](const std::string &key) const {
+    return kvp_.at(key);
   }
+  inline widget *get_widget(const char *key) const { return widgets_[key]; }
+  inline map_session &get_lut() { return kvp_; }
+
+  inline void put(std::string key, std::string str) { kvp_[key] = str; }
 
   inline void put_widget(/*take*/ const char *key, /*take*/ widget *wgt) {
     widgets_.put(key, wgt);

@@ -74,7 +74,7 @@ public:
         const size_t content_rem = content_.remaining();
         const size_t content_len = content_.content_len();
         reply x(fd_, reqline_.path_, reqline_.query_, headers_,
-                session_->get_lut());
+                &session_->get_lut());
         widget_->on_content(x, content_.buf(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
         if (content_rem > nbytes_read) { // not finished
@@ -255,7 +255,7 @@ private:
       return;
     }
 
-    reply x(fd_, reqline_.path_, reqline_.query_, headers_, nullptr);
+    reply x{fd_, reqline_.path_, reqline_.query_, headers_, nullptr};
 
     const char *path =
         *reqline_.path_ == '/' ? reqline_.path_ + 1 : reqline_.path_;
@@ -286,8 +286,8 @@ private:
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
 
-    reply x(fd_, reqline_.path_, reqline_.query_, headers_,
-            session_->get_lut());
+    reply x{fd_, reqline_.path_, reqline_.query_, headers_,
+            &session_->get_lut()};
 
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());

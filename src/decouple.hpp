@@ -17,9 +17,12 @@
 // 'widget_new(...) used by 'sock'
 
 namespace xiinux {
+
 class doc;
 class widget;
+
 using map_headers = std::unordered_map<std::string_view, std::string_view>;
+using map_session = std::unordered_map<std::string, std::string>;
 
 static int epoll_fd;
 static std::unique_ptr<doc> homepage;
