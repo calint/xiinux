@@ -10,7 +10,6 @@ namespace xiinux {
 using map_sessions = std::unordered_map<std::string, std::unique_ptr<session>>;
 
 class sessions final {
-  lut<session *, false, true> all_{K};
   map_sessions sessions_{};
 
 public:
@@ -20,6 +19,5 @@ public:
     sessions_[std::string{ses->get_id()}] = std::move(ses);
   }
 
-  inline void remove(std::string id) { sessions_.erase(id); }
 } static sessions;
 } // namespace xiinux
