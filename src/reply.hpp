@@ -2,7 +2,6 @@
 #pragma once
 #include "chunky.hpp"
 #include "conf.hpp"
-#include "lut.hpp"
 #include "stats.hpp"
 #include "strb.hpp"
 #include <errno.h>

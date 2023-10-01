@@ -1,7 +1,6 @@
 // reviewed: 2023-09-27
 // todo: generate this file from index
 #pragma once
-#include "../lut.hpp"
 #include "error404.hpp"
 #include "qa/bigresp.hpp"
 #include "qa/chunked.hpp"
@@ -15,9 +14,8 @@
 namespace xiinux::web {
 
 using map_widget_factories = std::unordered_map<std::string, widget *(*)()>;
+
 inline static map_widget_factories path_to_widget_map{};
-inline static lut<widget *(*)(), false, false> widget_path_to_factory_map{
-    conf::path_to_widget_lut_size};
 
 static inline widget *(*widget_factory_for_path(const std::string &path))() {
   auto it = path_to_widget_map.find(path);

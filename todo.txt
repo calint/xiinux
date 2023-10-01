@@ -1,11 +1,3 @@
-[ ] ? lut<std::string_view>
-[ ] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
-    instead of lut<...>
-[x] using map_headers = std::unordered_map<std::string_view, std::string_view>;
-[x] using map_session = std::unordered_map<std::string, std::string>;
-[x] using map_widgets = std::unordered_map<std::string, std::unique_ptr<widget>>;
-[x] using map_sessions = std::unordered_map<std::string, std::unique_ptr<session>>;
-    using map_path_to_widget_factory = unordered_map<std::string key, ...>;
 [ ] consider uniform initialization using {...} instead of =
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
@@ -33,6 +25,16 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] ? lut<std::string_view>
+    => deleted
+[x] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
+    instead of lut<...>
+    => ok
+[x] using map_headers = std::unordered_map<std::string_view, std::string_view>;
+[x] using map_session = std::unordered_map<std::string, std::string>;
+[x] using map_widgets = std::unordered_map<std::string, std::unique_ptr<widget>>;
+[x] using map_sessions = std::unordered_map<std::string, std::unique_ptr<session>>;
+[x] using map_path_to_widget_factory = unordered_map<std::string key, ...>;
 [x] sock: when sendfile returns 0 the file size has changed to less than current offset
     => throws
 [x] lut: when to delete or delete[] key and data
