@@ -1,6 +1,7 @@
 [ ] ? lut<std::string_view>
 [ ] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
     instead of lut<...>
+[ ] consider uniform initialization using {...} instead of =
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
