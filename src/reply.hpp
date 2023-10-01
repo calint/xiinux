@@ -13,6 +13,8 @@ namespace xiinux {
 
 class sock;
 
+using namespace std::string_view_literals;
+
 class reply final {
   int fd_ = 0;
   std::string_view path_;
@@ -33,23 +35,19 @@ public:
   inline map_session *get_session() const { return session_; }
 
   [[nodiscard]] inline std::unique_ptr<chunky>
-  reply_chunky(const char *content_type = "text/html;charset=utf-8",
+  reply_chunky(std::string_view content_type = "text/html;charset=utf-8"sv,
                const int response_code = 200) {
     auto rsp{std::make_unique<chunky>(fd_)};
-    // 9 and 2 are length of strings
-    rsp->p({"HTTP/1.1 ", 9}).p(response_code).p({"\r\n", 2});
+    rsp->p("HTTP/1.1 "sv).p(response_code).p("\r\n"sv);
     if (!set_session_id_.empty()) {
-      // 14 and 60 are length of strings
-      rsp->p({"Set-Cookie: i=", 14})
+      rsp->p("Set-Cookie: i="sv)
           .p(set_session_id_)
-          .p({";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n",
-              60});
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n"sv);
     }
-    // 41 and 4 are length of strings
-    rsp->p({"Transfer-Encoding:chunked\r\nContent-Type: ", 41})
+    rsp->p("Transfer-Encoding:chunked\r\nContent-Type: "sv)
         .p(content_type)
-        .p({"\r\n\r\n", 4});
-    rsp->send_response_header();
+        .p("\r\n\r\n"sv)
+        .send_response_header();
     return rsp;
   }
 
@@ -57,8 +55,9 @@ public:
     set_session_id_ = id;
   }
 
-  inline reply &http(const int code, std::string_view content,
-                     const char *content_type = "text/html;charset=utf-8") {
+  inline reply &
+  http(const int code, const char *buf, size_t buf_len,
+       std::string_view content_type = "text/html;charset=utf-8"sv) {
     char header[256];
     int n = 0;
     if (!set_session_id_.empty()) {
@@ -66,34 +65,40 @@ public:
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
                    "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
                    "GMT;SameSite=Lax\r\nContent-Type: %s\r\n\r\n",
-                   code, content.size(), set_session_id_.data(), content_type);
+                   code, buf_len, set_session_id_.data(), content_type.data());
       set_session_id_ = {};
     } else {
       n = snprintf(
           header, sizeof(header),
           "HTTP/1.1 %d\r\nContent-Length: %zu\r\nContent-Type: %s\r\n\r\n",
-          code, content.size(), content_type);
+          code, buf_len, content_type.data());
     }
     if (n < 0 or size_t(n) >= sizeof(header))
       throw "reply:http:1";
 
-    io_send(fd_, header, size_t(n), !content.empty());
-    if (!content.empty()) {
-      io_send(fd_, content.data(), content.size());
+    io_send(fd_, header, size_t(n), buf);
+    if (buf) {
+      io_send(fd_, buf, buf_len);
     }
     return *this;
   }
 
-  inline size_t send(std::string_view sv, const bool buffer_send = false,
-                     bool throw_if_send_not_complete = true) {
-    return io_send(fd_, sv.data(), sv.size(), buffer_send,
-                   throw_if_send_not_complete);
+  inline reply &
+  http(const int code, std::string_view content,
+       std::string_view content_type = "text/html;charset=utf-8"sv) {
+    return http(code, content.data(), content.size(), content_type);
   }
 
   inline size_t send(const char *buf, size_t buf_len,
                      const bool buffer_send = false,
                      bool throw_if_send_not_complete = true) {
     return io_send(fd_, buf, buf_len, buffer_send, throw_if_send_not_complete);
+  }
+
+  inline size_t send(std::string_view sv, const bool buffer_send = false,
+                     bool throw_if_send_not_complete = true) {
+    return io_send(fd_, sv.data(), sv.size(), buffer_send,
+                   throw_if_send_not_complete);
   }
 };
 } // namespace xiinux
