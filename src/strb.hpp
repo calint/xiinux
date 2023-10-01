@@ -12,8 +12,7 @@ template <unsigned N = 1024> class strb final : public xprinter {
 
 public:
   inline strb() {}
-  inline strb(const char *str) { p(str); }
-  inline strb(const char *str, const size_t str_len) { p(str, str_len); }
+
   inline const char *buf() const { return buf_; }
   inline size_t len() const { return len_; }
 

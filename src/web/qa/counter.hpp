@@ -14,7 +14,7 @@ public:
     counter_++;
     counter::atomic_counter++;
 
-    strb<256> sb;
+    strb<256> sb{};
     sb.p("path: "sv).p(r.get_path()).nl();
     sb.p("query: "sv).p(r.get_query()).nl();
 
@@ -28,7 +28,7 @@ public:
 
     sb.p("counter in this instance: "sv).p(counter_).nl();
     sb.p("counter in this class: "sv).p(counter::atomic_counter).nl();
-    
+
     r.http(200, sb.string_view(), "text/plain"sv);
   }
 };

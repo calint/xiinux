@@ -13,7 +13,7 @@ class typealine final : public widget {
                   const size_t content_len) override {
     
     if (!buf) { // begin content receive
-      strb<128> sb;
+      strb<128> sb{};
       sb.p("HTTP/1.1 200\r\nContent-Length: "sv).p(content_len).p("\r\n\r\n"sv);
       x.send(sb.string_view(), true);
       return;

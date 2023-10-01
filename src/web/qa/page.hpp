@@ -7,7 +7,7 @@ class page final : public widget {
 
 public:
   void to(reply &x) override {
-    strb<32 * K> s;
+    strb<32 * K> s{};
     s.p("<!doctype html><script src=/x.js></script><link "
         "rel=stylesheet href=/x.css>"sv)
         .p("<title>page</title>"sv)
