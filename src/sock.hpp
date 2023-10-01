@@ -360,7 +360,7 @@ private:
         *sid_ptr++ = 'a' + char((random()) % 26);
       }
       *sid_ptr = '\0';
-      auto ups = std::make_unique<session>(sid);
+      auto ups{std::make_unique<session>(sid)};
       session_ = ups.get();
       sessions.put(std::move(ups));
       send_session_id_in_reply_ = true;
@@ -373,7 +373,7 @@ private:
       return;
 
     // session not found, create
-    auto ups = std::make_unique<session>(std::string{session_id});
+    auto ups{std::make_unique<session>(std::string{session_id})};
     session_ = ups.get();
     sessions.put(std::move(ups));
   }

@@ -35,7 +35,7 @@ public:
   [[nodiscard]] inline std::unique_ptr<chunky>
   reply_chunky(const char *content_type = "text/html;charset=utf-8",
                const int response_code = 200) {
-    std::unique_ptr<chunky> rsp= std::make_unique<chunky>(fd_);
+    auto rsp{std::make_unique<chunky>(fd_)};
     // 9 and 2 are length of strings
     rsp->p({"HTTP/1.1 ", 9}).p(response_code).p({"\r\n", 2});
     if (!set_session_id_.empty()) {
