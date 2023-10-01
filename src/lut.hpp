@@ -17,7 +17,6 @@ class lut final {
     inline el &operator=(const el &) = delete;
 
     inline ~el() {
-      printf("lut free elem %p: %s\n", static_cast<void *>(this), key_);
       if constexpr (DEL_DATA) {
         if (data_) {
           if constexpr (DATA_IS_ARRAY) {
