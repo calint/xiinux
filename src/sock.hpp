@@ -270,9 +270,9 @@ private:
 
     reply x{fd_, reqline_.path_, reqline_.query_, headers_, nullptr};
 
-    const char *path = reqline_.path_.at(0) == '/' ? reqline_.path_.data() + 1
-                                                   : reqline_.path_.data();
-    if (!*path) { // uri '/'
+    std::string_view path =
+        reqline_.path_.at(0) == '/' ? reqline_.path_.substr(1) : reqline_.path_;
+    if (path.empty()) { // uri '/'
       stats.cache++;
       homepage->to(x);
       state_ = next_request;
@@ -341,8 +341,8 @@ private:
     auto cookie = headers_["cookie"];
     std::string_view session_id{};
     if (cookie.starts_with("i=")) {
-      // -1 to exclude '\0'
-      session_id = cookie.substr(2, cookie.size() - 2);
+      // 2 to skip 'i='
+      session_id = cookie.substr(2);
     }
     if (session_id.empty()) {
       // no session id, create session
@@ -383,7 +383,7 @@ private:
     // +1 to skip the leading '/'
     const int res =
         snprintf(pth, sizeof(pth), "upload/%s",
-                 reqline_.path_.substr(1, reqline_.path_.size() - 1).data());
+                 reqline_.path_.substr(1).data());
     if (res < 0 or size_t(res) >= sizeof(pth))
       throw "sock:pathtrunc";
     upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC, 0664);
@@ -546,9 +546,9 @@ private:
   }
 
   class file {
-    off_t offset_ = 0;
-    size_t count_ = 0;
-    int fd_ = 0;
+    off_t offset_{};
+    size_t count_{};
+    int fd_{};
 
   public:
     inline void close() {
@@ -609,8 +609,8 @@ private:
   } header_{};
 
   class content {
-    size_t pos_ = 0;
-    size_t len_ = 0;
+    size_t pos_{};
+    size_t len_{};
     std::unique_ptr<char[]> buf_{};
 
   public:
@@ -654,9 +654,9 @@ private:
 
   class reqbuf {
     char buf_[conf::sock_request_header_buf_size];
-    char *mark_ = buf_;
-    char *p_ = buf_;
-    char *e_ = buf_;
+    char *mark_{buf_};
+    char *p_{buf_};
+    char *e_{buf_};
 
   public:
     inline void rst() { p_ = e_ = buf_; }
@@ -710,15 +710,15 @@ private:
     receiving_content,
     receiving_upload,
     next_request
-  } state_ = method;
+  } state_{method};
 
-  int fd_ = 0;
-  struct sockaddr_in sock_addr_;
+  int fd_{};
+  struct sockaddr_in sock_addr_ {};
   map_headers headers_{};
-  int upload_fd_ = 0;
-  widget *widget_ = nullptr;
+  int upload_fd_{};
+  widget *widget_{};
   session *session_{};
-  bool send_session_id_in_reply_ = false;
+  bool send_session_id_in_reply_{};
 
   inline static std::string_view trim(std::string_view in) {
     auto left = in.begin();
