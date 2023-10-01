@@ -32,10 +32,10 @@ public:
   inline const map_headers &get_req_headers() const { return req_headers_; }
   inline map_session *get_session() const { return session_; }
 
-  [[nodiscard]] inline /*give*/ chunky *
+  [[nodiscard]] inline std::unique_ptr<chunky>
   reply_chunky(const char *content_type = "text/html;charset=utf-8",
                const int response_code = 200) {
-    chunky *rsp = new chunky(fd_);
+    std::unique_ptr<chunky> rsp= std::make_unique<chunky>(fd_);
     // 9 and 2 are length of strings
     rsp->p({"HTTP/1.1 ", 9}).p(response_code).p({"\r\n", 2});
     if (!set_session_id_.empty()) {

@@ -9,16 +9,14 @@ namespace xiinux::web::qa {
 class chunkedbigger final : public widget {
 public:
   void to(reply &r) override {
-    std::unique_ptr<chunky> y(r.reply_chunky("text/plain;charset=utf-8"));
-    xprinter &x = *y;
-
+    auto x = r.reply_chunky("text/plain;charset=utf-8");
     constexpr size_t buf_len = 1024 * 1024;
     strb<buf_len> sb{};
     int i = 0;
     while (sb.len() + 128 < buf_len) {
       sb.p(i++).p(' ');
     }
-    x.p({sb.buf(), sb.len()});
+    x->p({sb.buf(), sb.len()});
   }
 };
 } // namespace xiinux::web::qa
