@@ -156,7 +156,7 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             state_ = uri;
-            reqline_.begin_ = reqbuf_.ptr();
+            reqbuf_.mark();
             break;
           }
         }
@@ -166,17 +166,13 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
-            reqline_.path_ = {reqline_.begin_,
-                              size_t(reqbuf_.ptr() - reqline_.begin_ - 1)};
-            reqline_.begin_ = reqbuf_.ptr();
+            reqline_.path_ = reqbuf_.mark_done();
             state_ = protocol;
             break;
           } else if (ch == '?') {
             reqbuf_.set_eos();
             // -1 because reqbuf.ptr is one step past '\+'
-            reqline_.path_ = {reqline_.begin_,
-                              size_t(reqbuf_.ptr() - reqline_.begin_ - 1)};
-            reqline_.begin_ = reqbuf_.ptr();
+            reqline_.path_ = reqbuf_.mark_done();
             state_ = query;
             break;
           }
@@ -188,8 +184,7 @@ public:
           if (ch == ' ') {
             reqbuf_.set_eos();
             // -1 because reqbuf.ptr is one step past '\+'
-            reqline_.query_ = {reqline_.begin_,
-                               size_t(reqbuf_.ptr() - reqline_.begin_ - 1)};
+            reqline_.query_ = reqbuf_.mark_done();
             state_ = protocol;
             break;
           }
@@ -199,7 +194,7 @@ public:
         while (reqbuf_.has_more()) {
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == '\n') {
-            header_.begin_ = reqbuf_.ptr();
+            reqbuf_.mark();
             state_ = header_key;
             break;
           }
@@ -213,13 +208,11 @@ public:
             break;
           } else if (ch == ':') {
             reqbuf_.set_eos();
-            strlwr(header_.begin_); // to lower string
+            strlwr(reqbuf_.get_mark()); // to lower string
             // -1 because reqbuf.ptr is one character ahead
-            header_.name_ = {header_.begin_,
-                             size_t(reqbuf_.ptr() - header_.begin_ - 1)};
+            header_.name_ = reqbuf_.mark_done();
             header_.name_ = trim(header_.name_);
             // set begin_ to the start of the value part of the header
-            header_.begin_ = reqbuf_.ptr();
             state_ = header_value;
             break;
           }
@@ -230,8 +223,7 @@ public:
           const char c = reqbuf_.unsafe_next_char();
           if (c == '\n') {
             reqbuf_.set_eos();
-            header_.value_ = {header_.begin_,
-                             size_t(reqbuf_.ptr() - header_.begin_ - 1)};
+            header_.value_ = reqbuf_.mark_done();
             // RFC 2616: header field names are case-insensitive
             header_.value_ = trim(header_.value_);
 
@@ -249,7 +241,6 @@ public:
 
             headers_[header_.name_] = header_.value_;
 
-            header_.begin_ = reqbuf_.ptr();
             state_ = header_key;
             break;
           }
@@ -478,7 +469,7 @@ private:
     if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm)) {
       throw "sock:strftime";
     }
-    auto lastmodstr = headers_["if-modified-since"];
+    std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod) {
       constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
       // -1 to not include '\0'
@@ -494,7 +485,7 @@ private:
       return;
     }
     stats.files++;
-    auto range = headers_["range"];
+    std::string_view range = headers_["range"];
     char header_buf[512];
     int header_buf_len = 0;
     if (!range.empty()) {
@@ -602,24 +593,20 @@ private:
   } file_{};
 
   struct reqline {
-    const char *begin_{nullptr};
     std::string_view path_{};
     std::string_view query_{};
     inline void rst() {
       path_ = {};
       query_ = {};
-      begin_ = nullptr;
     }
   } reqline_{};
 
   struct header {
-    char *begin_{nullptr};
     std::string_view name_{};
     std::string_view value_{};
     inline void rst() {
       name_ = {};
       value_ = {};
-      begin_ = nullptr;
     }
   } header_{};
 
@@ -675,18 +662,25 @@ private:
 
   class reqbuf {
     char buf_[conf::sock_request_header_buf_size];
+    char *mark_ = buf_;
     char *p_ = buf_;
     char *e_ = buf_;
 
   public:
     inline void rst() { p_ = e_ = buf_; }
     inline char *ptr() const { return p_; }
+    inline void mark() { mark_ = p_; }
+    inline char *get_mark() const { return mark_; }
     inline bool has_more() const { return p_ != e_; }
     inline size_t remaining() const { return size_t(e_ - p_); }
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline char unsafe_next_char() { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
-
+    inline std::string_view mark_done() {
+      char *m = mark_;
+      mark_ = p_;
+      return {m, size_t(p_ - m - 1)};
+    }
     inline ssize_t receive_from(const int fd_in) {
       const size_t nbytes_to_read =
           conf::sock_request_header_buf_size - size_t(p_ - buf_);
