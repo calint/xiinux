@@ -1,9 +1,9 @@
 [ ] ? lut<std::string_view>
 [ ] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
     instead of lut<...>
-    using map_headers = std::unordered_map<std::string_view, std::string_view>;
+[x] using map_headers = std::unordered_map<std::string_view, std::string_view>;
 [x] using map_sessions = unordered_map<std::string, std::unique_ptr<session>>;
-    using map_session = unordered_map<std::string, std::string>;
+[ ] using map_session = unordered_map<std::string, std::string>;
     using map_path_to_widget_factory = unordered_map<std::string key, ...>;
 [ ] consider uniform initialization using {...} instead of =
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
