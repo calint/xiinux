@@ -347,7 +347,7 @@ private:
       }
       *sid_ptr = '\0';
       session_ = new session(/*give*/ sid);
-      sessions.put(session_, false);
+      sessions.put(session_);
       send_session_id_in_reply_ = true;
       return;
     }
@@ -365,7 +365,7 @@ private:
     // make sure sid is terminated
     sid[23] = '\0';
     session_ = new session(/*give*/ sid);
-    sessions.put(/*give*/ session_, false);
+    sessions.put(/*give*/ session_);
   }
 
   void do_serve_upload() {
@@ -693,7 +693,7 @@ private:
 
   int fd_ = 0;
   struct sockaddr_in sock_addr_;
-  lut_cstr headers_{};
+  lut_cstr<false, false> headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;
   session *session_ = nullptr;

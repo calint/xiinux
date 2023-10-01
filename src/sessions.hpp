@@ -5,14 +5,14 @@
 
 namespace xiinux {
 class sessions final {
-  lut<session *> all_{K};
+  lut<session *, false, true> all_{K};
 
 public:
-  inline ~sessions() { all_.delete_content(false); }
+  inline ~sessions(){
+    printf("*** delete sessions\n");
+  }
   inline session *get(const char *sid) const { return all_[sid]; }
 
-  inline void put(/*take*/ session *s, bool allow_overwrite = true) {
-    all_.put(s->get_id(), s, allow_overwrite);
-  }
+  inline void put(/*take*/ session *s) { all_.put(s->get_id(), s, false); }
 } static sessions;
 } // namespace xiinux

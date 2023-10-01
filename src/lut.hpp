@@ -4,7 +4,9 @@
 #include <cstring>
 
 namespace xiinux {
-template <class T> class lut final {
+template <class T, bool DEL_KEY = false, bool DEL_DATA = false,
+          bool DATA_IS_ARRAY = false>
+class lut final {
   class el final {
   public:
     const char *key_ = nullptr;
@@ -14,11 +16,18 @@ template <class T> class lut final {
     inline el(const el &) = delete;
     inline el &operator=(const el &) = delete;
 
-    inline void free(const bool delete_key) {
+    inline ~el() {
       printf("lut free elem %p: %s\n", static_cast<void *>(this), key_);
-      if (data_)
-        delete data_;
-      if (delete_key)
+      if constexpr (DEL_DATA) {
+        if (data_) {
+          if constexpr (DATA_IS_ARRAY) {
+            delete[] data_;
+          } else {
+            delete data_;
+          }
+        }
+      }
+      if (DEL_KEY)
         delete[] key_;
     }
   };
@@ -45,6 +54,7 @@ public:
   inline lut &operator=(const lut &) = delete;
 
   inline ~lut() {
+    del();
     clear();
     free(array_);
   }
@@ -73,6 +83,16 @@ public:
       if (!strcmp(e->key_, key)) {
         if (!allow_overwrite)
           throw "lut:put:overwrite";
+        if constexpr (DEL_DATA) {
+          if constexpr (DATA_IS_ARRAY) {
+            delete[] e->data_;
+          } else {
+            delete e->data_;
+          }
+        }
+        if constexpr (DEL_KEY) {
+          delete[] key;
+        }
         e->data_ = data;
         return;
       }
@@ -97,12 +117,12 @@ public:
     }
   }
 
-  inline void delete_content(const bool delete_keys) {
+private:
+  inline void del() {
     for (unsigned i = 0; i < size_; i++) {
       el *e = array_[i];
       while (e) {
         el *nxt = e->nxt_;
-        e->free(delete_keys);
         delete e;
         e = nxt;
       }
@@ -111,6 +131,8 @@ public:
   }
 };
 
-using lut_cstr = lut<const char *>;
+template <bool DEL_KEY = false, bool DEL_DATA = false,
+          bool DATA_IS_ARRAY = false>
+using lut_cstr = lut<const char *, DEL_KEY, DEL_DATA, DATA_IS_ARRAY>;
 
 } // namespace xiinux

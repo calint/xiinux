@@ -13,7 +13,7 @@
 #include "qa/typealine.hpp"
 
 namespace xiinux::web {
-inline static lut<widget *(*)()> widget_path_to_factory_map{
+inline static lut<widget *(*)(), false, false> widget_path_to_factory_map{
     conf::path_to_widget_lut_size};
 
 static inline widget *(*widget_factory_for_path(const char *path))() {
