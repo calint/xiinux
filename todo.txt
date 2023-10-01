@@ -1,5 +1,7 @@
+[ ] ? lut<std::string_view>
 [ ] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
     instead of lut<...>
+[ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
@@ -8,8 +10,6 @@
     size of binary so much (~75K -> ~275K)
     => -g was on now ~75K -> ~130K
     => -Os enabled now ~76K
-[ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
-[ ] ? lut<std::string_view>
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
 [ ] sock: consolidate recv(...) in content and buf
