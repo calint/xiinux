@@ -221,7 +221,18 @@ public:
             // -2 to skip '\0' and place pointer on last character in the value
             header_.value_ = strtrm(header_.value_, reqbuf_.ptr() - 2);
             // printf("%s: %s\n",hdrparser.key,hdrparser.value);
+
+            // headers_.insert({std::string_view{header_.name_},
+            //                  std::string_view{header_.value_}});
+            
+            // headers_.insert({{header_.name_}, {header_.value_}});
+            
+            // headers_.insert({header_.name_, header_.value_});
+            
+            // headers_[{header_.name_}] = {header_.value_};
+
             headers_[header_.name_] = header_.value_;
+            
             header_.name_ = reqbuf_.ptr();
             state_ = header_key;
             break;
