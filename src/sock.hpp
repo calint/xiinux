@@ -224,15 +224,15 @@ public:
 
             // headers_.insert({std::string_view{header_.name_},
             //                  std::string_view{header_.value_}});
-            
+
             // headers_.insert({{header_.name_}, {header_.value_}});
-            
+
             // headers_.insert({header_.name_, header_.value_});
-            
+
             // headers_[{header_.name_}] = {header_.value_};
 
             headers_[header_.name_] = header_.value_;
-            
+
             header_.name_ = reqbuf_.ptr();
             state_ = header_key;
             break;
@@ -287,14 +287,9 @@ private:
 
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
-      widget_ = /*take*/ factory();
-      const size_t key_len = strnlen(reqline_.path_, conf::widget_key_size);
-      if (key_len == conf::widget_key_size)
-        throw "sock:key_len";
-      // +1 for the \0 terminator
-      char *key = new char[key_len + 1];
-      memcpy(key, reqline_.path_, key_len + 1);
-      session_->put_widget(/*give*/ key, /*give*/ widget_);
+      std::unique_ptr<widget> wup{factory()};
+      widget_ = wup.get();
+      session_->put_widget(reqline_.path_, std::move(wup));
     }
 
     reply x{fd_, reqline_.path_, reqline_.query_, headers_,

@@ -6,7 +6,7 @@ namespace xiinux {
 class session final {
   const std::string id_;
   map_session kvp_{};
-  lut<widget *, true, true> widgets_{};
+  map_widgets widgets_{};
 
 public:
   inline session(std::string id) : id_{id} { stats.sessions++; }
@@ -19,13 +19,18 @@ public:
   inline const std::string &operator[](const std::string &key) const {
     return kvp_.at(key);
   }
-  inline widget *get_widget(const char *key) const { return widgets_[key]; }
+  inline widget *get_widget(const std::string &key) const {
+    auto it = widgets_.find(key);
+    if (it != widgets_.end())
+      return it->second.get();
+    return nullptr;
+  }
   inline map_session &get_lut() { return kvp_; }
 
   inline void put(std::string key, std::string str) { kvp_[key] = str; }
 
-  inline void put_widget(/*take*/ const char *key, /*take*/ widget *wgt) {
-    widgets_.put(key, wgt);
+  inline void put_widget(std::string path, std::unique_ptr<widget> wgt) {
+    widgets_[std::move(path)] = std::move(wgt);
   }
 };
 } // namespace xiinux
