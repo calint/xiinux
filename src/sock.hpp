@@ -25,7 +25,7 @@ public:
   inline sock &operator=(const sock &) = delete;
 
   inline ~sock() {
-    content.free();
+    content_.free();
     if (!::close(fd_)) {
       // printf("client close %p\n", static_cast<void *>(this));
       stats.socks--;
@@ -39,8 +39,8 @@ public:
 
   inline void run() {
     while (true) {
-      if (state == resume_send_file) {
-        const ssize_t n = file.resume_send_to(fd_);
+      if (state_ == resume_send_file) {
+        const ssize_t n = file_.resume_send_to(fd_);
         if (n == -1) { // error or send buffer full
           if (errno == EAGAIN) {
             io_request_write();
@@ -51,12 +51,12 @@ public:
           stats.errors++;
           throw "sock:err2";
         }
-        if (!file.is_done())
+        if (!file_.is_done())
           continue;
-        file.close();
-        state = next_request;
-      } else if (state == receiving_content) {
-        const ssize_t n = content.receive_from(fd_);
+        file_.close();
+        state_ = next_request;
+      } else if (state_ == receiving_content) {
+        const ssize_t n = content_.receive_from(fd_);
         if (n == -1) {
           if (errno == EAGAIN) {
             io_request_read();
@@ -67,20 +67,20 @@ public:
           throw "sock:receiving_content";
         }
         const size_t nbytes_read = size_t(n);
-        const size_t content_rem = content.remaining();
-        const size_t content_len = content.content_len();
-        reply x(fd_, reqline.path_, reqline.query_, headers_,
+        const size_t content_rem = content_.remaining();
+        const size_t content_len = content_.content_len();
+        reply x(fd_, reqline.path_, reqline.query_, &headers_,
                 session_->get_lut());
-        widget_->on_content(x, content.buf(), nbytes_read,
-                            content.pos() + nbytes_read, content_len);
+        widget_->on_content(x, content_.buf(), nbytes_read,
+                            content_.pos() + nbytes_read, content_len);
         if (content_rem > nbytes_read) { // not finished
-          content.unsafe_skip(nbytes_read);
+          content_.unsafe_skip(nbytes_read);
           continue;
         }
         // this was the last part
-        state = next_request;
-      } else if (state == receiving_upload) {
-        const ssize_t n = content.receive_from(fd_);
+        state_ = next_request;
+      } else if (state_ == receiving_upload) {
+        const ssize_t n = content_.receive_from(fd_);
         if (n == -1) {
           if (errno == EAGAIN) {
             io_request_read();
@@ -91,10 +91,10 @@ public:
           throw "sock:receiving_upload";
         }
         const size_t nbytes_read = size_t(n);
-        const size_t upload_rem = content.remaining();
+        const size_t upload_rem = content_.remaining();
         const size_t nbytes_to_write =
             upload_rem > nbytes_read ? nbytes_read : upload_rem;
-        const ssize_t m = write(upload_fd_, content.buf(), nbytes_to_write);
+        const ssize_t m = write(upload_fd_, content_.buf(), nbytes_to_write);
         if (m == -1 or size_t(m) != nbytes_to_write) {
           stats.errors++;
           perror("sock:run:upload");
@@ -102,8 +102,8 @@ public:
         }
         if (m != n)
           throw "sock:writing upload to file 2";
-        content.unsafe_skip(size_t(m));
-        if (content.remaining())
+        content_.unsafe_skip(size_t(m));
+        if (content_.remaining())
           continue;
         if (::close(upload_fd_)) {
           perror("sock:closing upload file");
@@ -111,9 +111,9 @@ public:
         constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
         // -1 to not include '\0'
         io_send(fd_, msg, sizeof(msg) - 1);
-        state = next_request;
+        state_ = next_request;
       }
-      if (state == next_request) {
+      if (state_ == next_request) {
         // if previous request had header 'Connection: close'
         const char *connection = headers_["connection"];
         if (connection and !strcmp("close", connection)) {
@@ -121,19 +121,19 @@ public:
           return;
         }
         stats.requests++;
-        file.rst();
+        file_.rst();
         reqline.rst();
-        buf.rst();
+        reqbuf_.rst();
         header.rst();
-        content.rst();
+        content_.rst();
         headers_.clear();
         upload_fd_ = 0;
         widget_ = nullptr;
         session_ = nullptr;
-        state = method;
+        state_ = method;
       }
-      if (!buf.has_more()) {
-        const ssize_t n = buf.receive_from(fd_);
+      if (!reqbuf_.has_more()) {
+        const ssize_t n = reqbuf_.receive_from(fd_);
         if (n == -1) { // error or would block
           if (errno == EAGAIN) {
             io_request_read();
@@ -146,80 +146,80 @@ public:
           throw "sock:err3";
         }
       }
-      if (state == method) {
-        while (buf.has_more()) {
-          const char ch = buf.unsafe_next_char();
+      if (state_ == method) {
+        while (reqbuf_.has_more()) {
+          const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
-            state = uri;
-            reqline.path_ = buf.ptr();
+            state_ = uri;
+            reqline.path_ = reqbuf_.ptr();
             break;
           }
         }
       }
-      if (state == uri) {
-        while (buf.has_more()) {
-          const char ch = buf.unsafe_next_char();
+      if (state_ == uri) {
+        while (reqbuf_.has_more()) {
+          const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
-            buf.set_eos();
-            state = protocol;
+            reqbuf_.set_eos();
+            state_ = protocol;
             break;
           } else if (ch == '?') {
-            buf.set_eos();
-            reqline.query_ = buf.ptr();
-            state = query;
+            reqbuf_.set_eos();
+            reqline.query_ = reqbuf_.ptr();
+            state_ = query;
             break;
           }
         }
       }
-      if (state == query) {
-        while (buf.has_more()) {
-          const char ch = buf.unsafe_next_char();
+      if (state_ == query) {
+        while (reqbuf_.has_more()) {
+          const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
-            buf.set_eos();
-            state = protocol;
+            reqbuf_.set_eos();
+            state_ = protocol;
             break;
           }
         }
       }
-      if (state == protocol) {
-        while (buf.has_more()) {
-          const char ch = buf.unsafe_next_char();
+      if (state_ == protocol) {
+        while (reqbuf_.has_more()) {
+          const char ch = reqbuf_.unsafe_next_char();
           if (ch == '\n') {
-            header.name_ = buf.ptr();
-            state = header_key;
+            header.name_ = reqbuf_.ptr();
+            state_ = header_key;
             break;
           }
         }
       }
-      if (state == header_key) {
-        while (buf.has_more()) {
-          const char ch = buf.unsafe_next_char();
+      if (state_ == header_key) {
+        while (reqbuf_.has_more()) {
+          const char ch = reqbuf_.unsafe_next_char();
           if (ch == '\n') { // content or done parsing
             do_after_headers();
             break;
           } else if (ch == ':') {
-            buf.set_eos();
-            header.value_ = buf.ptr();
-            state = header_value;
+            reqbuf_.set_eos();
+            header.value_ = reqbuf_.ptr();
+            state_ = header_value;
             break;
           }
         }
       }
-      if (state == header_value) {
-        while (buf.has_more()) {
-          const char c = buf.unsafe_next_char();
+      if (state_ == header_value) {
+        while (reqbuf_.has_more()) {
+          const char c = reqbuf_.unsafe_next_char();
           if (c == '\n') {
-            buf.set_eos();
+            reqbuf_.set_eos();
             // -2 to skip '\0' and place pointer on last character in the key
             header.name_ = strtrm(header.name_, header.value_ - 2);
             // RFC 2616: header field names are case-insensitive
             strlwr(header.name_);
             // -2 to skip '\0' and place pointer on last character in the value
-            header.value_ = strtrm(header.value_, buf.ptr() - 2);
+            header.value_ = strtrm(header.value_, reqbuf_.ptr() - 2);
             // printf("%s: %s\n",hdrparser.key,hdrparser.value);
             headers_.put(header.name_, header.value_);
-            header.name_ = buf.ptr();
-            state = header_key;
+            header.name_ = reqbuf_.ptr();
+            state_ = header_key;
             break;
           }
         }
@@ -246,19 +246,19 @@ private:
 
     const char *content_type = headers_["content-type"];
     if (content_type and strstr(content_type, "file")) {
-      content.init_for_receive(headers_["content-length"]);
+      content_.init_for_receive(headers_["content-length"]);
       do_serve_upload();
       return;
     }
 
-    reply x(fd_, reqline.path_, reqline.query_, headers_, nullptr);
+    reply x(fd_, reqline.path_, reqline.query_, &headers_, nullptr);
 
     const char *path =
         *reqline.path_ == '/' ? reqline.path_ + 1 : reqline.path_;
     if (!*path) { // uri '/'
       stats.cache++;
       homepage->to(x);
-      state = next_request;
+      state_ = next_request;
       return;
     }
 
@@ -282,7 +282,7 @@ private:
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
 
-    reply x(fd_, reqline.path_, reqline.query_, headers_, session_->get_lut());
+    reply x(fd_, reqline.path_, reqline.query_, &headers_, session_->get_lut());
 
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());
@@ -293,13 +293,13 @@ private:
     if (!content_length_str) {
       // no content from client, render widget
       widget_->to(x);
-      state = next_request;
+      state_ = next_request;
       return;
     }
 
     // content from client
-    content.init_for_receive(content_length_str);
-    const size_t content_len = content.content_len();
+    content_.init_for_receive(content_length_str);
+    const size_t content_len = content_.content_len();
     // initiating call to widget with buf=nullptr
     widget_->on_content(x, nullptr, 0, 0, content_len);
     // if client expects 100 continue before sending post
@@ -308,19 +308,20 @@ private:
       constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
-      state = receiving_content;
+      state_ = receiving_content;
       return;
     }
-    const size_t rem = buf.remaining();
+    const size_t rem = reqbuf_.remaining();
     if (rem >= content_len) { // full content is in 'buf'
-      widget_->on_content(x, buf.ptr(), content_len, content_len, content_len);
-      state = next_request;
+      widget_->on_content(x, reqbuf_.ptr(), content_len, content_len,
+                          content_len);
+      state_ = next_request;
       return;
     }
     // beginning of the content is in 'buf'
-    widget_->on_content(x, buf.ptr(), rem, rem, content_len);
-    content.unsafe_skip(rem);
-    state = receiving_content;
+    widget_->on_content(x, reqbuf_.ptr(), rem, rem, content_len);
+    content_.unsafe_skip(rem);
+    state_ = receiving_content;
   }
 
   void retrieve_or_create_session() {
@@ -385,18 +386,18 @@ private:
       constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
-      state = receiving_upload;
+      state_ = receiving_upload;
       return;
     }
-    const size_t remaining = buf.remaining();
+    const size_t remaining = reqbuf_.remaining();
     if (remaining == 0) {
-      state = receiving_upload;
+      state_ = receiving_upload;
       return;
     }
-    const size_t content_len = content.content_len();
+    const size_t content_len = content_.content_len();
     if (remaining >= content_len) {
       // the whole file is in 'buf'
-      const ssize_t n = write(upload_fd_, buf.ptr(), content_len);
+      const ssize_t n = write(upload_fd_, reqbuf_.ptr(), content_len);
       if (n == -1 or size_t(n) != content_len) {
         perror("could not write");
         throw "sock:err4";
@@ -410,17 +411,17 @@ private:
       constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
-      state = next_request;
+      state_ = next_request;
       return;
     }
     // start of the file is in 'buf'
-    const ssize_t n = write(upload_fd_, buf.ptr(), remaining);
+    const ssize_t n = write(upload_fd_, reqbuf_.ptr(), remaining);
     if (n == -1 or size_t(n) != remaining) {
       perror("while writing upload to file2");
       throw "sock:err6";
     }
-    content.unsafe_skip(size_t(n));
-    state = receiving_upload;
+    content_.unsafe_skip(size_t(n));
+    state_ = receiving_upload;
   }
 
   void do_serve_file(reply &x, const char *path) {
@@ -428,7 +429,7 @@ private:
       constexpr char msg[] = "path contains ..\n";
       // -1 to not include '\0'
       x.http(403, msg, sizeof(msg) - 1);
-      state = next_request;
+      state_ = next_request;
       return;
     }
     struct stat fdstat;
@@ -436,14 +437,14 @@ private:
       constexpr char msg[] = "not found\n";
       // -1 to not include '\0'
       x.http(404, msg, sizeof(msg) - 1);
-      state = next_request;
+      state_ = next_request;
       return;
     }
     if (S_ISDIR(fdstat.st_mode)) {
       constexpr char msg[] = "path is directory\n";
       // -1 to not include '\0'
       x.http(403, msg, sizeof(msg) - 1);
-      state = next_request;
+      state_ = next_request;
       return;
     }
     const struct tm *tm = gmtime(&fdstat.st_mtime);
@@ -457,14 +458,14 @@ private:
       constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
       // -1 to not include '\0'
       io_send(fd_, msg, sizeof(msg) - 1);
-      state = next_request;
+      state_ = next_request;
       return;
     }
-    if (file.open(path) == -1) {
+    if (file_.open(path) == -1) {
       constexpr char msg[] = "cannot open file\n";
       // -1 to not include '\0'
       x.http(404, msg, sizeof(msg) - 1);
-      state = next_request;
+      state_ = next_request;
       return;
     }
     stats.files++;
@@ -478,8 +479,8 @@ private:
         perr("range");
         throw "sock:errrorscanning";
       }
-      file.init_for_send(size_t(fdstat.st_size), offset);
-      const size_t len = file.length();
+      file_.init_for_send(size_t(fdstat.st_size), offset);
+      const size_t len = file_.length();
       header_buf_len =
           snprintf(header_buf, sizeof(header_buf),
                    "HTTP/1.1 206\r\nAccept-Ranges: "
@@ -487,18 +488,18 @@ private:
                    "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
                    lastmod, len - size_t(offset), offset, len, len);
     } else {
-      file.init_for_send(size_t(fdstat.st_size));
+      file_.init_for_send(size_t(fdstat.st_size));
       header_buf_len =
           snprintf(header_buf, sizeof(header_buf),
                    "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
                    "%s\r\nContent-Length: %zu\r\n\r\n",
-                   lastmod, file.length());
+                   lastmod, file_.length());
     }
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw "sock:err1";
     io_send(fd_, header_buf, size_t(header_buf_len), true);
 
-    const ssize_t n = file.resume_send_to(fd_);
+    const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
@@ -506,12 +507,12 @@ private:
       perr("sendingfile");
       throw "sock:err5";
     }
-    if (!file.is_done()) {
-      state = resume_send_file;
+    if (!file_.is_done()) {
+      state_ = resume_send_file;
       return;
     }
-    file.close();
-    state = next_request;
+    file_.close();
+    state_ = next_request;
   }
 
   inline void io_request_read() {
@@ -573,7 +574,7 @@ private:
       offset_ = 0;
       count_ = 0;
     }
-  } file{};
+  } file_{};
 
   struct reqline {
     char *path_ = nullptr;
@@ -635,9 +636,9 @@ private:
       }
       return n;
     }
-  } content{};
+  } content_{};
 
-  class buf {
+  class reqbuf {
     char buf_[conf::sock_request_header_buf_size];
     char *p_ = buf_;
     char *e_ = buf_;
@@ -675,7 +676,7 @@ private:
       }
       return n;
     }
-  } buf{};
+  } reqbuf_{};
 
   enum state {
     method,
@@ -688,11 +689,11 @@ private:
     receiving_content,
     receiving_upload,
     next_request
-  } state = method;
+  } state_ = method;
 
   int fd_ = 0;
   struct sockaddr_in sock_addr_;
-  lut<const char *> headers_{};
+  lut_cstr headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;
   session *session_ = nullptr;

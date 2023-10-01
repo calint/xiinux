@@ -14,13 +14,15 @@ template <class T> class lut final {
     inline el(const el &) = delete;
     inline el &operator=(const el &) = delete;
 
-    inline void delete_content_recurse(const bool delete_key) {
+    inline void free(const bool delete_key) {
+      printf("lut free elem %p: %s\n", static_cast<void *>(this), key_);
       if (data_)
         delete data_;
       if (delete_key)
         delete[] key_;
     }
   };
+
   el **array_ = nullptr;
   unsigned size_ = 0;
 
@@ -39,7 +41,7 @@ public:
   inline lut(const unsigned size = 8) : size_{size} {
     array_ = static_cast<el **>(calloc(size_t(size), sizeof(el *)));
   }
-  inline lut(const lut &) = default;
+  inline lut(const lut &) = delete;
   inline lut &operator=(const lut &) = delete;
 
   inline ~lut() {
@@ -100,7 +102,7 @@ public:
       el *e = array_[i];
       while (e) {
         el *nxt = e->nxt_;
-        e->delete_content_recurse(delete_keys);
+        e->free(delete_keys);
         delete e;
         e = nxt;
       }

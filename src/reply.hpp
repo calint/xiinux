@@ -18,19 +18,19 @@ class reply final {
   int fd_ = 0;
   const char *path_;
   const char *query_;
-  const lut<const char *> &req_headers_;
-  lut<const char *> *session_;
+  const lut_cstr *req_headers_;
+  lut_cstr *session_;
   const char *set_session_id_ = nullptr;
 
 public:
   inline reply(const int fd, const char *path, const char *query,
-               const lut_cstr &req_headers, lut_cstr *session)
+               const lut_cstr *req_headers, lut_cstr *session)
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
   inline const char *get_path() const { return path_; }
   inline const char *get_query() const { return query_; }
-  inline const lut_cstr &get_req_headers() const { return req_headers_; }
+  inline const lut_cstr *get_req_headers() const { return req_headers_; }
   inline lut_cstr *get_session() const { return session_; }
 
   [[nodiscard]] inline /*give*/ chunky *

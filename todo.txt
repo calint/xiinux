@@ -1,3 +1,5 @@
+[ ] lut: when to delete or delete[] key and data
+[ ] lut: overwrite does not delete old content
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
 [ ] sock: consolidate recv(...) in content and buf
@@ -24,6 +26,13 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] ^C after running:
+        curl -sH"Cookie: i=20230926--2020-abcdef" http://localhost:8088/qa/counter?a=1+2 > /dev/null
+    generates:
+        munmap_chunk(): invalid pointer
+        Aborted (core dumped)
+    => in web::counter.to(...) r.get_session()->put("x", "abc");
+        then lut.delete_content(...) tries to delete const char* 
 [x] qa: gnuplot
 [x] access path, query, headers, session from widget
     -> access through 'reply'

@@ -32,17 +32,19 @@ public:
       exit(1);
     }
 
-    int option = 1;
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
-                   sizeof(option))) {
-      perror("setsockopt SO_REUSEADDR");
-      exit(2);
-    }
+    if (conf::server_reuse_addr_and_port) {
+      int option = 1;
+      if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
+                     sizeof(option))) {
+        perror("setsockopt SO_REUSEADDR");
+        exit(2);
+      }
 
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &option,
-                   sizeof(option))) {
-      perror("setsockopt SO_REUSEPORT");
-      exit(3);
+      if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &option,
+                     sizeof(option))) {
+        perror("setsockopt SO_REUSEPORT");
+        exit(3);
+      }
     }
 
     if (conf::server_print_listen_socket_conf) {
@@ -114,7 +116,8 @@ public:
           stats.accepts++;
 
           struct sockaddr_in client_addr;
-          socklen_t client_addr_len;
+          bzero(&server_addr, sizeof(client_addr));
+          socklen_t client_addr_len = 0;
           const int client_fd = accept4(
               server_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
               &client_addr_len, SOCK_NONBLOCK);
@@ -146,7 +149,7 @@ public:
 
           if (option_benchmark_mode) {
             // note. setsockopt may fail to set value without raising error
-            option = 1;
+            int option = 1;
             if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &option,
                            sizeof(option))) {
               perror("setsockopt TCP_NODELAY");

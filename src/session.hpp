@@ -14,6 +14,7 @@ public:
   inline session &operator=(const session &) = delete;
 
   inline ~session() {
+    printf("session delete %p\n", static_cast<void *>(this));
     stats.sessions--;
     delete[] id_;
     kvp_.delete_content(true);
