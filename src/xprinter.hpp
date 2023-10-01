@@ -5,6 +5,7 @@ namespace xiinux {
 class xprinter {
 public:
   virtual ~xprinter() {}
+  virtual xprinter &p(const std::string_view sv) = 0;
   virtual xprinter &p(/*scan*/ const char *str) = 0;
   virtual xprinter &p(/*scan*/ const char *str, const size_t str_len) = 0;
   virtual xprinter &p(const int i) = 0;

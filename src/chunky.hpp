@@ -52,7 +52,7 @@ public:
     return *this;
   }
 
-  inline chunky &p(const std::string_view sv) {
+  inline chunky &p(const std::string_view sv) override {
     return p(sv.data(), sv.size());
   }
 
