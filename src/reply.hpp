@@ -84,10 +84,10 @@ public:
     return *this;
   }
 
-  inline size_t send(const char *buf, size_t len,
-                     const bool buffer_send = false,
+  inline size_t send(std::string_view sv, const bool buffer_send = false,
                      bool throw_if_send_not_complete = true) {
-    return io_send(fd_, buf, len, buffer_send, throw_if_send_not_complete);
+    return io_send(fd_, sv.data(), sv.size(), buffer_send,
+                   throw_if_send_not_complete);
   }
 };
 } // namespace xiinux

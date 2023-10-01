@@ -98,5 +98,7 @@ public:
     p({sb.buf(), sb.len()});
     return *this;
   }
+
+  std::string_view string_view() const { return {buf_, len_}; }
 };
 } // namespace xiinux

@@ -25,8 +25,8 @@ using map_headers = std::unordered_map<std::string_view, std::string_view>;
 using map_session = std::unordered_map<std::string, std::string>;
 using map_widgets = std::unordered_map<std::string, std::unique_ptr<widget>>;
 
-static int epoll_fd;
-static std::unique_ptr<doc> homepage;
+static int epoll_fd{};
+static std::unique_ptr<doc> homepage{};
 
 static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
                              const bool buffer_send = false,

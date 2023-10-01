@@ -260,7 +260,7 @@ private:
       puts("homepage does not fit in buffer");
       exit(8);
     }
-    homepage = std::make_unique<doc>(buf, size_t(n));
+    homepage = std::make_unique<doc>(std::string{buf, size_t(n)});
   }
 
   inline static std::thread thdwatch{};
