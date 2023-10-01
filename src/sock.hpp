@@ -8,12 +8,18 @@
 #include "web/web.hpp"
 #include "widget.hpp"
 #include <fcntl.h>
+#include <memory>
 #include <netinet/in.h>
+#include <string_view>
 #include <sys/epoll.h>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
+#include <unordered_map>
 
 namespace xiinux {
+
+using map_headers = std::unordered_map<std::string_view, std::string_view>;
+
 class sock final {
 public:
   inline sock(const int fd, struct sockaddr_in sock_addr)
@@ -282,7 +288,8 @@ private:
       session_->put_widget(/*give*/ key, /*give*/ widget_);
     }
 
-    reply x(fd_, reqline_.path_, reqline_.query_, &headers_, session_->get_lut());
+    reply x(fd_, reqline_.path_, reqline_.query_, &headers_,
+            session_->get_lut());
 
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());
@@ -346,8 +353,9 @@ private:
         *sid_ptr++ = 'a' + char((random()) % 26);
       }
       *sid_ptr = '\0';
-      session_ = new session(/*give*/ sid);
-      sessions.put(session_);
+      auto ups = std::make_unique<session>(sid);
+      session_ = ups.get();
+      sessions.put(std::move(ups));
       send_session_id_in_reply_ = true;
       return;
     }
@@ -364,8 +372,9 @@ private:
     strncpy(sid, session_id, 23);
     // make sure sid is terminated
     sid[23] = '\0';
-    session_ = new session(/*give*/ sid);
-    sessions.put(/*give*/ session_);
+    auto ups = std::make_unique<session>(sid);
+    session_ = ups.get();
+    sessions.put(std::move(ups));
   }
 
   void do_serve_upload() {
@@ -696,7 +705,7 @@ private:
   lut_cstr<false, false> headers_{};
   int upload_fd_ = 0;
   widget *widget_ = nullptr;
-  session *session_ = nullptr;
+  session *session_{};
   bool send_session_id_in_reply_ = false;
 
   static inline char *strtrm(char *p, char *e) {

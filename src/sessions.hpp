@@ -2,14 +2,24 @@
 #pragma once
 #include "lut.hpp"
 #include "session.hpp"
+#include <string_view>
+#include <unordered_map>
 
 namespace xiinux {
+
+using map_sessions = std::unordered_map<std::string, std::unique_ptr<session>>;
+
 class sessions final {
   lut<session *, false, true> all_{K};
+  map_sessions sessions_{};
 
 public:
-  inline session *get(const char *sid) const { return all_[sid]; }
+  inline session *get(std::string id) { return sessions_[id].get(); }
 
-  inline void put(/*take*/ session *s) { all_.put(s->get_id(), s, false); }
+  inline void put(std::unique_ptr<session> ses) {
+    sessions_[std::string{ses->get_id()}] = std::move(ses);
+  }
+
+  inline void remove(std::string id) { sessions_.erase(id); }
 } static sessions;
 } // namespace xiinux

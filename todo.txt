@@ -1,8 +1,11 @@
 [ ] ? lut<std::string_view>
 [ ] consider going full C++ using std::string, std::string_view and std::unordered_map<...>
     instead of lut<...>
+    using map_headers = std::unordered_map<std::string_view, std::string_view>;
+[x] using map_sessions = unordered_map<std::string, std::unique_ptr<session>>;
+    using map_session = unordered_map<std::string, std::string>;
+    using map_path_to_widget_factory = unordered_map<std::string key, ...>;
 [ ] consider uniform initialization using {...} instead of =
-[ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
@@ -18,7 +21,6 @@
 [ ] uploaded file to session directory
 [ ] better handling of "accept: Too many open files"
 [ ] server: sockopt TCP_FASTOPEN
-[ ] sock: when sendfile returns 0 the file size has changed to less than current offset
 [ ] review throws messages
 [ ] review perror(...) messages
 [ ] review args
@@ -27,10 +29,11 @@
 [ ] multi-threading clients, chunky pause and resume when write would block
 [ ] multi-threading file downloads
     (for nginx performance on multiple worker threads configuration)
-[ ] ? headers in std::unordered_map
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] sock: when sendfile returns 0 the file size has changed to less than current offset
+    => throws
 [x] lut: when to delete or delete[] key and data
 [x] lut: overwrite does not delete old content
 [x] ^C after running:
