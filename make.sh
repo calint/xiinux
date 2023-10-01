@@ -20,10 +20,10 @@ WARNINGS="-Weverything \
 
 BIN=xiinux
 SRC=src/main.cpp
-DBG=-g
-OPTS=-Wfatal-errors
-#DBG=
-#OPTS="-Os -Wfatal-errors"
+#DBG=-g
+#OPTS=-Wfatal-errors
+DBG=
+OPTS="-Os -Wfatal-errors"
 
 echo > all.src &&
 for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
@@ -40,6 +40,6 @@ echo &&
 rm all.src &&
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
-valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
+#valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
 echo
