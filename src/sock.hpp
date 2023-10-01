@@ -183,7 +183,6 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
-            // -1 because reqbuf.ptr is one step past '\+'
             reqline_.query_ = reqbuf_.string_view_from_mark();
             state_ = protocol;
             break;
@@ -209,10 +208,8 @@ public:
           } else if (ch == ':') {
             reqbuf_.set_eos();
             strlwr(reqbuf_.get_mark()); // to lower string
-            // -1 because reqbuf.ptr is one character ahead
             header_.name_ = reqbuf_.string_view_from_mark();
             header_.name_ = trim(header_.name_);
-            // set begin_ to the start of the value part of the header
             state_ = header_value;
             break;
           }
@@ -240,7 +237,6 @@ public:
             // headers_[{header_.name_}] = {header_.value_};
 
             headers_[header_.name_] = header_.value_;
-
             state_ = header_key;
             break;
           }
@@ -266,7 +262,7 @@ private:
       return;
     }
 
-    auto content_type = headers_["content-type"];
+    std::string_view content_type = headers_["content-type"];
     if (content_type == "file") {
       content_.init_for_receive(headers_["content-length"]);
       do_serve_upload();
@@ -440,8 +436,8 @@ private:
     state_ = receiving_upload;
   }
 
-  void do_serve_file(reply &x, const char *path) {
-    if (strstr(path, "..")) {
+  void do_serve_file(reply &x, std::string_view path) {
+    if (path.find("..") != path.npos) {
       constexpr char msg[] = "path contains ..\n";
       // -1 to not include '\0'
       x.http(403, {msg, sizeof(msg) - 1});
@@ -449,7 +445,7 @@ private:
       return;
     }
     struct stat fdstat;
-    if (stat(path, &fdstat)) {
+    if (stat(path.data(), &fdstat)) {
       constexpr char msg[] = "not found\n";
       // -1 to not include '\0'
       x.http(404, {msg, sizeof(msg) - 1});
@@ -466,9 +462,9 @@ private:
     const struct tm *tm = gmtime(&fdstat.st_mtime);
     char lastmod[64];
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
-    if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm)) {
+    if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm))
       throw "sock:strftime";
-    }
+
     std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod) {
       constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
@@ -477,7 +473,7 @@ private:
       state_ = next_request;
       return;
     }
-    if (file_.open(path) == -1) {
+    if (file_.open(path.data()) == -1) {
       constexpr char msg[] = "cannot open file\n";
       // -1 to not include '\0'
       x.http(404, {msg, sizeof(msg) - 1});
@@ -492,8 +488,8 @@ private:
       off_t offset = 0;
       if (sscanf(range.data(), "bytes=%jd", &offset) == EOF) {
         stats.errors++;
-        perr("range");
-        throw "sock:errrorscanning";
+        perror("sock:do_serve_file");
+        throw "sock:do_serve_file scanf error";
       }
       file_.init_for_send(size_t(fdstat.st_size), offset);
       const size_t len = file_.length();
@@ -513,6 +509,7 @@ private:
     }
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw "sock:err1";
+
     io_send(fd_, header_buf, size_t(header_buf_len), true);
 
     const ssize_t n = file_.resume_send_to(fd_);
@@ -520,13 +517,15 @@ private:
       if (errno == EPIPE or errno == ECONNRESET)
         throw signal_connection_lost;
       stats.errors++;
-      perr("sendingfile");
+      perror("sock:do_server_file while sending");
       throw "sock:err5";
     }
+
     if (!file_.is_done()) {
       state_ = resume_send_file;
       return;
     }
+
     file_.close();
     state_ = next_request;
   }
@@ -728,15 +727,7 @@ private:
   session *session_{};
   bool send_session_id_in_reply_ = false;
 
-  static inline char *strtrm(char *p, char *e) {
-    while (p != e and isspace(*p))
-      p++;
-    while (p != e and isspace(*e))
-      *e-- = '\0';
-    return p;
-  }
-
-  std::string_view trim(std::string_view in) {
+  inline static std::string_view trim(std::string_view in) {
     auto left = in.begin();
     for (;; ++left) {
       if (left == in.end())
@@ -750,7 +741,7 @@ private:
     return std::string_view(left, size_t(std::distance(left, right) + 1));
   }
 
-  static inline void strlwr(char *p) {
+  inline static void strlwr(char *p) {
     while (*p) {
       *p = char(tolower(*p));
       p++;
