@@ -7,6 +7,7 @@
 [x] examine why using lut<...>, std::put_time(...) and std::cout increases the
     size of binary so much (~75K -> ~275K)
     => -g was on now ~75K -> ~130K
+    => -Os enabled now ~76K
 [ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
 [ ] ? lut<std::string_view>
 [ ] decode query string on demand
