@@ -9,14 +9,6 @@ class counter final : public widget {
   static inline std::atomic_int atomic_counter{0};
   int counter_ = 0;
 
-  // temporary hack
-  inline static const char *dup(const char *str) {
-    const size_t ln = strlen(str);
-    char *ret = new char[ln + 1];
-    memcpy(ret, str, ln + 1);
-    return ret;
-  }
-
 public:
   void to(reply &r) override {
     counter_++;

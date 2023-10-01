@@ -4,17 +4,10 @@
 
 namespace xiinux {
 class doc final {
-  char *buf_ = nullptr;
-  size_t len_ = 0;
+  std::string buf_{};
 
 public:
-  inline doc(/*copies*/ const char *str, const size_t str_len) : len_{str_len} {
-    buf_ = new char[len_];
-    memcpy(buf_, str, len_);
-  }
-  inline doc(const doc &) = delete;
-  inline doc &operator=(const doc &) = delete;
-  inline ~doc() { delete[] buf_; }
-  inline void to(reply &x) const { x.send(buf_, len_); }
+  inline doc(const char *str, const size_t str_len) : buf_{str, str_len} {}
+  inline void to(reply &x) const { x.send(buf_.data(), buf_.size()); }
 };
 } // namespace xiinux
