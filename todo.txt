@@ -1,5 +1,12 @@
-[ ] lut: when to delete or delete[] key and data
-[ ] lut: overwrite does not delete old content
+[ ] consider going full C++ using std::string and std::unordered_map<...>
+[ ] examine why using lut<...>, std::put_time(...) and std::cout increases the
+    size of binary so much (~75K -> ~275K)
+[ ] examine why size of executable compiled by g++ grew from 51K to 61K
+    when "template <unsigned M> inline strb &p(const strb<M> &sb)"
+    was added to 'strb' and several instances with different sizes
+    were created with 'strb' template
+[ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
+[ ] ? lut<std::string_view>
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
 [ ] sock: consolidate recv(...) in content and buf
@@ -8,16 +15,10 @@
 [ ] better handling of "accept: Too many open files"
 [ ] server: sockopt TCP_FASTOPEN
 [ ] sock: when sendfile returns 0 the file size has changed to less than current offset
-[ ] ? std::string_view referring into sock.buf instead of const char* with '\0'
-[ ] ? lut<std::string_view>
 [ ] review throws messages
 [ ] review perror(...) messages
 [ ] review args
 [ ] xprinter for sockets with buffered sends
-[ ] examine why size of executable compiled by g++ grew from 51K to 61K
-    when "template <unsigned M> inline strb &p(const strb<M> &sb)"
-    was added to 'strb' and several instances with different sizes
-    were created with 'strb' template
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threading clients, chunky pause and resume when write would block
 [ ] multi-threading file downloads
@@ -26,6 +27,8 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] lut: when to delete or delete[] key and data
+[x] lut: overwrite does not delete old content
 [x] ^C after running:
         curl -sH"Cookie: i=20230926--2020-abcdef" http://localhost:8088/qa/counter?a=1+2 > /dev/null
     generates:
