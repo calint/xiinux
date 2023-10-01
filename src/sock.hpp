@@ -30,7 +30,6 @@ public:
   inline sock &operator=(const sock &) = delete;
 
   inline ~sock() {
-    content_.free();
     if (!::close(fd_)) {
       // printf("client close %p\n", static_cast<void *>(this));
       stats.socks--;
@@ -612,17 +611,11 @@ private:
   class content {
     size_t pos_ = 0;
     size_t len_ = 0;
-    char *buf_ = nullptr;
+    std::unique_ptr<char[]> buf_{};
 
   public:
     inline void rst() { pos_ = len_ = 0; }
-    inline void free() {
-      if (!buf_)
-        return;
-      delete[] buf_;
-      buf_ = nullptr;
-    }
-    inline char *buf() const { return buf_; }
+    inline char *buf() const { return buf_.get(); }
     inline size_t pos() const { return pos_; }
     inline size_t remaining() const { return len_ - pos_; }
     inline void unsafe_skip(const size_t n) { pos_ += n; }
@@ -634,13 +627,13 @@ private:
       // todo: abuse len
       // todo: atoll error
       if (!buf_) {
-        buf_ = new char[conf::sock_content_buf_size];
+        buf_ = std::make_unique<char[]>(conf::sock_content_buf_size);
       }
     }
 
     inline ssize_t receive_from(int fd_in) {
       stats.reads++;
-      const ssize_t n = recv(fd_in, buf_, conf::sock_content_buf_size, 0);
+      const ssize_t n = recv(fd_in, buf_.get(), conf::sock_content_buf_size, 0);
       if (n == -1) // error
         return n;
       if (n == 0) { // file truncated
@@ -650,7 +643,7 @@ private:
 
       stats.input += size_t(n);
       if (conf::print_traffic) {
-        const ssize_t m = write(conf::print_traffic_fd, buf_, size_t(n));
+        const ssize_t m = write(conf::print_traffic_fd, buf_.get(), size_t(n));
         if (m == -1 or m != n) {
           perror("reply:io_send");
         }
