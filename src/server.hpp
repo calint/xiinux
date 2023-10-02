@@ -210,8 +210,12 @@ private:
   inline static void run_client(sock *client) {
     try {
       client->run();
-    } catch (const connection_lost_exception &) {
+    } catch (const client_closed_exception &) {
       stats.brkp++;
+      delete client;
+    } catch (const client_exception &e) {
+      stats.errors++;
+      print_client_exception(client, e.what());
       delete client;
     } catch (const char *msg) {
       stats.errors++;

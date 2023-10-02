@@ -25,7 +25,7 @@ public:
     const ssize_t rem =
         ssize_t(sizeof(buf_)) - ssize_t(len_) - ssize_t(str_len);
     if (rem < 0)
-      throw "strb:1:buffer full";
+      throw client_exception{"strb:1:buffer full"};
     strncpy(buf_ + len_, str, str_len);
     len_ += str_len;
     return *this;
@@ -53,7 +53,7 @@ public:
     char str[32];
     const int len = snprintf(str, sizeof(str), "%d", i);
     if (len < 0 or size_t(len) >= sizeof(str))
-      throw "strb:2";
+      throw client_exception{"strb:2"};
     return p({str, size_t(len)});
   }
 
@@ -61,7 +61,7 @@ public:
     char str[32];
     const int len = snprintf(str, sizeof(str), "%zu", sz);
     if (len < 0 or size_t(len) >= sizeof(str))
-      throw "strb:3";
+      throw client_exception{"strb:3"};
     return p({str, size_t(len)});
   }
 
@@ -69,7 +69,7 @@ public:
     char str[32];
     const int len = snprintf(str, sizeof(str), "%p", ptr);
     if (len < 0 or size_t(len) >= sizeof(str))
-      throw "strb:4";
+      throw client_exception{"strb:4"};
     return p({str, size_t(len)});
   }
 
@@ -77,13 +77,13 @@ public:
     char str[32];
     const int len = snprintf(str, sizeof(str), "%x", i);
     if (len < 0 or size_t(len) >= sizeof(str))
-      throw "strb:5";
+      throw client_exception{"strb:5"};
     return p({str, size_t(len)});
   }
 
   inline strb &p(const char ch) override {
     if (sizeof(buf_) - len_ == 0)
-      throw "strb:6";
+      throw client_exception{"strb:6"};
     *(buf_ + len_) = ch;
     len_++;
     return *this;

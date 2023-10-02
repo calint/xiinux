@@ -75,7 +75,7 @@ public:
           code, buf_len, content_type.data());
     }
     if (n < 0 or size_t(n) >= sizeof(header))
-      throw "reply:http:1";
+      throw client_exception{"reply:http:1"};
 
     io_send(fd_, header, size_t(n), buf);
     if (buf) {

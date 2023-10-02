@@ -40,9 +40,9 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
   const ssize_t n = send(fd, buf, buf_len, flags);
   if (n == -1) {
     if (errno == EPIPE or errno == ECONNRESET)
-      throw connection_lost_exception{};
+      throw client_closed_exception{};
     if (throw_if_send_not_complete)
-      throw "io_send:1";
+      throw client_exception{"io_send:1"};
     return 0;
   }
   const auto nbytes_sent = size_t(n);
@@ -56,7 +56,7 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
   }
 
   if (throw_if_send_not_complete and nbytes_sent != buf_len)
-    throw "io_send:3";
+    throw client_exception{"io_send:3"};
 
   return nbytes_sent;
 }

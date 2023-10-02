@@ -53,9 +53,9 @@ public:
             return;
           }
           if (errno == EPIPE or errno == ECONNRESET)
-            throw connection_lost_exception{};
+            throw client_closed_exception{};
           stats.errors++;
-          throw "sock:err2";
+          throw client_exception{"sock:err2"};
         }
         if (!file_.is_done())
           continue;
@@ -68,9 +68,9 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
-            throw connection_lost_exception{};
+            throw client_closed_exception{};
           stats.errors++;
-          throw "sock:receiving_content";
+          throw client_exception{"sock:receiving_content"};
         }
         const auto nbytes_read = size_t(n);
         const size_t content_rem = content_.remaining();
@@ -92,9 +92,9 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
-            throw connection_lost_exception{};
+            throw client_closed_exception{};
           stats.errors++;
-          throw "sock:receiving_upload";
+          throw client_exception{"sock:receiving_upload"};
         }
         const auto nbytes_read = size_t(n);
         const size_t upload_rem = content_.remaining();
@@ -104,10 +104,10 @@ public:
         if (m == -1 or size_t(m) != nbytes_to_write) {
           stats.errors++;
           perror("sock:run:upload");
-          throw "sock:writing upload to file 1";
+          throw client_exception{"sock:writing upload to file 1"};
         }
         if (m != n)
-          throw "sock:writing upload to file 2";
+          throw client_exception{"sock:writing upload to file 2"};
         content_.unsafe_skip(size_t(m));
         if (content_.remaining())
           continue;
@@ -145,11 +145,11 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET) {
-            throw connection_lost_exception{};
+            throw client_closed_exception{};
           }
           perror("sock:run:io_request_read");
           stats.errors++;
-          throw "sock:err3";
+          throw client_exception{"sock:err3"};
         }
       }
       if (state_ == method) {
@@ -353,7 +353,7 @@ private:
       // format to e.g. '20150411-225519-ieu44dn'
       char sid[24];
       if (!strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info)) {
-        throw "sock:do_serve_widget:1";
+        throw client_exception{"sock:do_serve_widget:1"};
       }
       // 16 is len of "20150411-225519-"
       char *sid_ptr = sid + 16;
@@ -386,11 +386,11 @@ private:
     const int res = snprintf(pth, sizeof(pth), "upload/%s",
                              reqline_.path_.substr(1).data());
     if (res < 0 or size_t(res) >= sizeof(pth))
-      throw "sock:pathtrunc";
+      throw client_exception{"sock:pathtrunc"};
     upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
       perror("sock:do_server_upload 1");
-      throw "sock:err7";
+      throw client_exception{"sock:err7"};
     }
     // check if client expects 100-continue before sending content
     auto expect = headers_["expect"];
@@ -412,10 +412,10 @@ private:
       const ssize_t n = write(upload_fd_, reqbuf_.ptr(), content_len);
       if (n == -1 or size_t(n) != content_len) {
         perror("sock:do_server_upload 2");
-        throw "sock:err4";
+        throw client_exception{"sock:err4"};
       }
       if (size_t(n) != content_len) {
-        throw "sock:incomplete upload 3";
+        throw client_exception{"sock:incomplete upload 3"};
       }
       if (::close(upload_fd_)) {
         perror("sock:do_server_upload 4");
@@ -430,7 +430,7 @@ private:
     const ssize_t n = write(upload_fd_, reqbuf_.ptr(), remaining);
     if (n == -1 or size_t(n) != remaining) {
       perror("sock:do_server_upload 5");
-      throw "sock:err6";
+      throw client_exception{"sock:err6"};
     }
     content_.unsafe_skip(size_t(n));
     state_ = receiving_upload;
@@ -463,7 +463,7 @@ private:
     char lastmod[64];
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
     if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm))
-      throw "sock:strftime";
+      throw client_exception{"sock:strftime"};
 
     const std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod) {
@@ -489,7 +489,7 @@ private:
       if (sscanf(range.data(), "bytes=%jd", &offset) == EOF) {
         stats.errors++;
         perror("sock:do_serve_file");
-        throw "sock:do_serve_file scanf error";
+        throw client_exception{"sock:do_serve_file scanf error"};
       }
       file_.init_for_send(size_t(fdstat.st_size), offset);
       const size_t len = file_.length();
@@ -508,17 +508,17 @@ private:
                    lastmod, file_.length());
     }
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
-      throw "sock:err1";
+      throw client_exception{"sock:err1"};
 
     io_send(fd_, header_buf, size_t(header_buf_len), true);
 
     const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
-        throw connection_lost_exception{};
+        throw client_closed_exception{};
       stats.errors++;
       perror("sock:do_server_file while sending");
-      throw "sock:err5";
+      throw client_exception{"sock:err5"};
     }
 
     if (!file_.is_done()) {
@@ -535,7 +535,7 @@ private:
     ev.data.ptr = this;
     ev.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
-      throw "sock:epollmodread";
+      throw client_exception{"sock:epollmodread"};
   }
 
   inline void io_request_write() {
@@ -543,7 +543,7 @@ private:
     ev.data.ptr = this;
     ev.events = EPOLLOUT | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
-      throw "sock:epollmodwrite";
+      throw client_exception{"sock:epollmodwrite"};
   }
 
   class file {
@@ -568,7 +568,7 @@ private:
       // }
       if (n == 0) { // file truncated
         stats.errors++;
-        throw "sock:file:resume_send_to sendfile 0";
+        throw client_exception{"sock:file:resume_send_to sendfile 0"};
       }
       stats.output += size_t(n);
       return n;
@@ -639,7 +639,7 @@ private:
         return n;
       if (n == 0) { // file truncated
         stats.errors++;
-        throw "sock:content:receive_from recv 0";
+        throw client_exception{"sock:content:receive_from recv 0"};
       }
 
       stats.input += size_t(n);
@@ -678,7 +678,7 @@ private:
       const size_t nbytes_to_read =
           conf::sock_request_header_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
-        throw "sock:buf:full";
+        throw client_exception{"sock:buf:full"};
       stats.reads++;
       const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
       if (n == -1)
@@ -686,7 +686,7 @@ private:
       // when "Too many open files" recv returns 0 making a busy loop
       if (n == 0) {
         stats.errors++;
-        throw "sock:buf:receive_from recv 0";
+        throw client_exception{"sock:buf:receive_from recv 0"};
       }
       stats.input += size_t(n);
       e_ = p_ + n;

@@ -41,7 +41,7 @@ public:
 
   inline chunky &finish() {
     if (finished_)
-      throw "chunky:already finished";
+      throw client_exception{"chunky:already finished"};
     flush();
     io_send(fd_, "0\r\n\r\n"sv);
     finished_ = true;
@@ -100,7 +100,7 @@ public:
     char str[32];
     const int n = snprintf(str, sizeof(str), "%d", i);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:2";
+      throw client_exception{"chunky:2"};
     return p({str, size_t(n)});
   }
 
@@ -108,7 +108,7 @@ public:
     char str[32];
     const int n = snprintf(str, sizeof(str), "%zu", sz);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:3";
+      throw client_exception{"chunky:3"};
     return p({str, size_t(n)});
   }
 
@@ -116,7 +116,7 @@ public:
     char str[32];
     const int n = snprintf(str, sizeof(str), "%p", ptr);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:4";
+      throw client_exception{"chunky:4"};
     return p({str, size_t(n)});
   }
 
@@ -124,7 +124,7 @@ public:
     char str[32];
     const int n = snprintf(str, sizeof(str), "%x", i);
     if (n < 0 or size_t(n) >= sizeof(str))
-      throw "chunky:5";
+      throw client_exception{"chunky:5"};
     return p({str, size_t(n)});
   }
 
@@ -144,7 +144,7 @@ private:
     char hdr[32];
     const int hdr_len = snprintf(hdr, sizeof(hdr), "%lx\r\n", buf_len);
     if (hdr_len < 0 or size_t(hdr_len) >= sizeof(hdr))
-      throw "chunky:1";
+      throw client_exception{"chunky:1"};
 
     // send chunk header
     io_send(fd_, hdr, size_t(hdr_len), true);
