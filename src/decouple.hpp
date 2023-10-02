@@ -2,6 +2,7 @@
 #pragma once
 #include "conf.hpp"
 #include "defines.hpp"
+#include "exceptions.hpp"
 #include "stats.hpp"
 #include <cerrno>
 #include <memory>
@@ -39,7 +40,7 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
   const ssize_t n = send(fd, buf, buf_len, flags);
   if (n == -1) {
     if (errno == EPIPE or errno == ECONNRESET)
-      throw signal_connection_lost;
+      throw connection_lost_exception{};
     if (throw_if_send_not_complete)
       throw "io_send:1";
     return 0;

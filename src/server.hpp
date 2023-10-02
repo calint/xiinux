@@ -67,7 +67,7 @@ public:
       exit(4);
     }
 
-    if (listen(server_fd, conf::server_event_array_size) == -1) {
+    if (listen(server_fd, conf::server_listen_backlog_size) == -1) {
       perror("listen");
       exit(5);
     }
@@ -95,10 +95,10 @@ public:
       thdwatch = std::thread(thdwatch_run);
     }
 
-    struct epoll_event events[conf::server_event_array_size];
+    struct epoll_event events[conf::server_listen_backlog_size];
     while (true) {
       const int n =
-          epoll_wait(epoll_fd, events, conf::server_event_array_size, -1);
+          epoll_wait(epoll_fd, events, conf::server_listen_backlog_size, -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok
@@ -210,12 +210,10 @@ private:
   inline static void run_client(sock *client) {
     try {
       client->run();
+    } catch (const connection_lost_exception &) {
+      stats.brkp++;
+      delete client;
     } catch (const char *msg) {
-      if (msg == signal_connection_lost) {
-        stats.brkp++;
-        delete client;
-        return;
-      }
       stats.errors++;
       print_client_exception(client, msg);
       delete client;

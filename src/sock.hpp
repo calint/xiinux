@@ -53,7 +53,7 @@ public:
             return;
           }
           if (errno == EPIPE or errno == ECONNRESET)
-            throw signal_connection_lost;
+            throw connection_lost_exception{};
           stats.errors++;
           throw "sock:err2";
         }
@@ -68,7 +68,7 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
-            throw signal_connection_lost;
+            throw connection_lost_exception{};
           stats.errors++;
           throw "sock:receiving_content";
         }
@@ -92,7 +92,7 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET)
-            throw signal_connection_lost;
+            throw connection_lost_exception{};
           stats.errors++;
           throw "sock:receiving_upload";
         }
@@ -145,7 +145,7 @@ public:
             io_request_read();
             return;
           } else if (errno == ECONNRESET) {
-            throw signal_connection_lost;
+            throw connection_lost_exception{};
           }
           perror("sock:run:io_request_read");
           stats.errors++;
@@ -515,7 +515,7 @@ private:
     const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
-        throw signal_connection_lost;
+        throw connection_lost_exception{};
       stats.errors++;
       perror("sock:do_server_file while sending");
       throw "sock:err5";
