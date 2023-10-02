@@ -473,7 +473,7 @@ private:
     }
     stats.files++;
     const std::string_view range = headers_["range"];
-    char header_buf[512];
+    std::array<char, 512> header_buf{};
     int header_buf_len = 0;
     if (!range.empty()) {
       off_t offset = 0;
@@ -485,7 +485,7 @@ private:
       file_.init_for_send(size_t(fdstat.st_size), offset);
       const size_t len = file_.length();
       header_buf_len =
-          snprintf(header_buf, sizeof(header_buf),
+          snprintf(header_buf.data(), header_buf.size(),
                    "HTTP/1.1 206\r\nAccept-Ranges: "
                    "bytes\r\nLast-Modified: %s\r\nContent-Length: "
                    "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
@@ -493,7 +493,7 @@ private:
     } else {
       file_.init_for_send(size_t(fdstat.st_size));
       header_buf_len =
-          snprintf(header_buf, sizeof(header_buf),
+          snprintf(header_buf.data(), header_buf.size(),
                    "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
                    "%s\r\nContent-Length: %zu\r\n\r\n",
                    lastmod.data(), file_.length());
@@ -501,7 +501,7 @@ private:
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw client_exception{"sock:err1"};
 
-    io_send(fd_, header_buf, size_t(header_buf_len), true);
+    io_send(fd_, header_buf.data(), size_t(header_buf_len), true);
 
     const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
@@ -645,13 +645,13 @@ private:
   } content_{};
 
   class reqbuf {
-    char buf_[conf::sock_request_header_buf_size]{};
-    char *mark_{buf_};
-    char *p_{buf_};
-    char *e_{buf_};
+    std::array<char, conf::sock_request_header_buf_size> buf_{};
+    char *mark_{buf_.data()};
+    char *p_{buf_.data()};
+    char *e_{buf_.data()};
 
   public:
-    inline void rst() { p_ = e_ = buf_; }
+    inline void rst() { p_ = e_ = buf_.data(); }
     inline auto ptr() const -> char * { return p_; }
     inline void set_mark() { mark_ = p_; }
     inline auto get_mark() const -> char * { return mark_; }
@@ -667,7 +667,7 @@ private:
     }
     inline auto receive_from(const int fd_in) -> ssize_t {
       const size_t nbytes_to_read =
-          conf::sock_request_header_buf_size - size_t(p_ - buf_);
+          conf::sock_request_header_buf_size - size_t(p_ - buf_.data());
       if (nbytes_to_read == 0)
         throw client_exception{"sock:buf:full"};
       stats.reads++;
