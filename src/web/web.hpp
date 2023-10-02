@@ -21,8 +21,9 @@ inline static map_widget_factories path_to_widget_map{};
 static inline auto widget_factory_for_path(std::string_view path)
     -> widget *(*)() {
   auto it = path_to_widget_map.find(std::string{path}); //? creates a string
-  if (it != path_to_widget_map.end())
+  if (it != path_to_widget_map.end()) {
     return it->second;
+  }
   return nullptr;
 }
 

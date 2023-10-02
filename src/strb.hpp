@@ -24,8 +24,9 @@ public:
     const char *str = sv.data();
     const size_t str_len = sv.size();
     const ssize_t rem = ssize_t(buf_.size()) - ssize_t(len_) - ssize_t(str_len);
-    if (rem < 0)
+    if (rem < 0) {
       throw client_exception{"strb:1:buffer full"};
+    }
     strncpy(buf_.data() + len_, str, str_len);
     len_ += str_len;
     return *this;
@@ -45,38 +46,43 @@ public:
   inline auto p(const int i) -> strb & override {
     std::array<char, 32> str{};
     const int len = snprintf(str.data(), str.size(), "%d", i);
-    if (len < 0 or size_t(len) >= str.size())
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:2"};
+    }
     return p({str.data(), size_t(len)});
   }
 
   inline auto p(const size_t sz) -> strb & override {
     std::array<char, 32> str{};
     const int len = snprintf(str.data(), str.size(), "%zu", sz);
-    if (len < 0 or size_t(len) >= str.size())
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:3"};
+    }
     return p({str.data(), size_t(len)});
   }
 
   inline auto p_ptr(const void *ptr) -> strb & override {
     std::array<char, 32> str{};
     const int len = snprintf(str.data(), str.size(), "%p", ptr);
-    if (len < 0 or size_t(len) >= str.size())
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:4"};
+    }
     return p({str.data(), size_t(len)});
   }
 
   inline auto p_hex(const int i) -> strb & override {
     std::array<char, 32> str{};
     const int len = snprintf(str.data(), str.size(), "%x", i);
-    if (len < 0 or size_t(len) >= str.size())
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:5"};
+    }
     return p({str.data(), size_t(len)});
   }
 
   inline auto p(const char ch) -> strb & override {
-    if (sizeof(buf_) - len_ == 0)
+    if (sizeof(buf_) - len_ == 0) {
       throw client_exception{"strb:6"};
+    }
     *(buf_.data() + len_) = ch;
     len_++;
     return *this;
