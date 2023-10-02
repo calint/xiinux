@@ -55,13 +55,12 @@ public:
 
     struct sockaddr_in server_addr {};
     const ssize_t server_addr_size = sizeof(server_addr);
-    memset(&server_addr, 0, server_addr_size);
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(uint16_t(port));
 
-    auto *server_sock_addr = // static cast to not trigger lint
-        static_cast<struct sockaddr *>(static_cast<void *>(&server_addr));
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    auto *server_sock_addr = reinterpret_cast<struct sockaddr *>(&server_addr);
     if (bind(server_fd, server_sock_addr, server_addr_size)) {
       perror("bind");
       return 4;
@@ -118,10 +117,10 @@ public:
           stats.accepts++;
 
           struct sockaddr_in client_addr {};
-          memset(&client_addr, 0, sizeof(client_addr));
           socklen_t client_addr_len = sizeof(client_addr);
-          auto *client_sock_addr = // static cast to not trigger lint
-              static_cast<struct sockaddr *>(static_cast<void *>(&server_addr));
+          auto *client_sock_addr =
+              // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+              reinterpret_cast<struct sockaddr *>(&server_addr);
           const int client_fd = accept4(server_fd, client_sock_addr,
                                         &client_addr_len, SOCK_NONBLOCK);
           if (client_fd == -1) {
