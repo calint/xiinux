@@ -399,15 +399,14 @@ private:
                              reqline_.path_.substr(1).data());
     if (res < 0 or size_t(res) >= pth.size())
       throw client_exception{"sock:pathtrunc"};
-
+    // open file for write
     upload_fd_ =
         open(pth.data(), O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
       perror("sock:do_server_upload 1");
       throw client_exception{"sock:err7"};
     }
-
-    // check if client expects 100-continue before sending content
+    // handle if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
       io_send(fd_, "HTTP/1.1 100\r\n\r\n"sv);
@@ -419,6 +418,9 @@ private:
       state_ = receiving_upload;
       return;
     }
+    // check if the whole file is in buffer by comparing
+    // expected upload size with remaining unhandled
+    // bytes in request buffer
     const size_t content_len = content_.content_len();
     if (remaining >= content_len) {
       // the whole file is in 'buf'
@@ -427,77 +429,100 @@ private:
         perror("sock:do_server_upload 2");
         throw client_exception{"sock:err4"};
       }
-      if (size_t(n) != content_len) {
-        throw client_exception{"sock:incomplete upload 3"};
-      }
+      // close file
       if (::close(upload_fd_)) {
         perror("sock:do_server_upload 4");
       }
+      // acknowledge request complete
       io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
       state_ = next_request;
       return;
     }
-    // start of the file is in 'buf'
+    // start of the file is in 'reqbuf' the rest will
+    // be received in 'content'
+    // write bytes remaining in 'reqbuf'
     const ssize_t n = write(upload_fd_, reqbuf_.ptr(), remaining);
     if (n == -1 or size_t(n) != remaining) {
       perror("sock:do_server_upload 5");
       throw client_exception{"sock:err6"};
     }
+    // advance content upload position
+    // note. unused capacity in 'content' created by the skip
+    // todo
     content_.unsafe_skip(size_t(n));
     state_ = receiving_upload;
   }
 
   void do_serve_file(reply &x, std::string_view path) {
+    // check for illegal path containing break-out of root directory
     if (path.find("..") != std::string_view::npos) {
       x.http(403, "path contains ..\n"sv);
       state_ = next_request;
       return;
     }
+    // get file info
     struct stat fdstat {};
     if (stat(path.data(), &fdstat)) {
+      // error or not found
       x.http(404, "not found\n"sv);
       state_ = next_request;
       return;
     }
+    // check if path is directory
     if (S_ISDIR(fdstat.st_mode)) {
+      // directory not allowed
       x.http(403, "path is directory\n"sv);
       state_ = next_request;
       return;
     }
+    // get modified time of file
     tm tm_info{};
     if (gmtime_r(&fdstat.st_mtime, &tm_info) == nullptr)
       throw client_exception{"sock:do_serve_file:gmtime_r"};
 
+    // format for check with 'if-modified-since' header value
     std::array<char, 64> lastmod{};
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
     if (!strftime(lastmod.data(), lastmod.size(), "%a, %d %b %y %H:%M:%S %Z",
                   &tm_info))
       throw client_exception{"sock:strftime"};
 
+    // check if file has been modified since then
     const std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod.data()) {
+      // not modified, reply 304
       io_send(fd_, "HTTP/1.1 304\r\n\r\n"sv);
       state_ = next_request;
       return;
     }
+    // open file
     if (file_.open(path.data()) == -1) {
+      // error
       x.http(404, "cannot open file\n"sv);
       state_ = next_request;
       return;
     }
+
     stats.files++;
+    
+    // check if ranged request
     const std::string_view range = headers_["range"];
+    // format header
     std::array<char, 512> header_buf{};
     int header_buf_len = 0;
     if (!range.empty()) {
+      // ranged request
       off_t offset = 0;
       if (sscanf(range.data(), "bytes=%jd", &offset) == EOF) {
         stats.errors++;
         perror("sock:do_serve_file");
         throw client_exception{"sock:do_serve_file scanf error"};
       }
+      // initialize for send file starting at requested 'offset'
       file_.init_for_send(size_t(fdstat.st_size), offset);
       const size_t len = file_.length();
+      // create header for ranged reply
+      // todo: content-type depending on file suffix
       header_buf_len =
           snprintf(header_buf.data(), header_buf.size(),
                    "HTTP/1.1 206\r\nAccept-Ranges: "
@@ -505,7 +530,11 @@ private:
                    "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
                    lastmod.data(), len - size_t(offset), offset, len, len);
     } else {
+      // not ranged request
+      // initialize for send full file
       file_.init_for_send(size_t(fdstat.st_size));
+      // create header for full reply
+      // todo: content-type depending on file suffix
       header_buf_len =
           snprintf(header_buf.data(), header_buf.size(),
                    "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
@@ -515,8 +544,9 @@ private:
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw client_exception{"sock:err1"};
 
+    // send reply with buffering of packets
     io_send(fd_, header_buf.data(), size_t(header_buf_len), true);
-
+    // resume/start sending file
     const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
       if (errno == EPIPE or errno == ECONNRESET)
@@ -525,12 +555,13 @@ private:
       perror("sock:do_server_file while sending");
       throw client_exception{"sock:err5"};
     }
-
+    // check if done
     if (!file_.is_done()) {
+      // not done, resume when write on socket is available
       state_ = resume_send_file;
       return;
     }
-
+    // done, close file
     file_.close();
     state_ = next_request;
   }
