@@ -13,23 +13,23 @@ public:
     stats.sessions++;
   }
   session(const session &) = delete;
-  session &operator=(const session &) = delete;
+  auto operator=(const session &) -> session & = delete;
   session(session &&) = delete;
-  session &operator=(session &&) = delete;
+  auto operator=(session &&) -> session & = delete;
 
   inline ~session() { stats.sessions--; }
 
-  inline const std::string &get_id() const { return id_; }
-  inline const std::string &operator[](const std::string &key) const {
+  inline auto get_id() const -> const std::string & { return id_; }
+  inline auto operator[](const std::string &key) const -> const std::string & {
     return kvp_.at(key);
   }
-  inline widget *get_widget(std::string_view key) const {
+  inline auto get_widget(std::string_view key) const -> widget * {
     auto it = widgets_.find(std::string{key}); //? creates a string
     if (it != widgets_.end())
       return it->second.get();
     return nullptr;
   }
-  inline map_session &get_lut() { return kvp_; }
+  inline auto get_lut() -> map_session & { return kvp_; }
 
   inline void put(const std::string &key, std::string str) {
     kvp_[key] = std::move(str);

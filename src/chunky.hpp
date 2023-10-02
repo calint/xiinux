@@ -20,9 +20,9 @@ class chunky final : public xprinter {
 public:
   inline explicit chunky(int sockfd) : fd_{sockfd} {}
   chunky(const chunky &) = delete;
-  chunky &operator=(const chunky &) = delete;
+  auto operator=(const chunky &) -> chunky & = delete;
   chunky(chunky &&) = delete;
-  chunky &operator=(chunky &&) = delete;
+  auto operator=(chunky &&) -> chunky & = delete;
 
   inline ~chunky() override {
     if (!finished_) {
@@ -30,7 +30,7 @@ public:
     }
   }
 
-  inline chunky &flush() {
+  inline auto flush() -> chunky & {
     if (len_ == 0)
       return *this;
 
@@ -39,7 +39,7 @@ public:
     return *this;
   }
 
-  inline chunky &finish() {
+  inline auto finish() -> chunky & {
     if (finished_)
       throw client_exception{"chunky:already finished"};
     flush();
@@ -49,13 +49,13 @@ public:
   }
 
   // sends current buffer as is
-  inline chunky &send_response_header() {
+  inline auto send_response_header() -> chunky & {
     io_send(fd_, buf_, len_, true);
     len_ = 0;
     return *this;
   }
 
-  inline chunky &p(const std::string_view sv) override {
+  inline auto p(const std::string_view sv) -> chunky & override {
     const char *str = sv.data();
     const size_t str_len = sv.size();
     constexpr size_t buf_size = sizeof(buf_);
@@ -96,7 +96,7 @@ public:
     return *this;
   }
 
-  inline chunky &p(const int i) override {
+  inline auto p(const int i) -> chunky & override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%d", i);
     if (n < 0 or size_t(n) >= sizeof(str))
@@ -104,7 +104,7 @@ public:
     return p({str, size_t(n)});
   }
 
-  inline chunky &p(const size_t sz) override {
+  inline auto p(const size_t sz) -> chunky & override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%zu", sz);
     if (n < 0 or size_t(n) >= sizeof(str))
@@ -112,7 +112,7 @@ public:
     return p({str, size_t(n)});
   }
 
-  inline chunky &p_ptr(const void *ptr) override {
+  inline auto p_ptr(const void *ptr) -> chunky & override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%p", ptr);
     if (n < 0 or size_t(n) >= sizeof(str))
@@ -120,7 +120,7 @@ public:
     return p({str, size_t(n)});
   }
 
-  inline chunky &p_hex(const int i) override {
+  inline auto p_hex(const int i) -> chunky & override {
     char str[32];
     const int n = snprintf(str, sizeof(str), "%x", i);
     if (n < 0 or size_t(n) >= sizeof(str))
@@ -128,14 +128,14 @@ public:
     return p({str, size_t(n)});
   }
 
-  inline chunky &p(const char ch) override {
+  inline auto p(const char ch) -> chunky & override {
     if (sizeof(buf_) - len_ == 0)
       flush();
     *(buf_ + len_++) = ch;
     return *this;
   }
 
-  inline chunky &nl() override { return p('\n'); }
+  inline auto nl() -> chunky & override { return p('\n'); }
 
 private:
   inline void send_chunk(const char *buf, const size_t buf_len) const {

@@ -17,25 +17,34 @@ using map_widget_factories = std::unordered_map<std::string, widget *(*)()>;
 
 inline static map_widget_factories path_to_widget_map{};
 
-static inline widget *(*widget_factory_for_path(std::string_view path))() {
+static inline auto widget_factory_for_path(std::string_view path)
+    -> widget *(*)() {
   auto it = path_to_widget_map.find(std::string{path}); //? creates a string
   if (it != path_to_widget_map.end())
     return it->second;
   return nullptr;
 }
 
-static inline widget *widget_create_bigresp() { return new qa::bigresp(); }
-static inline widget *widget_create_chunked() { return new qa::chunked(); }
-static inline widget *widget_create_chunkedbig() {
+static inline auto widget_create_bigresp() -> widget * {
+  return new qa::bigresp();
+}
+static inline auto widget_create_chunked() -> widget * {
+  return new qa::chunked();
+}
+static inline auto widget_create_chunkedbig() -> widget * {
   return new qa::chunkedbig();
 }
-static inline widget *widget_create_chunkedbigger() {
+static inline auto widget_create_chunkedbigger() -> widget * {
   return new qa::chunkedbigger();
 }
-static inline widget *widget_create_counter() { return new qa::counter(); }
-static inline widget *widget_create_hello() { return new qa::hello(); }
-static inline widget *widget_create_page() { return new qa::page(); }
-static inline widget *widget_create_typealine() { return new qa::typealine(); }
+static inline auto widget_create_counter() -> widget * {
+  return new qa::counter();
+}
+static inline auto widget_create_hello() -> widget * { return new qa::hello(); }
+static inline auto widget_create_page() -> widget * { return new qa::page(); }
+static inline auto widget_create_typealine() -> widget * {
+  return new qa::typealine();
+}
 
 static inline void widget_init_path_to_factory_map() {
   path_to_widget_map["/qa/typealine"] = widget_create_typealine;

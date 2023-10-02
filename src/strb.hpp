@@ -11,15 +11,15 @@ template <unsigned N = 1024> class strb final : public xprinter {
   size_t len_ = 0;
 
 public:
-  inline const char *buf() const { return buf_; }
-  inline size_t len() const { return len_; }
+  inline auto buf() const -> const char * { return buf_; }
+  inline auto len() const -> size_t { return len_; }
 
-  inline strb &rst() {
+  inline auto rst() -> strb & {
     len_ = 0;
     return *this;
   }
 
-  inline strb &p(const std::string_view sv) override {
+  inline auto p(const std::string_view sv) -> strb & override {
     const char *str = sv.data();
     const size_t str_len = sv.size();
     const ssize_t rem =
@@ -49,7 +49,7 @@ public:
   //   return *this;
   // }
 
-  inline strb &p(const int i) override {
+  inline auto p(const int i) -> strb & override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%d", i);
     if (len < 0 or size_t(len) >= sizeof(str))
@@ -57,7 +57,7 @@ public:
     return p({str, size_t(len)});
   }
 
-  inline strb &p(const size_t sz) override {
+  inline auto p(const size_t sz) -> strb & override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%zu", sz);
     if (len < 0 or size_t(len) >= sizeof(str))
@@ -65,7 +65,7 @@ public:
     return p({str, size_t(len)});
   }
 
-  inline strb &p_ptr(const void *ptr) override {
+  inline auto p_ptr(const void *ptr) -> strb & override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%p", ptr);
     if (len < 0 or size_t(len) >= sizeof(str))
@@ -73,7 +73,7 @@ public:
     return p({str, size_t(len)});
   }
 
-  inline strb &p_hex(const int i) override {
+  inline auto p_hex(const int i) -> strb & override {
     char str[32];
     const int len = snprintf(str, sizeof(str), "%x", i);
     if (len < 0 or size_t(len) >= sizeof(str))
@@ -81,7 +81,7 @@ public:
     return p({str, size_t(len)});
   }
 
-  inline strb &p(const char ch) override {
+  inline auto p(const char ch) -> strb & override {
     if (sizeof(buf_) - len_ == 0)
       throw client_exception{"strb:6"};
     *(buf_ + len_) = ch;
@@ -89,13 +89,13 @@ public:
     return *this;
   }
 
-  inline strb &nl() override { return p('\n'); }
+  inline auto nl() -> strb & override { return p('\n'); }
 
-  template <unsigned M> inline strb &p(const strb<M> &sb) {
+  template <unsigned M> inline auto p(const strb<M> &sb) -> strb & {
     p({sb.buf(), sb.len()});
     return *this;
   }
 
-  std::string_view string_view() const { return {buf_, len_}; }
+  inline auto string_view() const -> std::string_view { return {buf_, len_}; }
 };
 } // namespace xiinux

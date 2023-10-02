@@ -5,12 +5,12 @@ namespace xiinux {
 class xprinter {
 public:
   virtual ~xprinter() = default;
-  virtual xprinter &p(std::string_view sv) = 0;
-  virtual xprinter &p(char ch) = 0;
-  virtual xprinter &p(int i) = 0;
-  virtual xprinter &p(size_t sz) = 0;
-  virtual xprinter &p_ptr(const void *ptr) = 0;
-  virtual xprinter &p_hex(int i) = 0;
-  virtual xprinter &nl() = 0;
+  virtual auto p(std::string_view sv) -> xprinter & = 0;
+  virtual auto p(char ch) -> xprinter & = 0;
+  virtual auto p(int i) -> xprinter & = 0;
+  virtual auto p(size_t sz) -> xprinter & = 0;
+  virtual auto p_ptr(const void *ptr) -> xprinter & = 0;
+  virtual auto p_hex(int i) -> xprinter & = 0;
+  virtual auto nl() -> xprinter & = 0;
 };
 } // namespace xiinux

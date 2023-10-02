@@ -562,7 +562,7 @@ private:
         perror("closefile");
       }
     }
-    inline ssize_t resume_send_to(const int out_fd) {
+    inline auto resume_send_to(const int out_fd) -> ssize_t {
       stats.writes++;
       const size_t count = count_ - size_t(offset_);
       const ssize_t n = sendfile(out_fd, fd_, &offset_, count);
@@ -583,9 +583,9 @@ private:
       offset_ = seek_pos;
       count_ = size_in_bytes;
     }
-    inline bool is_done() const { return size_t(offset_) == count_; }
-    inline size_t length() const { return count_; }
-    inline int open(const char *path) {
+    inline auto is_done() const -> bool { return size_t(offset_) == count_; }
+    inline auto length() const -> size_t { return count_; }
+    inline auto open(const char *path) -> int {
       fd_ = ::open(path, O_RDONLY | O_CLOEXEC);
       return fd_;
     }
@@ -621,11 +621,11 @@ private:
 
   public:
     inline void rst() { pos_ = len_ = 0; }
-    inline char *buf() const { return buf_.get(); }
-    inline size_t pos() const { return pos_; }
-    inline size_t remaining() const { return len_ - pos_; }
+    inline auto buf() const -> char * { return buf_.get(); }
+    inline auto pos() const -> size_t { return pos_; }
+    inline auto remaining() const -> size_t { return len_ - pos_; }
     inline void unsafe_skip(const size_t n) { pos_ += n; }
-    inline size_t content_len() const { return len_; }
+    inline auto content_len() const -> size_t { return len_; }
 
     inline void init_for_receive(const std::string_view content_length_str) {
       pos_ = 0;
@@ -637,7 +637,7 @@ private:
       }
     }
 
-    inline ssize_t receive_from(int fd_in) {
+    inline auto receive_from(int fd_in) -> ssize_t {
       stats.reads++;
       const ssize_t n = recv(fd_in, buf_.get(), conf::sock_content_buf_size, 0);
       if (n == -1) // error
@@ -666,20 +666,20 @@ private:
 
   public:
     inline void rst() { p_ = e_ = buf_; }
-    inline char *ptr() const { return p_; }
+    inline auto ptr() const -> char * { return p_; }
     inline void set_mark() { mark_ = p_; }
-    inline char *get_mark() const { return mark_; }
-    inline bool has_more() const { return p_ != e_; }
-    inline size_t remaining() const { return size_t(e_ - p_); }
+    inline auto get_mark() const -> char * { return mark_; }
+    inline auto has_more() const -> bool { return p_ != e_; }
+    inline auto remaining() const -> size_t { return size_t(e_ - p_); }
     inline void unsafe_skip(const size_t n) { p_ += n; }
-    inline char unsafe_next_char() { return *p_++; }
+    inline auto unsafe_next_char() -> char { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
-    inline std::string_view string_view_from_mark() {
+    inline auto string_view_from_mark() -> std::string_view {
       char *m = mark_;
       mark_ = p_;
       return {m, size_t(p_ - m - 1)};
     }
-    inline ssize_t receive_from(const int fd_in) {
+    inline auto receive_from(const int fd_in) -> ssize_t {
       const size_t nbytes_to_read =
           conf::sock_request_header_buf_size - size_t(p_ - buf_);
       if (nbytes_to_read == 0)
@@ -726,7 +726,7 @@ private:
   session *session_{};
   bool send_session_id_in_reply_{};
 
-  inline static std::string_view trim(std::string_view in) {
+  inline static auto trim(std::string_view in) -> std::string_view {
     const auto *left = in.begin();
     for (;; ++left) {
       if (left == in.end())
