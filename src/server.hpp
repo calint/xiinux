@@ -4,12 +4,9 @@
 #include "defines.hpp"
 #include "sock.hpp"
 #include <arpa/inet.h>
-#include <iomanip>
-#include <iostream>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <thread>
-#include <time.h>
 
 namespace xiinux {
 class server final {
@@ -234,18 +231,28 @@ private:
 
   inline static void print_client_exception(const sock *client,
                                             const char *msg) {
+    // client session id
     const session *ses = client->get_session();
     const std::string &ses_id = ses ? ses->get_id() : "n/a";
 
+    // client ip
     std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
     in_addr_t addr = client->get_socket_address().sin_addr.s_addr;
 
-    const std::time_t now = std::time(nullptr);
-    // todo: localtime is not thread safe
-    std::cout << "!!! exception "
-              << std::put_time(std::localtime(&now), "%F %T") << "  "
-              << ip_addr_to_str(ip_addr_str, &addr) << "  session=" << ses_id
-              << "  msg=" << msg << std::endl;
+    // current time
+    const auto chrono_now = std::chrono::system_clock::now();
+    const std::time_t time_now =
+        std::chrono::system_clock::to_time_t(chrono_now);
+    std::array<char, 26> time_str_buf{};
+    if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",
+                       std::localtime(&time_now))) {
+      // some error
+      time_str_buf[0] = '\0';
+    }
+
+    // output
+    printf("!!! exception %s  %s  session=%s  msg=%s\n", time_str_buf.data(),
+           ip_addr_to_str(ip_addr_str, &addr), ses_id.c_str(), msg);
   }
 
   inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,

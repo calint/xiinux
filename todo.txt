@@ -1,4 +1,5 @@
 [ ] clang-tidy
+[ ] server:print_client_exception thread safe localtime
 [ ] map doc widget to path '/'
 [ ] consider uniform initialization using {...} instead of =
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
