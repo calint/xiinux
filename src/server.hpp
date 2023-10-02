@@ -241,8 +241,7 @@ private:
 
     // current time
     const auto chrono_now = std::chrono::system_clock::now();
-    const std::time_t time_now =
-        std::chrono::system_clock::to_time_t(chrono_now);
+    const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);
     std::array<char, 26> time_str_buf{};
     if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",
                        std::localtime(&time_now))) {
