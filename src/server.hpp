@@ -107,7 +107,7 @@ public:
         perror("epoll_wait");
         continue;
       }
-      if (conf::server_print_events) {
+      if (conf::server_print_epoll_events) {
         printf("events %d\n", n);
       }
       for (unsigned i = 0; i < unsigned(n); i++) {
@@ -183,7 +183,7 @@ public:
         }
 
         // client sock, read, write or hang-up available
-        if (conf::server_print_events) {
+        if (conf::server_print_epoll_events) {
           printf("client %p event=%x\n", ev.data.ptr, ev.events);
         }
 
