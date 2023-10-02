@@ -67,7 +67,8 @@ public:
           if (errno == EAGAIN) {
             io_request_read();
             return;
-          } else if (errno == ECONNRESET)
+          }
+          if (errno == ECONNRESET)
             throw client_closed_exception{};
           stats.errors++;
           throw client_exception{"sock:receiving_content"};
@@ -91,7 +92,8 @@ public:
           if (errno == EAGAIN) {
             io_request_read();
             return;
-          } else if (errno == ECONNRESET)
+          }
+          if (errno == ECONNRESET)
             throw client_closed_exception{};
           stats.errors++;
           throw client_exception{"sock:receiving_upload"};
@@ -144,7 +146,8 @@ public:
           if (errno == EAGAIN) {
             io_request_read();
             return;
-          } else if (errno == ECONNRESET) {
+          }
+          if (errno == ECONNRESET) {
             throw client_closed_exception{};
           }
           perror("sock:run:io_request_read");
@@ -170,7 +173,8 @@ public:
             reqline_.path_ = reqbuf_.string_view_from_mark();
             state_ = protocol;
             break;
-          } else if (ch == '?') {
+          }
+          if (ch == '?') {
             reqbuf_.set_eos();
             // -1 because reqbuf.ptr is one step past '\+'
             reqline_.path_ = reqbuf_.string_view_from_mark();
@@ -206,7 +210,8 @@ public:
           if (ch == '\n') { // content or done parsing
             do_after_headers();
             break;
-          } else if (ch == ':') {
+          }
+          if (ch == ':') {
             reqbuf_.set_eos();
             strlwr(reqbuf_.get_mark()); // to lower string
             header_.name_ = reqbuf_.string_view_from_mark();
