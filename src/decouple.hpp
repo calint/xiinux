@@ -4,10 +4,8 @@
 #include "defines.hpp"
 #include "exceptions.hpp"
 #include "stats.hpp"
-#include <cerrno>
 #include <memory>
 #include <sys/socket.h>
-#include <unistd.h>
 #include <unordered_map>
 
 // solves circular references
@@ -32,9 +30,10 @@ using map_widgets = std::unordered_map<std::string, std::unique_ptr<widget>>;
 static int epoll_fd{};
 static std::unique_ptr<doc> homepage{};
 
-static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
-                             const bool buffer_send = false,
-                             const bool throw_if_send_not_complete = true) {
+static inline auto io_send(const int fd, const char *buf, size_t buf_len,
+                           const bool buffer_send = false,
+                           const bool throw_if_send_not_complete = true)
+    -> size_t {
   stats.writes++;
   const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
   const ssize_t n = send(fd, buf, buf_len, flags);
@@ -61,9 +60,10 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
   return nbytes_sent;
 }
 
-static inline size_t io_send(const int fd, std::string_view sv,
-                             const bool buffer_send = false,
-                             const bool throw_if_send_not_complete = true) {
+static inline auto io_send(const int fd, std::string_view sv,
+                           const bool buffer_send = false,
+                           const bool throw_if_send_not_complete = true)
+    -> size_t {
   return io_send(fd, sv.data(), sv.size(), buffer_send,
                  throw_if_send_not_complete);
 }
@@ -72,6 +72,6 @@ static inline size_t io_send(const int fd, std::string_view sv,
 namespace xiinux::web {
 
 static inline void widget_init_path_to_factory_map();
-static inline widget *(*widget_factory_for_path(std::string_view path))();
+static inline auto (*widget_factory_for_path(std::string_view path))()->widget *;
 
 } // namespace xiinux::web

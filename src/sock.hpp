@@ -27,9 +27,9 @@ public:
     // printf("client create %p\n", static_cast<void *>(this));
   }
   sock(const sock &) = delete;
-  sock &operator=(const sock &) = delete;
+  auto operator=(const sock &) -> sock & = delete;
   sock(sock &&) = delete;
-  sock &operator=(sock &&) = delete;
+  auto operator=(sock &&) -> sock & = delete;
 
   inline ~sock() {
     if (!::close(fd_)) {
@@ -251,14 +251,14 @@ public:
     }
   }
 
-  inline const struct sockaddr_in &get_socket_address() const {
+  inline auto get_socket_address() const -> const struct sockaddr_in & {
     return sock_addr_;
   }
 
-  inline std::string_view get_path() const { return reqline_.path_; }
-  inline std::string_view get_query() const { return reqline_.query_; }
-  inline const map_headers &get_headers() const { return headers_; }
-  inline session *get_session() const { return session_; }
+  inline auto get_path() const -> std::string_view { return reqline_.path_; }
+  inline auto get_query() const -> std::string_view { return reqline_.query_; }
+  inline auto get_headers() const -> const map_headers & { return headers_; }
+  inline auto get_session() const -> session * { return session_; }
 
 private:
   void do_after_headers() {

@@ -13,7 +13,7 @@
 namespace xiinux {
 class server final {
 public:
-  inline static int start(const int argc, const char *argv[]) {
+  inline static auto start(const int argc, const char *argv[]) -> int {
     args a(argc, argv);
     thdwatch_on = a.has_option('m');
     thdwatch_stats_to_file = a.has_option('f');
@@ -241,7 +241,7 @@ private:
               << "  msg=" << msg << std::endl;
   }
 
-  inline static char *ip_addr_to_str(char dst[], void *s_addr) {
+  inline static auto ip_addr_to_str(char dst[], void *s_addr) -> char * {
     if (!inet_ntop(AF_INET, s_addr, dst, INET_ADDRSTRLEN)) {
       perror("ip address to text");
       dst[0] = 0;
@@ -285,8 +285,8 @@ private:
     }
   }
 
-  inline static int get_sock_option(const int fd, const int opt,
-                                    const int protocol = IPPROTO_TCP) {
+  inline static auto get_sock_option(const int fd, const int opt,
+                                     const int protocol = IPPROTO_TCP) -> int {
     int option = -1;
     socklen_t option_size = sizeof(option);
     if (getsockopt(fd, protocol, opt, &option, &option_size) == -1) {

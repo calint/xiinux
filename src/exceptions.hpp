@@ -12,11 +12,11 @@ public:
   inline explicit client_exception(const char *msg) : msg_{msg} {}
   ~client_exception() override = default;
   client_exception(const client_exception &) = default;
-  client_exception &operator=(const client_exception &) = default;
+  auto operator=(const client_exception &) -> client_exception & = default;
   client_exception(client_exception &&) = default;
-  client_exception &operator=(client_exception &&) = default;
+  auto operator=(client_exception &&) -> client_exception & = default;
 
-  inline const char *what() const noexcept override { return msg_; }
+  inline auto what() const noexcept -> const char * override { return msg_; }
 };
 
 } // namespace xiinux

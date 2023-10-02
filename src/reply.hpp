@@ -27,14 +27,16 @@ public:
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
-  inline std::string_view get_path() const { return path_; }
-  inline std::string_view get_query() const { return query_; }
-  inline const map_headers &get_req_headers() const { return req_headers_; }
-  inline map_session *get_session() const { return session_; }
+  inline auto get_path() const -> std::string_view { return path_; }
+  inline auto get_query() const -> std::string_view { return query_; }
+  inline auto get_req_headers() const -> const map_headers & {
+    return req_headers_;
+  }
+  inline auto get_session() const -> map_session * { return session_; }
 
-  [[nodiscard]] inline std::unique_ptr<chunky>
+  [[nodiscard]] inline auto
   reply_chunky(std::string_view content_type = "text/html;charset=utf-8"sv,
-               const int response_code = 200) {
+               const int response_code = 200) -> std::unique_ptr<chunky> {
 
     auto rsp{std::make_unique<chunky>(fd_)};
 
@@ -56,9 +58,9 @@ public:
     set_session_id_ = id;
   }
 
-  inline reply &
-  http(const int code, const char *buf, size_t buf_len,
-       std::string_view content_type = "text/html;charset=utf-8"sv) {
+  inline auto http(const int code, const char *buf, size_t buf_len,
+                   std::string_view content_type = "text/html;charset=utf-8"sv)
+      -> reply & {
     char header[256];
     int n = 0;
     if (!set_session_id_.empty()) {
@@ -84,20 +86,20 @@ public:
     return *this;
   }
 
-  inline reply &
-  http(const int code, std::string_view content,
-       std::string_view content_type = "text/html;charset=utf-8"sv) {
+  inline auto http(const int code, std::string_view content,
+                   std::string_view content_type = "text/html;charset=utf-8"sv)
+      -> reply & {
     return http(code, content.data(), content.size(), content_type);
   }
 
-  inline size_t send(const char *buf, size_t buf_len,
-                     const bool buffer_send = false,
-                     bool throw_if_send_not_complete = true) const {
+  inline auto send(const char *buf, size_t buf_len,
+                   const bool buffer_send = false,
+                   bool throw_if_send_not_complete = true) const -> size_t {
     return io_send(fd_, buf, buf_len, buffer_send, throw_if_send_not_complete);
   }
 
-  inline size_t send(std::string_view sv, const bool buffer_send = false,
-                     bool throw_if_send_not_complete = true) const {
+  inline auto send(std::string_view sv, const bool buffer_send = false,
+                   bool throw_if_send_not_complete = true) const -> size_t {
     return io_send(fd_, sv.data(), sv.size(), buffer_send,
                    throw_if_send_not_complete);
   }

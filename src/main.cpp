@@ -1,7 +1,13 @@
 // reviewed: 2023-09-27
 #include "server.hpp"
+#include <cctype>
+#include <cerrno>
 #include <csignal>
 #include <cstring>
+#include <memory>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <unordered_map>
 
 [[noreturn]] static void sigint(int signum) {
   printf("\n!!! caught signal %d: %s\n!!! exiting\n", signum,
@@ -10,7 +16,7 @@
   exit(-signum);
 }
 
-int main(const int argc, const char *argv[]) {
+auto main(const int argc, const char *argv[]) -> int {
   // catch all signals
   // for (int i = 1; i < NSIG; i++) {
   //   signal(i, sigint);

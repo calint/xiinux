@@ -12,7 +12,7 @@ class sessions final {
   map_sessions sessions_{};
 
 public:
-  inline session *get(std::string_view id) {
+  inline auto get(std::string_view id) -> session * {
     return sessions_[std::string{id}].get();
   }
 

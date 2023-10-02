@@ -1,5 +1,4 @@
 #pragma once
-#include <cctype>
 
 // todo: review messy but simple code
 namespace xiinux {
@@ -10,7 +9,7 @@ class args final {
 public:
   inline args(const int argc, const char **argv) : argc_{argc}, argv_{argv} {}
 
-  inline bool has_option(const char short_name) {
+  inline auto has_option(const char short_name) -> bool {
     if (argc_ == 1)
       return false;
     const char **argv = argv_;
@@ -35,8 +34,8 @@ public:
     }
   }
 
-  inline const char *get_option_value(const char short_name,
-                                      const char *default_value) {
+  inline auto get_option_value(const char short_name, const char *default_value)
+      -> const char * {
     int argc = argc_ - 1;
     if (!argc)
       return default_value;
@@ -68,7 +67,7 @@ public:
     }
     return default_value;
   }
-  inline const char *getarg(int n, const char *default_value) {
+  inline auto getarg(int n, const char *default_value) -> const char * {
     const char **argv = argv_;
     int argc = argc_;
     while (true) {
