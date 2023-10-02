@@ -130,11 +130,13 @@ public:
             continue;
           }
 
-          if (conf::server_print_events) {
-            std::array<char, INET_ADDRSTRLEN> ip{};
-            printf("client connect: event=%x fd=%d ip=%s\n", ev.events,
-                   client_fd,
-                   ip_addr_to_str(ip, &(client_addr.sin_addr.s_addr)));
+          if (conf::server_print_client_connect_event) {
+            std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
+            std::array<char, 26> time_str_buf{};
+            printf("%s  connect: ip=%s fd=%d\n",
+                   current_time_to_string(time_str_buf),
+                   ip_addr_to_str(ip_str_buf, &(client_addr.sin_addr.s_addr)),
+                   client_fd);
           }
           // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
           sock *client = new sock(client_fd, client_addr);
@@ -245,22 +247,28 @@ private:
     in_addr_t addr = client->get_socket_address().sin_addr.s_addr;
 
     // current time
-    const auto chrono_now = std::chrono::system_clock::now();
-    const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);
     std::array<char, 26> time_str_buf{};
-    if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",
-                       std::localtime(&time_now))) {
-      // some error
-      time_str_buf[0] = '\0';
-    }
+    current_time_to_string(time_str_buf);
 
     // output
     printf("!!! exception %s  %s  session=%s  msg=%s\n", time_str_buf.data(),
            ip_addr_to_str(ip_addr_str, &addr), ses_id.c_str(), msg);
   }
 
+  inline static auto current_time_to_string(std::array<char, 26> &time_str_buf)
+      -> const char * {
+    const auto chrono_now = std::chrono::system_clock::now();
+    const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);
+    if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",
+                       std::localtime(&time_now))) {
+      // some error
+      time_str_buf[0] = '\0';
+    }
+    return time_str_buf.data();
+  }
+
   inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,
-                                    void *s_addr) -> char * {
+                                    void *s_addr) -> const char * {
     if (!inet_ntop(AF_INET, s_addr, dst.data(), unsigned(dst.size()))) {
       perror("ip address to text");
       dst[0] = 0;
