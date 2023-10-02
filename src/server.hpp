@@ -110,6 +110,7 @@ public:
         printf("events %d\n", n);
       }
       for (unsigned i = 0; i < unsigned(n); i++) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         struct epoll_event &ev = events[i];
         // check if server socket
         if (ev.data.ptr == &server_fd) {
@@ -134,7 +135,7 @@ public:
                    client_fd,
                    ip_addr_to_str(ip, &(client_addr.sin_addr.s_addr)));
           }
-
+          // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
           sock *client = new sock(client_fd, client_addr);
           ev.data.ptr = client;
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
@@ -183,9 +184,11 @@ public:
           printf("client %p event=%x\n", ev.data.ptr, ev.events);
         }
 
+        // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
         sock *client = static_cast<sock *>(ev.data.ptr);
 
         if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
+          // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
           delete client;
           continue;
         }
@@ -209,23 +212,23 @@ public:
   }
 
 private:
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
   inline static void run_client(sock *client) {
     try {
       client->run();
     } catch (const client_closed_exception &) {
       stats.brkp++;
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     } catch (const client_exception &e) {
       stats.errors++;
       print_client_exception(client, e.what());
-      delete client;
-    } catch (const char *msg) {
-      stats.errors++;
-      print_client_exception(client, msg);
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     } catch (...) {
       stats.errors++;
       print_client_exception(client, "n/a due to catch(...)");
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     }
   }

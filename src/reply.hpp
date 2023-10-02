@@ -106,7 +106,7 @@ public:
     return io_send(fd_, buf, buf_len, buffer_send, throw_if_send_not_complete);
   }
 
-  // NOLINTNEXTLINE(modernize-use-nodiscard) exception thrown instead
+  // NOLINTNEXTLINE(modernize-use-nodiscard) not when exception thrown instead
   inline auto send(std::string_view sv, const bool buffer_send = false,
                    bool throw_if_send_not_complete = true) const -> size_t {
     return io_send(fd_, sv.data(), sv.size(), buffer_send,
