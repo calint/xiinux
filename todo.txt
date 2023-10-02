@@ -1,3 +1,4 @@
+[ ] sock: make std::shared_ptr for session and widget
 [ ] review/refactor args
 [ ] server:print_client_exception thread safe "localtime(...)"
 [ ] map doc widget to path '/'
