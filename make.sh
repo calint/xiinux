@@ -43,6 +43,6 @@ rm all.src &&
 
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
-#valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
+valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
 echo

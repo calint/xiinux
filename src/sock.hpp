@@ -6,10 +6,14 @@
 #include "sessions.hpp"
 #include "web/web.hpp"
 #include <fcntl.h>
+#include <memory>
 #include <netinet/in.h>
+#include <string_view>
 #include <sys/epoll.h>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace xiinux {
 
