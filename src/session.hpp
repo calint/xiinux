@@ -37,7 +37,7 @@ public:
   }
 
   inline void put_widget(std::string path, std::shared_ptr<widget> wgt) {
-    widgets_[std::move(path)] = wgt;
+    widgets_[std::move(path)] = std::move(wgt);
   }
 };
 } // namespace xiinux

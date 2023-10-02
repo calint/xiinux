@@ -35,6 +35,10 @@ public:
       // printf("client close %p\n", static_cast<void *>(this));
       return;
     }
+    // note.
+    // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_, nullptr);
+    // not necessary since epoll removes the entry when the file descriptor is
+    // closed
     stats.errors++;
     perror("sock:destructor");
   }
@@ -308,7 +312,7 @@ private:
     // get widget from session using path
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
-      // widget not found in sesion, create using supplied factory
+      // widget not found in session, create using supplied factory
       widget_.reset(factory());
       // put widget in session
       session_->put_widget(std::string{reqline_.path_}, widget_);
