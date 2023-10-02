@@ -122,7 +122,7 @@ public:
           socklen_t client_addr_len = sizeof(client_addr);
           auto *client_sock_addr =
               // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-              reinterpret_cast<struct sockaddr *>(&server_addr);
+              reinterpret_cast<struct sockaddr *>(&client_addr);
           const int client_fd = accept4(server_fd, client_sock_addr,
                                         &client_addr_len, SOCK_NONBLOCK);
           if (client_fd == -1) {
