@@ -54,7 +54,7 @@ public:
              get_sock_option(server_fd, TCP_CORK));
     }
 
-    struct sockaddr_in server_addr{};
+    struct sockaddr_in server_addr {};
     const ssize_t server_addr_size = sizeof(server_addr);
     memset(&server_addr, 0, server_addr_size);
     server_addr.sin_family = AF_INET;
@@ -72,13 +72,13 @@ public:
       exit(5);
     }
 
-    epoll_fd = epoll_create(conf::server_event_array_size);
+    epoll_fd = epoll_create1(EPOLL_CLOEXEC);
     if (epoll_fd == -1) {
       perror("epollcreate");
       exit(6);
     }
 
-    struct epoll_event server_ev{};
+    struct epoll_event server_ev {};
     server_ev.events = EPOLLIN;
     // address of server fd cannot be same as a client address
     server_ev.data.ptr = &server_fd;
@@ -115,7 +115,7 @@ public:
           // server, new connection
           stats.accepts++;
 
-          struct sockaddr_in client_addr{};
+          struct sockaddr_in client_addr {};
           memset(&client_addr, 0, sizeof(client_addr));
           socklen_t client_addr_len = sizeof(client_addr);
           const int client_fd = accept4(
@@ -278,7 +278,7 @@ private:
         printf(thdwatch_stats_to_file ? "\n" : "\r");
       }
       if (!thdwatch_stats_to_file) {
-        fprintf(stdout, "\n");
+        (void)fprintf(stdout, "\n");
       }
     }
   }

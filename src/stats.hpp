@@ -22,18 +22,19 @@ public:
   size_t brkp = 0;
 
   void print_headers(FILE *f) const {
-    fprintf(f, "%12s%14s%14s%9s%10s%8s%8s%12s%12s%12s%12s%12s%8s%8s\n", "ms",
-            "input", "output", "socks", "reqs", "sesns", "accepts", "reads",
-            "writes", "files", "widgets", "cache", "errors", "brkpipe");
-    fflush(f);
+    (void)fprintf(f, "%12s%14s%14s%9s%10s%8s%8s%12s%12s%12s%12s%12s%8s%8s\n",
+                  "ms", "input", "output", "socks", "reqs", "sesns", "accepts",
+                  "reads", "writes", "files", "widgets", "cache", "errors",
+                  "brkpipe");
+    (void)fflush(f);
   }
 
   void print_stats(FILE *f) const {
-    fprintf(f,
-            "%12zu%14zu%14zu%9zu%10zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",
-            ms, input, output, socks, requests, sessions, accepts, reads,
-            writes, files, widgets, cache, errors, brkp);
-    fflush(f);
+    (void)fprintf(
+        f, "%12zu%14zu%14zu%9zu%10zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",
+        ms, input, output, socks, requests, sessions, accepts, reads, writes,
+        files, widgets, cache, errors, brkp);
+    (void)fflush(f);
   }
 } static stats;
 } // namespace xiinux

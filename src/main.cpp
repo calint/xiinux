@@ -15,8 +15,8 @@ int main(const int argc, const char *argv[]) {
   // for (int i = 1; i < NSIG; i++) {
   //   signal(i, sigint);
   // }
-  signal(SIGINT, sigint);   // close at '^C'
-  signal(SIGPIPE, SIG_IGN); // 'sendfile' raises signal when 'Broken pipe'
-  signal(28, SIG_IGN);      // 'Window changed'
+  (void)signal(SIGINT, sigint);   // close at '^C'
+  (void)signal(SIGPIPE, SIG_IGN); // 'sendfile' raises signal when 'Broken pipe'
+  (void)signal(28, SIG_IGN);      // 'Window changed'
   return xiinux::server::start(argc, argv);
 }
