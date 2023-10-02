@@ -53,6 +53,7 @@
         "csignal": "cpp",
         "istream": "cpp",
         "sstream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "chrono": "cpp"
     }
 }

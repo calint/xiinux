@@ -11,9 +11,9 @@
 
 [[noreturn]] static void sigint(int signum) {
   printf("\n!!! caught signal %d: %s\n!!! exiting\n", signum,
-         strsignal(signum));
+         strsignal(signum)); // NOLINT(concurrency-mt-unsafe)
   xiinux::server::stop();
-  exit(-signum);
+  exit(-signum); // NOLINT(concurrency-mt-unsafe)
 }
 
 auto main(const int argc, const char **argv) -> int {

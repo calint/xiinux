@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <thread>
+#include <time.h>
 
 namespace xiinux {
 class server final {
@@ -30,7 +31,7 @@ public:
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1) {
       perror("socket");
-      exit(1);
+      return 1;
     }
 
     if (conf::server_reuse_addr_and_port) {
@@ -38,13 +39,13 @@ public:
       if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
                      sizeof(option))) {
         perror("setsockopt SO_REUSEADDR");
-        exit(2);
+        return 2;
       }
 
       if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &option,
                      sizeof(option))) {
         perror("setsockopt SO_REUSEPORT");
-        exit(3);
+        return 3;
       }
     }
 
@@ -65,18 +66,18 @@ public:
     if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&server_addr),
              server_addr_size)) {
       perror("bind");
-      exit(4);
+      return 4;
     }
 
     if (listen(server_fd, conf::server_listen_backlog_size) == -1) {
       perror("listen");
-      exit(5);
+      return 5;
     }
 
     epoll_fd = epoll_create1(EPOLL_CLOEXEC);
     if (epoll_fd == -1) {
       perror("epollcreate");
-      exit(6);
+      return 6;
     }
 
     struct epoll_event server_ev {};
@@ -85,10 +86,13 @@ public:
     server_ev.data.ptr = &server_fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &server_ev)) {
       perror("epolladd");
-      exit(7);
+      return 7;
     }
 
-    init_homepage();
+    if (!init_homepage()) {
+      puts("cannot initate homepage");
+      return 8;
+    }
 
     web::widget_init_path_to_factory_map();
 
@@ -230,14 +234,17 @@ private:
 
   inline static void print_client_exception(const sock *client,
                                             const char *msg) {
-    const session *sn = client->get_session();
-    const std::string &snid = sn ? sn->get_id() : "n/a";
+    const session *ses = client->get_session();
+    const std::string &ses_id = ses ? ses->get_id() : "n/a";
+
     std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
-    in_addr_t inaddr = client->get_socket_address().sin_addr.s_addr;
-    const std::time_t t = std::time(nullptr);
-    const std::tm now = *std::localtime(&t); // ? not thread safe
-    std::cout << "!!! exception " << std::put_time(&now, "%F %T") << "  "
-              << ip_addr_to_str(ip_addr_str, &inaddr) << "  session=" << snid
+    in_addr_t addr = client->get_socket_address().sin_addr.s_addr;
+
+    const std::time_t now = std::time(nullptr);
+    // todo: localtime is not thread safe
+    std::cout << "!!! exception "
+              << std::put_time(std::localtime(&now), "%F %T") << "  "
+              << ip_addr_to_str(ip_addr_str, &addr) << "  session=" << ses_id
               << "  msg=" << msg << std::endl;
   }
 
@@ -250,7 +257,7 @@ private:
     return dst.data();
   }
 
-  inline static void init_homepage() {
+  [[nodiscard]] inline static auto init_homepage() -> bool {
     std::array<char, 4 * K> buf{};
     // +1 because of '\n' after 'application_name'
     const int n =
@@ -261,9 +268,10 @@ private:
                  conf::application_name);
     if (n < 0 or size_t(n) >= sizeof(buf)) {
       puts("homepage does not fit in buffer");
-      exit(8);
+      return false;
     }
     homepage = std::make_unique<doc>(std::string{buf.data(), size_t(n)});
+    return true;
   }
 
   inline static std::thread thdwatch{};
