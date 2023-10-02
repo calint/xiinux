@@ -10,6 +10,7 @@
 namespace xiinux {
 class server final {
 public:
+  // NOLINTNEXTLINE(readability-function-cognitive-complexity)
   [[nodiscard]] inline static auto start(const int argc, const char **argv)
       -> int {
     args a(argc, argv);

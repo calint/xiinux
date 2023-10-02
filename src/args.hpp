@@ -9,6 +9,7 @@ class args final {
 public:
   inline args(const int argc, const char **argv) : argc_{argc}, argv_{argv} {}
 
+  // NOLINTNEXTLINE(readability-function-cognitive-complexity)
   inline auto has_option(const char short_name) -> bool {
     if (argc_ == 1)
       return false;
@@ -34,6 +35,7 @@ public:
     }
   }
 
+  // NOLINTNEXTLINE(readability-function-cognitive-complexity)
   inline auto get_option_value(const char short_name, const char *default_value)
       -> const char * {
     int argc = argc_ - 1;
@@ -67,6 +69,7 @@ public:
     }
     return default_value;
   }
+
   inline auto getarg(int n, const char *default_value) -> const char * {
     const char **argv = argv_;
     int argc = argc_;

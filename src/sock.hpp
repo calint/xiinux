@@ -41,6 +41,7 @@ public:
     perror("sock:destructor");
   }
 
+  // NOLINTNEXTLINE(readability-function-cognitive-complexity)
   inline void run() {
     while (true) {
       if (state_ == resume_send_file) {
