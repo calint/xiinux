@@ -12,7 +12,7 @@
 
 namespace xiinux {
 class chunky final : public xprinter {
-  char buf_[conf::chunky_buf_size]{};
+  std::array<char, conf::chunky_buf_size> buf_{};
   size_t len_{};
   bool finished_{};
   int fd_{};
@@ -34,7 +34,7 @@ public:
     if (len_ == 0)
       return *this;
 
-    send_chunk(buf_, len_);
+    send_chunk(buf_.data(), len_);
     len_ = 0;
     return *this;
   }
@@ -50,7 +50,7 @@ public:
 
   // sends current buffer as is
   inline auto send_response_header() -> chunky & {
-    io_send(fd_, buf_, len_, true);
+    io_send(fd_, buf_.data(), len_, true);
     len_ = 0;
     return *this;
   }
@@ -63,7 +63,7 @@ public:
     const size_t buf_rem = buf_size - len_;
     if (str_len <= buf_rem) {
       // str fits in buffer
-      strncpy(buf_ + len_, str, str_len);
+      strncpy(buf_.data() + len_, str, str_len);
       len_ += str_len;
       if (len_ == buf_size) {
         flush();
@@ -74,7 +74,7 @@ public:
     // if buffer is not empty then fill remaining buffer and flush
     size_t str_rem = str_len;
     if (len_ != 0) {
-      strncpy(buf_ + len_, str, buf_rem);
+      strncpy(buf_.data() + len_, str, buf_rem);
       str += buf_rem; // pointer to remaining part of 'str'
       len_ += buf_rem;
       str_rem -= buf_rem;
@@ -90,48 +90,48 @@ public:
     // if there is str left copy to buffer
     if (str_rem > 0) {
       // copy the remaining str into buffer
-      strncpy(buf_, str, str_rem);
+      strncpy(buf_.data(), str, str_rem);
       len_ += size_t(str_rem);
     }
     return *this;
   }
 
   inline auto p(const int i) -> chunky & override {
-    char str[32];
-    const int n = snprintf(str, sizeof(str), "%d", i);
-    if (n < 0 or size_t(n) >= sizeof(str))
+    std::array<char, 32> str{};
+    const int n = snprintf(str.data(), str.size(), "%d", i);
+    if (n < 0 or size_t(n) >= str.size())
       throw client_exception{"chunky:2"};
-    return p({str, size_t(n)});
+    return p({str.data(), size_t(n)});
   }
 
   inline auto p(const size_t sz) -> chunky & override {
-    char str[32];
-    const int n = snprintf(str, sizeof(str), "%zu", sz);
-    if (n < 0 or size_t(n) >= sizeof(str))
+    std::array<char, 32> str{};
+    const int n = snprintf(str.data(), str.size(), "%zu", sz);
+    if (n < 0 or size_t(n) >= str.size())
       throw client_exception{"chunky:3"};
-    return p({str, size_t(n)});
+    return p({str.data(), size_t(n)});
   }
 
   inline auto p_ptr(const void *ptr) -> chunky & override {
-    char str[32];
-    const int n = snprintf(str, sizeof(str), "%p", ptr);
-    if (n < 0 or size_t(n) >= sizeof(str))
+    std::array<char, 32> str{};
+    const int n = snprintf(str.data(), str.size(), "%p", ptr);
+    if (n < 0 or size_t(n) >= str.size())
       throw client_exception{"chunky:4"};
-    return p({str, size_t(n)});
+    return p({str.data(), size_t(n)});
   }
 
   inline auto p_hex(const int i) -> chunky & override {
-    char str[32];
-    const int n = snprintf(str, sizeof(str), "%x", i);
-    if (n < 0 or size_t(n) >= sizeof(str))
+    std::array<char, 32> str{};
+    const int n = snprintf(str.data(), str.size(), "%x", i);
+    if (n < 0 or size_t(n) >= str.size())
       throw client_exception{"chunky:5"};
-    return p({str, size_t(n)});
+    return p({str.data(), size_t(n)});
   }
 
   inline auto p(const char ch) -> chunky & override {
     if (sizeof(buf_) - len_ == 0)
       flush();
-    *(buf_ + len_++) = ch;
+    *(buf_.data() + len_++) = ch;
     return *this;
   }
 
@@ -141,13 +141,13 @@ private:
   inline void send_chunk(const char *buf, const size_t buf_len) const {
     // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
     // chunk header
-    char hdr[32];
-    const int hdr_len = snprintf(hdr, sizeof(hdr), "%lx\r\n", buf_len);
-    if (hdr_len < 0 or size_t(hdr_len) >= sizeof(hdr))
+    std::array<char, 32> hdr{};
+    const int hdr_len = snprintf(hdr.data(), hdr.size(), "%lx\r\n", buf_len);
+    if (hdr_len < 0 or size_t(hdr_len) >= hdr.size())
       throw client_exception{"chunky:1"};
 
     // send chunk header
-    io_send(fd_, hdr, size_t(hdr_len), true);
+    io_send(fd_, hdr.data(), size_t(hdr_len), true);
 
     // send chunk
     size_t sent_total = 0;
