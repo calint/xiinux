@@ -259,65 +259,75 @@ public:
 
 private:
   void do_after_headers() {
+    // check if there is a widget factory bound to path
     widget *(*factory)() = web::widget_factory_for_path(reqline_.path_);
     if (factory) {
+      // this path is served by a widget
       do_serve_widget(factory);
       return;
     }
 
+    // check if request is an upload
     const std::string_view content_type = headers_["content-type"];
     if (content_type == "file") {
+      // this is an upload, initiate content receive
       content_.init_for_receive(headers_["content-length"]);
       do_serve_upload();
       return;
     }
 
+    // create reply
     reply x{fd_, reqline_.path_, reqline_.query_, headers_, nullptr};
 
+    // remove leading '/' from path if exists
     const std::string_view path =
         reqline_.path_.at(0) == '/' ? reqline_.path_.substr(1) : reqline_.path_;
-    if (path.empty()) { // uri '/'
+    // check if it is root path, uri '/'
+    if (path.empty()) {
+      // send 'homepage'
       stats.cache++;
       homepage->to(x);
       state_ = next_request;
       return;
     }
-
+    // path refers to file
     do_serve_file(x, path);
   }
 
   void do_serve_widget(widget *(*factory)()) {
     stats.widgets++;
-
+    // get session id from cookie or create new
     retrieve_or_create_session();
-
+    // get widget from session using path
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
+      // widget not found in sesion, create using supplied factory
       std::unique_ptr<widget> wup{factory()};
       // note. pointer to widget is held in 'naked' form assuming lifetime
       // in session is greater than the duration of this request
       // ? use shared_ptr
       widget_ = wup.get();
+      // put widget in session
       session_->put_widget(std::string{reqline_.path_}, std::move(wup));
     }
-
+    // build reply object
     reply x{fd_, reqline_.path_, reqline_.query_, headers_,
             &session_->get_lut()};
-
+    // if a new session has been created send session id at next opportunity
     if (send_session_id_in_reply_) {
       x.send_session_id_at_next_opportunity(session_->get_id());
       send_session_id_in_reply_ = false;
     }
-
+    // check if request has content
     auto content_length_str = headers_["content-length"];
     if (content_length_str.empty()) {
       // no content from client, render widget
       widget_->to(x);
+      // done
       state_ = next_request;
       return;
     }
-
-    // content from client
+    // initiate for content from client
     content_.init_for_receive(content_length_str);
     const size_t content_len = content_.content_len();
     // initiating call to widget with buf=nullptr
@@ -329,44 +339,52 @@ private:
       state_ = receiving_content;
       return;
     }
+    // check if all the content is in the request buffer
     const size_t rem = reqbuf_.remaining();
-    if (rem >= content_len) { // full content is in 'buf'
+    if (rem >= content_len) {
+      // full content is in 'reqbuf'
       widget_->on_content(x, reqbuf_.ptr(), content_len, content_len,
                           content_len);
+      // done
       state_ = next_request;
       return;
     }
-    // beginning of the content is in 'buf'
+    // beginning of the content is in 'reqbuf'
     widget_->on_content(x, reqbuf_.ptr(), rem, rem, content_len);
+    // advance by the number of bytes received
     content_.unsafe_skip(rem);
+    // continue receiving content
     state_ = receiving_content;
   }
 
   void retrieve_or_create_session() {
+    // after this a session will be available either created or retrieved
     auto cookie = headers_["cookie"];
     std::string_view session_id{};
     if (cookie.starts_with("i=")) {
       // 2 to skip 'i='
       session_id = cookie.substr(2);
     }
+    // check if session id is in cookie
     if (session_id.empty()) {
-      // no session id, create session
+      // no session id, create session id with format e.g.
+      // '20150411-225519-ieu44dn'
       const time_t timer = time(nullptr);
       tm tm_info{};
       if (gmtime_r(&timer, &tm_info) == nullptr)
         throw client_exception{"sock:retrieve_or_create_session:gmtime_r"};
 
-      // format to e.g. '20150411-225519-ieu44dn'
       std::array<char, 24> sid{};
-      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info)) {
+      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info))
         throw client_exception{"sock:do_serve_widget:1"};
-      }
+
       // 16 is len of "20150411-225519-"
       char *sid_ptr = sid.data() + 16;
       for (unsigned i = 0; i < 7; i++) {
         *sid_ptr++ = 'a' + char(random() % 26); // NOLINT
       }
       *sid_ptr = '\0';
+      // make unique pointer of 'session' with lifetime of 'sessions'
       auto ups{std::make_unique<session>(sid.data())};
       // note. pointer to session is held in 'naked' form assuming lifetime
       // in sessions is greater than the duration of this request
@@ -376,12 +394,10 @@ private:
       send_session_id_in_reply_ = true;
       return;
     }
-
-    // try to get active session
+    // session id in cookie. try to get from 'sessions'
     session_ = sessions.get(session_id);
     if (session_)
-      return;
-
+      return; // session found
     // session not found, create
     auto ups{std::make_unique<session>(std::string{session_id})};
     // note. pointer to session is held in 'naked' form assuming lifetime
@@ -447,8 +463,6 @@ private:
       throw client_exception{"sock:err6"};
     }
     // advance content upload position
-    // note. unused capacity in 'content' created by the skip
-    // todo
     content_.unsafe_skip(size_t(n));
     state_ = receiving_upload;
   }
@@ -504,7 +518,7 @@ private:
     }
 
     stats.files++;
-    
+
     // check if ranged request
     const std::string_view range = headers_["range"];
     // format header
