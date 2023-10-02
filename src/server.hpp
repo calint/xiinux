@@ -235,7 +235,7 @@ private:
     std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
     in_addr_t inaddr = client->get_socket_address().sin_addr.s_addr;
     const std::time_t t = std::time(nullptr);
-    const std::tm now = *std::localtime(&t);
+    const std::tm now = *std::localtime(&t); // ? not thread safe
     std::cout << "!!! exception " << std::put_time(&now, "%F %T") << "  "
               << ip_addr_to_str(ip_addr_str, &inaddr) << "  session=" << snid
               << "  msg=" << msg << std::endl;

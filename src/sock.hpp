@@ -350,10 +350,13 @@ private:
     if (session_id.empty()) {
       // no session id, create session
       const time_t timer = time(nullptr);
-      struct tm *tm_info = gmtime(&timer);
+      tm tm_info{};
+      if (gmtime_r(&timer, &tm_info) == nullptr)
+        throw client_exception{"sock:retrieve_or_create_session:gmtime_r"};
+
       // format to e.g. '20150411-225519-ieu44dn'
       std::array<char, 24> sid{};
-      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", tm_info)) {
+      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info)) {
         throw client_exception{"sock:do_serve_widget:1"};
       }
       // 16 is len of "20150411-225519-"
@@ -453,11 +456,14 @@ private:
       state_ = next_request;
       return;
     }
-    const struct tm *tm = gmtime(&fdstat.st_mtime);
+    tm tm_info{};
+    if (gmtime_r(&fdstat.st_mtime, &tm_info) == nullptr)
+      throw client_exception{"sock:do_serve_file:gmtime_r"};
+
     std::array<char, 64> lastmod{};
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
     if (!strftime(lastmod.data(), lastmod.size(), "%a, %d %b %y %H:%M:%S %Z",
-                  tm))
+                  &tm_info))
       throw client_exception{"sock:strftime"};
 
     const std::string_view lastmodstr = headers_["if-modified-since"];
@@ -569,7 +575,9 @@ private:
       offset_ = seek_pos;
       count_ = size_in_bytes;
     }
-    [[nodiscard]] inline auto is_done() const -> bool { return size_t(offset_) == count_; }
+    [[nodiscard]] inline auto is_done() const -> bool {
+      return size_t(offset_) == count_;
+    }
     [[nodiscard]] inline auto length() const -> size_t { return count_; }
     inline auto open(const char *path) -> int {
       fd_ = ::open(path, O_RDONLY | O_CLOEXEC);
@@ -610,7 +618,9 @@ private:
     inline void rst() { pos_ = len_ = 0; }
     [[nodiscard]] inline auto buf() const -> char * { return buf_.get(); }
     [[nodiscard]] inline auto pos() const -> size_t { return pos_; }
-    [[nodiscard]] inline auto remaining() const -> size_t { return len_ - pos_; }
+    [[nodiscard]] inline auto remaining() const -> size_t {
+      return len_ - pos_;
+    }
     inline void unsafe_skip(const size_t n) { pos_ += n; }
     [[nodiscard]] inline auto content_len() const -> size_t { return len_; }
 
@@ -620,7 +630,7 @@ private:
       // todo: abuse len
       // todo: atoll error
       if (!buf_) {
-         // NOLINTNEXTLINE how to declare it?
+        // NOLINTNEXTLINE how to declare it?
         buf_ = std::make_unique<char[]>(conf::sock_content_buf_size);
       }
     }
@@ -658,7 +668,9 @@ private:
     inline void set_mark() { mark_ = p_; }
     [[nodiscard]] inline auto get_mark() const -> char * { return mark_; }
     [[nodiscard]] inline auto has_more() const -> bool { return p_ != e_; }
-    [[nodiscard]] inline auto remaining() const -> size_t { return size_t(e_ - p_); }
+    [[nodiscard]] inline auto remaining() const -> size_t {
+      return size_t(e_ - p_);
+    }
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline auto unsafe_next_char() -> char { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
