@@ -80,7 +80,7 @@ public:
         const size_t content_len = content_.content_len();
         reply x{fd_, reqline_.path_, reqline_.query_, headers_,
                 &session_->get_lut()};
-        widget_->on_content(x, content_.buf(), nbytes_read,
+        widget_->on_content(x, content_.buf().data(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
         if (content_rem > nbytes_read) {
           // not finished
@@ -106,7 +106,8 @@ public:
         const size_t upload_rem = content_.remaining();
         const size_t nbytes_to_write =
             upload_rem > nbytes_read ? nbytes_read : upload_rem;
-        const ssize_t m = write(upload_fd_, content_.buf(), nbytes_to_write);
+        const ssize_t m =
+            write(upload_fd_, content_.buf().data(), nbytes_to_write);
         if (m == -1 or size_t(m) != nbytes_to_write) {
           stats.errors++;
           perror("sock:run:upload");
@@ -677,11 +678,14 @@ private:
     size_t pos_{};
     size_t len_{};
     // NOLINTNEXTLINE todo: how to declare it?
-    std::unique_ptr<char[]> buf_{};
+    std::unique_ptr<std::array<char, conf::sock_content_buf_size>> buf_{};
 
   public:
     inline void rst() { pos_ = len_ = 0; }
-    [[nodiscard]] inline auto buf() const -> char * { return buf_.get(); }
+    [[nodiscard]] inline auto buf() const
+        -> const std::array<char, conf::sock_content_buf_size> & {
+      return *buf_.get();
+    }
     [[nodiscard]] inline auto pos() const -> size_t { return pos_; }
     [[nodiscard]] inline auto remaining() const -> size_t {
       return len_ - pos_;
@@ -695,8 +699,8 @@ private:
       // todo: abuse len
       // todo: atoll error
       if (!buf_) {
-        // NOLINTNEXTLINE how to declare it?
-        buf_ = std::make_unique<char[]>(conf::sock_content_buf_size);
+        buf_ =
+            std::make_unique<std::array<char, conf::sock_content_buf_size>>();
       }
     }
 
