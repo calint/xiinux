@@ -677,7 +677,6 @@ private:
   class content {
     size_t pos_{};
     size_t len_{};
-    // NOLINTNEXTLINE todo: how to declare it?
     std::unique_ptr<std::array<char, conf::sock_content_buf_size>> buf_{};
 
   public:
