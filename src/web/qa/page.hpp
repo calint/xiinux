@@ -1,5 +1,4 @@
 #pragma once
-#include "../../widget.hpp"
 
 namespace xiinux::web::qa {
 class page final : public widget {

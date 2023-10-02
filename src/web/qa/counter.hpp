@@ -1,6 +1,5 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "../../session.hpp"
 #include <atomic>
 
 // used in qa/test-coverage.sh
@@ -19,7 +18,7 @@ public:
     sb.p("query: "sv).p(r.get_query()).nl();
 
     const map_headers &hdrs{r.get_req_headers()};
-    sb.p("cookie: "sv).p(hdrs.at("cookie"sv )).nl();
+    sb.p("cookie: "sv).p(hdrs.at("cookie"sv)).nl();
 
     map_session *ses = r.get_session();
     auto it{ses->find("x"s)};

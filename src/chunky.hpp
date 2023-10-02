@@ -1,14 +1,8 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "conf.hpp"
-#include "decouple.hpp"
-#include "defines.hpp"
-#include "stats.hpp"
-#include "strb.hpp"
 #include "xprinter.hpp"
-#include <errno.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include <array>
+#include <cstring>
 
 namespace xiinux {
 class chunky final : public xprinter {

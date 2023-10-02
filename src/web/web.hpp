@@ -1,6 +1,7 @@
 // reviewed: 2023-09-27
 // todo: generate this file from index
 #pragma once
+#include "../widget.hpp"
 #include "error404.hpp"
 #include "qa/bigresp.hpp"
 #include "qa/chunked.hpp"

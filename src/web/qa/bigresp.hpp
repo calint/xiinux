@@ -1,6 +1,6 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "../../widget.hpp"
+#include "../../strb.hpp"
 
 namespace xiinux::web::qa {
 class bigresp final : public widget {

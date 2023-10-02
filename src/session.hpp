@@ -1,6 +1,5 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "widget.hpp"
 
 namespace xiinux {
 class session final {

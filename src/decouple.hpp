@@ -1,7 +1,5 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "conf.hpp"
-#include "defines.hpp"
 #include "exceptions.hpp"
 #include "stats.hpp"
 #include <memory>

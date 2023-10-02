@@ -1,14 +1,6 @@
 // reviewed: 2023-09-28
 #pragma once
 #include "chunky.hpp"
-#include "conf.hpp"
-#include "stats.hpp"
-#include "strb.hpp"
-#include <array>
-#include <errno.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 namespace xiinux {
 

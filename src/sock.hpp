@@ -1,21 +1,15 @@
 // reviewed: 2023-09-27
 #pragma once
-#include "args.hpp"
 #include "conf.hpp"
 #include "decouple.hpp"
 #include "doc.hpp"
 #include "sessions.hpp"
 #include "web/web.hpp"
-#include "widget.hpp"
 #include <fcntl.h>
-#include <iostream>
-#include <memory>
 #include <netinet/in.h>
-#include <string_view>
 #include <sys/epoll.h>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
-#include <unordered_map>
 
 namespace xiinux {
 

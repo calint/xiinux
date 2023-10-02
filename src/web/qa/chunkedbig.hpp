@@ -1,6 +1,5 @@
 // reviewed: 2023-09-27
 #pragma once
-#include <memory>
 
 // used in qa/test-coverage.sh
 namespace xiinux::web::qa {

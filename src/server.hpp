@@ -4,7 +4,6 @@
 #include "defines.hpp"
 #include "sock.hpp"
 #include <arpa/inet.h>
-#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <thread>
 

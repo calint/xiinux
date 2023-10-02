@@ -1,7 +1,6 @@
 // reviewed: 2023-09-27
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
 
 namespace xiinux {
 class stats final {
