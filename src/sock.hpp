@@ -30,13 +30,11 @@ public:
   auto operator=(sock &&) -> sock & = delete;
 
   inline ~sock() {
+    stats.socks--;
     if (!::close(fd_)) {
       // printf("client close %p\n", static_cast<void *>(this));
-      stats.socks--;
       return;
     }
-    // note: epoll removes entry when all descriptions of fd_ are closed
-    //       not needed: epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_, nullptr);
     stats.errors++;
     perror("sock:destructor");
   }
@@ -260,6 +258,7 @@ public:
     return sock_addr_;
   }
 
+  inline auto get_fd() const -> int { return fd_; }
   inline auto get_path() const -> std::string_view { return reqline_.path_; }
   inline auto get_query() const -> std::string_view { return reqline_.query_; }
   inline auto get_headers() const -> const map_headers & { return headers_; }

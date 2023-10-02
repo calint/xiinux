@@ -219,16 +219,19 @@ private:
       client->run();
     } catch (const client_closed_exception &) {
       stats.brkp++;
+      // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client->get_fd(), nullptr);
       // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     } catch (const client_exception &e) {
       stats.errors++;
       print_client_exception(client, e.what());
+      // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client->get_fd(), nullptr);
       // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     } catch (...) {
       stats.errors++;
       print_client_exception(client, "n/a due to catch(...)");
+      epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client->get_fd(), nullptr);
       // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     }
