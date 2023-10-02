@@ -8,7 +8,7 @@ class session final {
   map_widgets widgets_{};
 
 public:
-  inline explicit session(std::string id) : id_{std::move(id)} {
+  inline explicit session(std::string id) noexcept : id_{std::move(id)} {
     stats.sessions++;
   }
   session(const session &) = delete;
@@ -22,10 +22,11 @@ public:
   inline auto operator[](const std::string &key) const -> const std::string & {
     return kvp_.at(key);
   }
-  inline auto get_widget(std::string_view key) const -> widget * {
+  inline auto get_widget(std::string_view key) const
+      -> std::shared_ptr<widget> {
     auto it = widgets_.find(std::string{key}); //? creates a string
     if (it != widgets_.end()) {
-      return it->second.get();
+      return it->second;
     }
     return nullptr;
   }
@@ -35,8 +36,8 @@ public:
     kvp_[key] = std::move(str);
   }
 
-  inline void put_widget(std::string path, std::unique_ptr<widget> wgt) {
-    widgets_[std::move(path)] = std::move(wgt);
+  inline void put_widget(std::string path, std::shared_ptr<widget> wgt) {
+    widgets_[std::move(path)] = wgt;
   }
 };
 } // namespace xiinux

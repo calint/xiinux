@@ -263,7 +263,7 @@ public:
   inline auto get_path() const -> std::string_view { return reqline_.path_; }
   inline auto get_query() const -> std::string_view { return reqline_.query_; }
   inline auto get_headers() const -> const map_headers & { return headers_; }
-  inline auto get_session() const -> session * { return session_; }
+  inline auto get_session() const -> session * { return session_.get(); }
 
 private:
   void do_after_headers() {
@@ -310,13 +310,9 @@ private:
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
       // widget not found in sesion, create using supplied factory
-      std::unique_ptr<widget> wup{factory()};
-      // note. pointer to widget is held in 'naked' form assuming lifetime
-      // in session is greater than the duration of this request
-      // ? use shared_ptr
-      widget_ = wup.get();
+      widget_.reset(factory());
       // put widget in session
-      session_->put_widget(std::string{reqline_.path_}, std::move(wup));
+      session_->put_widget(std::string{reqline_.path_}, widget_);
     }
     // build reply object
     reply x{fd_, reqline_.path_, reqline_.query_, headers_,
@@ -393,27 +389,20 @@ private:
       }
       *sid_ptr = '\0';
       // make unique pointer of 'session' with lifetime of 'sessions'
-      auto ups{std::make_unique<session>(sid.data())};
-      // note. pointer to session is held in 'naked' form assuming lifetime
-      // in sessions is greater than the duration of this request
-      // ? shared_ptr
-      session_ = ups.get();
-      sessions.put(std::move(ups));
+      session_ = std::make_shared<session>(sid.data());
+      sessions.put(session_);
       send_session_id_in_reply_ = true;
       return;
     }
     // session id in cookie. try to get from 'sessions'
     session_ = sessions.get(session_id);
     if (session_) {
-      return; // session found
+      return; // session found, done
     }
     // session not found, create
-    auto ups{std::make_unique<session>(std::string{session_id})};
-    // note. pointer to session is held in 'naked' form assuming lifetime
-    // in sessions is greater than the duration of this request
-    // ? shared_ptr
-    session_ = ups.get();
-    sessions.put(std::move(ups));
+    session_ = std::make_shared<session>(std::string{session_id});
+    // put it in sessions
+    sessions.put(session_);
   }
 
   void do_serve_upload() {
@@ -683,7 +672,7 @@ private:
     inline void rst() { pos_ = len_ = 0; }
     [[nodiscard]] inline auto buf() const
         -> const std::array<char, conf::sock_content_buf_size> & {
-      return *buf_.get();
+      return *buf_;
     }
     [[nodiscard]] inline auto pos() const -> size_t { return pos_; }
     [[nodiscard]] inline auto remaining() const -> size_t {
@@ -793,8 +782,8 @@ private:
   struct sockaddr_in sock_addr_ {};
   map_headers headers_{};
   int upload_fd_{};
-  widget *widget_{};
-  session *session_{};
+  std::shared_ptr<widget> widget_{};
+  std::shared_ptr<session> session_{};
   bool send_session_id_in_reply_{};
 
   inline static auto trim(std::string_view in) -> std::string_view {
