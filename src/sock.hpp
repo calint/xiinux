@@ -38,7 +38,7 @@ public:
     // note.
     // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_, nullptr);
     // not necessary since epoll removes the entry when the file descriptor is
-    // closed
+    // closed. (man epoll -> see questions and answers)
     stats.errors++;
     perror("sock:destructor");
   }
