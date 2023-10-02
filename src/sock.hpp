@@ -294,6 +294,9 @@ private:
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
       std::unique_ptr<widget> wup{factory()};
+      // note. pointer to widget is held in 'naked' form assuming lifetime
+      // in session is greater than the duration of this request
+      // ? use shared_ptr
       widget_ = wup.get();
       session_->put_widget(std::string{reqline_.path_}, std::move(wup));
     }
@@ -365,6 +368,9 @@ private:
       }
       *sid_ptr = '\0';
       auto ups{std::make_unique<session>(sid.data())};
+      // note. pointer to session is held in 'naked' form assuming lifetime
+      // in sessions is greater than the duration of this request
+      // ? shared_ptr
       session_ = ups.get();
       sessions.put(std::move(ups));
       send_session_id_in_reply_ = true;
@@ -378,6 +384,9 @@ private:
 
     // session not found, create
     auto ups{std::make_unique<session>(std::string{session_id})};
+    // note. pointer to session is held in 'naked' form assuming lifetime
+    // in sessions is greater than the duration of this request
+    // ? shared_ptr
     session_ = ups.get();
     sessions.put(std::move(ups));
   }
