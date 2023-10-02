@@ -66,17 +66,17 @@ curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt 
 diff -q cmp t11.cmp&&
 rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * upload small file"&&
+echo " * upload small file 17B"&&
 curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl>/dev/null&&
 curl -s $HTTP/upload/upl>cmp&&
 diff -q cmp q01.txt&&
 rm cmp&&
 rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * upload bigger file"&&
-curl -sq -XPUT --header "Content-Type:file" --data-binary @q02.txt $HTTP/upl>/dev/null&&
+echo " * upload bigger file 128K"&&
+curl -sq -XPUT --header "Content-Type:file" --data-binary @files/far_side_dog_ok.jpg $HTTP/upl>/dev/null&&
 curl -s $HTTP/upload/upl>cmp&&
-diff -q cmp q02.txt&&
+diff -q cmp files/far_side_dog_ok.jpg&&
 rm cmp&&
 rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
