@@ -1,3 +1,4 @@
+[ ] review/refactor args
 [ ] server:print_client_exception thread safe "localtime(...)"
 [ ] map doc widget to path '/'
 [ ] consider uniform initialization using {...} instead of =
@@ -14,7 +15,6 @@
 [ ] server: sockopt TCP_FASTOPEN
 [ ] review throws messages
 [ ] review perror(...) messages
-[ ] review args
 [ ] xprinter for sockets with buffered sends
 [ ] MIME type for ".js" files (warning in Firefox when absent)
 [ ] multi-threading clients, chunky pause and resume when write would block
