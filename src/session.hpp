@@ -24,8 +24,9 @@ public:
   }
   inline auto get_widget(std::string_view key) const -> widget * {
     auto it = widgets_.find(std::string{key}); //? creates a string
-    if (it != widgets_.end())
+    if (it != widgets_.end()) {
       return it->second.get();
+    }
     return nullptr;
   }
   inline auto get_lut() -> map_session & { return kvp_; }

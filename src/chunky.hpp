@@ -29,17 +29,18 @@ public:
   }
 
   inline auto flush() -> chunky & {
-    if (len_ == 0)
+    if (len_ == 0) {
       return *this;
-
+    }
     send_chunk(buf_.data(), len_);
     len_ = 0;
     return *this;
   }
 
   inline auto finish() -> chunky & {
-    if (finished_)
+    if (finished_) {
       throw client_exception{"chunky:already finished"};
+    }
     flush();
     io_send(fd_, "0\r\n\r\n"sv);
     finished_ = true;
@@ -99,38 +100,43 @@ public:
   inline auto p(const int i) -> chunky & override {
     std::array<char, 32> str{};
     const int n = snprintf(str.data(), str.size(), "%d", i);
-    if (n < 0 or size_t(n) >= str.size())
+    if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:2"};
+    }
     return p({str.data(), size_t(n)});
   }
 
   inline auto p(const size_t sz) -> chunky & override {
     std::array<char, 32> str{};
     const int n = snprintf(str.data(), str.size(), "%zu", sz);
-    if (n < 0 or size_t(n) >= str.size())
+    if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:3"};
+    }
     return p({str.data(), size_t(n)});
   }
 
   inline auto p_ptr(const void *ptr) -> chunky & override {
     std::array<char, 32> str{};
     const int n = snprintf(str.data(), str.size(), "%p", ptr);
-    if (n < 0 or size_t(n) >= str.size())
+    if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:4"};
+    }
     return p({str.data(), size_t(n)});
   }
 
   inline auto p_hex(const int i) -> chunky & override {
     std::array<char, 32> str{};
     const int n = snprintf(str.data(), str.size(), "%x", i);
-    if (n < 0 or size_t(n) >= str.size())
+    if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:5"};
+    }
     return p({str.data(), size_t(n)});
   }
 
   inline auto p(const char ch) -> chunky & override {
-    if (sizeof(buf_) - len_ == 0)
+    if (sizeof(buf_) - len_ == 0) {
       flush();
+    }
     *(buf_.data() + len_++) = ch;
     return *this;
   }
@@ -143,12 +149,11 @@ private:
     // chunk header
     std::array<char, 32> hdr{};
     const int hdr_len = snprintf(hdr.data(), hdr.size(), "%lx\r\n", buf_len);
-    if (hdr_len < 0 or size_t(hdr_len) >= hdr.size())
+    if (hdr_len < 0 or size_t(hdr_len) >= hdr.size()) {
       throw client_exception{"chunky:1"};
-
+    }
     // send chunk header
     io_send(fd_, hdr.data(), size_t(hdr_len), true);
-
     // send chunk
     size_t sent_total = 0;
     while (true) {
@@ -156,13 +161,15 @@ private:
         const size_t nsend = buf_len - sent_total;
         const size_t nsent = io_send(fd_, buf + sent_total, nsend, true, false);
         sent_total += nsent;
-        if (nsent == nsend)
+        if (nsent == nsend) {
           break;
+        }
         //?? blocking
         printf("!!! would block: sent=%zu of %zu\n", nsent, nsend);
       }
-      if (sent_total == buf_len)
+      if (sent_total == buf_len) {
         break;
+      }
     }
     // terminate the chunk
     io_send(fd_, "\r\n", 2, true); // 2 is string length

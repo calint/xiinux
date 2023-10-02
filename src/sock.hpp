@@ -51,13 +51,15 @@ public:
             io_request_write();
             return;
           }
-          if (errno == EPIPE or errno == ECONNRESET)
+          if (errno == EPIPE or errno == ECONNRESET) {
             throw client_closed_exception{};
+          }
           stats.errors++;
           throw client_exception{"sock:err2"};
         }
-        if (!file_.is_done())
+        if (!file_.is_done()) {
           continue;
+        }
         file_.close();
         state_ = next_request;
       } else if (state_ == receiving_content) {
@@ -67,8 +69,9 @@ public:
             io_request_read();
             return;
           }
-          if (errno == ECONNRESET)
+          if (errno == ECONNRESET) {
             throw client_closed_exception{};
+          }
           stats.errors++;
           throw client_exception{"sock:receiving_content"};
         }
@@ -79,7 +82,8 @@ public:
                 &session_->get_lut()};
         widget_->on_content(x, content_.buf(), nbytes_read,
                             content_.pos() + nbytes_read, content_len);
-        if (content_rem > nbytes_read) { // not finished
+        if (content_rem > nbytes_read) {
+          // not finished
           content_.unsafe_skip(nbytes_read);
           continue;
         }
@@ -92,8 +96,9 @@ public:
             io_request_read();
             return;
           }
-          if (errno == ECONNRESET)
+          if (errno == ECONNRESET) {
             throw client_closed_exception{};
+          }
           stats.errors++;
           throw client_exception{"sock:receiving_upload"};
         }
@@ -107,11 +112,13 @@ public:
           perror("sock:run:upload");
           throw client_exception{"sock:writing upload to file 1"};
         }
-        if (m != n)
+        if (m != n) {
           throw client_exception{"sock:writing upload to file 2"};
+        }
         content_.unsafe_skip(size_t(m));
-        if (content_.remaining())
+        if (content_.remaining()) {
           continue;
+        }
         if (::close(upload_fd_)) {
           perror("sock:closing upload file");
         }
@@ -371,13 +378,13 @@ private:
       // '20150411-225519-ieu44dn'
       const time_t timer = time(nullptr);
       tm tm_info{};
-      if (gmtime_r(&timer, &tm_info) == nullptr)
+      if (gmtime_r(&timer, &tm_info) == nullptr) {
         throw client_exception{"sock:retrieve_or_create_session:gmtime_r"};
-
+      }
       std::array<char, 24> sid{};
-      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info))
+      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info)) {
         throw client_exception{"sock:do_serve_widget:1"};
-
+      }
       // 16 is len of "20150411-225519-"
       char *sid_ptr = sid.data() + 16;
       for (unsigned i = 0; i < 7; i++) {
@@ -396,8 +403,9 @@ private:
     }
     // session id in cookie. try to get from 'sessions'
     session_ = sessions.get(session_id);
-    if (session_)
+    if (session_) {
       return; // session found
+    }
     // session not found, create
     auto ups{std::make_unique<session>(std::string{session_id})};
     // note. pointer to session is held in 'naked' form assuming lifetime
@@ -413,8 +421,9 @@ private:
     // +1 to skip the leading '/'
     const int res = snprintf(pth.data(), pth.size(), "upload/%s",
                              reqline_.path_.substr(1).data());
-    if (res < 0 or size_t(res) >= pth.size())
+    if (res < 0 or size_t(res) >= pth.size()) {
       throw client_exception{"sock:pathtrunc"};
+    }
     // open file for write
     upload_fd_ =
         open(pth.data(), O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
@@ -491,16 +500,16 @@ private:
     }
     // get modified time of file
     tm tm_info{};
-    if (gmtime_r(&fdstat.st_mtime, &tm_info) == nullptr)
+    if (gmtime_r(&fdstat.st_mtime, &tm_info) == nullptr) {
       throw client_exception{"sock:do_serve_file:gmtime_r"};
-
+    }
     // format for check with 'if-modified-since' header value
     std::array<char, 64> lastmod{};
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
     if (!strftime(lastmod.data(), lastmod.size(), "%a, %d %b %y %H:%M:%S %Z",
-                  &tm_info))
+                  &tm_info)) {
       throw client_exception{"sock:strftime"};
-
+    }
     // check if file has been modified since then
     const std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod.data()) {
@@ -516,9 +525,8 @@ private:
       state_ = next_request;
       return;
     }
-
+    // start sending file content
     stats.files++;
-
     // check if ranged request
     const std::string_view range = headers_["range"];
     // format header
@@ -555,16 +563,17 @@ private:
                    "%s\r\nContent-Length: %zu\r\n\r\n",
                    lastmod.data(), file_.length());
     }
-    if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
+    if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf)) {
       throw client_exception{"sock:err1"};
-
+    }
     // send reply with buffering of packets
     io_send(fd_, header_buf.data(), size_t(header_buf_len), true);
     // resume/start sending file
     const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
-      if (errno == EPIPE or errno == ECONNRESET)
+      if (errno == EPIPE or errno == ECONNRESET) {
         throw client_closed_exception{};
+      }
       stats.errors++;
       perror("sock:do_server_file while sending");
       throw client_exception{"sock:err5"};
@@ -584,16 +593,18 @@ private:
     struct epoll_event ev {};
     ev.data.ptr = this;
     ev.events = EPOLLIN | EPOLLRDHUP;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev)) {
       throw client_exception{"sock:epollmodread"};
+    }
   }
 
   inline void io_request_write() {
     struct epoll_event ev {};
     ev.data.ptr = this;
     ev.events = EPOLLOUT | EPOLLRDHUP;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev)) {
       throw client_exception{"sock:epollmodwrite"};
+    }
   }
 
   class file {
@@ -611,8 +622,9 @@ private:
       stats.writes++;
       const size_t count = count_ - size_t(offset_);
       const ssize_t n = sendfile(out_fd, fd_, &offset_, count);
-      if (n == -1) // error
+      if (n == -1) { // error
         return n;
+      }
       // if (size_t(n) != count) {
       //   printf("sock:file:resume_send_to sent %zd of %zu\n", n, count_);
       // }
@@ -691,13 +703,14 @@ private:
     inline auto receive_from(int fd_in) -> ssize_t {
       stats.reads++;
       const ssize_t n = recv(fd_in, buf_.get(), conf::sock_content_buf_size, 0);
-      if (n == -1) // error
+      if (n == -1) { // error
         return n;
+      }
       if (n == 0) { // file truncated
         stats.errors++;
         throw client_exception{"sock:content:receive_from recv 0"};
       }
-
+      // data was received
       stats.input += size_t(n);
       if (conf::print_traffic) {
         const ssize_t m = write(conf::print_traffic_fd, buf_.get(), size_t(n));
@@ -735,12 +748,14 @@ private:
     inline auto receive_from(const int fd_in) -> ssize_t {
       const size_t nbytes_to_read =
           conf::sock_request_header_buf_size - size_t(p_ - buf_.data());
-      if (nbytes_to_read == 0)
+      if (nbytes_to_read == 0) {
         throw client_exception{"sock:buf:full"};
+      }
       stats.reads++;
       const ssize_t n = recv(fd_in, p_, nbytes_to_read, 0);
-      if (n == -1)
+      if (n == -1) {
         return n;
+      }
       // when "Too many open files" recv returns 0 making a busy loop
       if (n == 0) {
         stats.errors++;
@@ -782,14 +797,17 @@ private:
   inline static auto trim(std::string_view in) -> std::string_view {
     const auto *left = in.begin();
     for (;; ++left) {
-      if (left == in.end())
+      if (left == in.end()) {
         return {};
-      if (!isspace(*left))
+      }
+      if (!isspace(*left)) {
         break;
+      }
     }
     const auto *right = in.end() - 1;
-    for (; right > left && isspace(*right); --right)
-      ;
+    while (right > left && isspace(*right)) {
+      --right;
+    }
     return {left, size_t(std::distance(left, right) + 1)};
   }
 

@@ -101,8 +101,9 @@ public:
     while (true) {
       const int n = epoll_wait(epoll_fd, events.data(), events.size(), -1);
       if (n == -1) {
-        if (errno == EINTR)
+        if (errno == EINTR) {
           continue; // interrupted system call ok
+        }
         perror("epoll_wait");
         continue;
       }
