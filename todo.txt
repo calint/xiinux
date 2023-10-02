@@ -1,6 +1,7 @@
 [ ] ? server: what to do about the raw pointer to sock
     unordered_map<int,std::unique_ptr<sock>> erased at close or exception
-[ ] server:print_client_exception thread safe "localtime(...)"
+[ ] server: print_client_exception thread safe "localtime(...)"
+[ ] server: socket time-out (man timerfd_create and clipboard.txt)
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
 [ ] when server stops with open connections valgrind reports un-freed memory
 [ ] review/refactor args
