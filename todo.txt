@@ -1,7 +1,6 @@
 [ ] clang-tidy
 [ ] map doc widget to path '/'
 [ ] consider uniform initialization using {...} instead of =
-[ ] consider "auto f() -> void" type of function declaration
 [ ] examine why size of executable compiled by g++ grew from 51K to 61K
     when "template <unsigned M> inline strb &p(const strb<M> &sb)"
     was added to 'strb' and several instances with different sizes
@@ -24,6 +23,7 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] consider "auto f() -> void" type of function declaration
 [x] examine why using lut<...>, std::put_time(...) and std::cout increases the
     size of binary so much (~75K -> ~275K)
     => -g was on now ~75K -> ~130K

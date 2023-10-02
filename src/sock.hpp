@@ -116,9 +116,7 @@ public:
         if (::close(upload_fd_)) {
           perror("sock:closing upload file");
         }
-        constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
-        // -1 to not include '\0'
-        io_send(fd_, msg, sizeof(msg) - 1);
+        io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
         state_ = next_request;
       }
       if (state_ == next_request) {
@@ -325,9 +323,7 @@ private:
     // if client expects 100 continue before sending post
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
-      constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
-      // -1 to not include '\0'
-      io_send(fd_, msg, sizeof(msg) - 1);
+      io_send(fd_, "HTTP/1.1 100\r\n\r\n"sv);
       state_ = receiving_content;
       return;
     }
@@ -400,9 +396,7 @@ private:
     // check if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
-      constexpr const char msg[] = "HTTP/1.1 100\r\n\r\n";
-      // -1 to not include '\0'
-      io_send(fd_, msg, sizeof(msg) - 1);
+      io_send(fd_, "HTTP/1.1 100\r\n\r\n"sv);
       state_ = receiving_upload;
       return;
     }
@@ -425,9 +419,7 @@ private:
       if (::close(upload_fd_)) {
         perror("sock:do_server_upload 4");
       }
-      constexpr const char msg[] = "HTTP/1.1 204\r\n\r\n";
-      // -1 to not include '\0'
-      io_send(fd_, msg, sizeof(msg) - 1);
+      io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
       state_ = next_request;
       return;
     }
@@ -443,24 +435,18 @@ private:
 
   void do_serve_file(reply &x, std::string_view path) {
     if (path.find("..") != std::string_view::npos) {
-      constexpr char msg[] = "path contains ..\n";
-      // -1 to not include '\0'
-      x.http(403, {msg, sizeof(msg) - 1});
+      x.http(403, "path contains ..\n"sv);
       state_ = next_request;
       return;
     }
     struct stat fdstat {};
     if (stat(path.data(), &fdstat)) {
-      constexpr char msg[] = "not found\n";
-      // -1 to not include '\0'
-      x.http(404, {msg, sizeof(msg) - 1});
+      x.http(404, "not found\n"sv);
       state_ = next_request;
       return;
     }
     if (S_ISDIR(fdstat.st_mode)) {
-      constexpr char msg[] = "path is directory\n";
-      // -1 to not include '\0'
-      x.http(403, {msg, sizeof(msg) - 1});
+      x.http(403, "path is directory\n"sv);
       state_ = next_request;
       return;
     }
@@ -472,16 +458,12 @@ private:
 
     const std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod) {
-      constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
-      // -1 to not include '\0'
-      io_send(fd_, msg, sizeof(msg) - 1);
+      io_send(fd_, "HTTP/1.1 304\r\n\r\n"sv);
       state_ = next_request;
       return;
     }
     if (file_.open(path.data()) == -1) {
-      constexpr char msg[] = "cannot open file\n";
-      // -1 to not include '\0'
-      x.http(404, {msg, sizeof(msg) - 1});
+      x.http(404, "cannot open file\n"sv);
       state_ = next_request;
       return;
     }
