@@ -21,7 +21,7 @@ public:
   size_t errors = 0;
   size_t brkp = 0;
 
-  void print_headers(FILE *f) const {
+  static void print_headers(FILE *f) {
     (void)fprintf(f, "%12s%14s%14s%9s%10s%8s%8s%12s%12s%12s%12s%12s%8s%8s\n",
                   "ms", "input", "output", "socks", "reqs", "sesns", "accepts",
                   "reads", "writes", "files", "widgets", "cache", "errors",

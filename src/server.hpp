@@ -284,7 +284,7 @@ private:
   inline static bool thdwatch_on = false;
   inline static bool thdwatch_stats_to_file = false;
   inline static void thdwatch_run() {
-    stats.print_headers(stdout);
+    stats::print_headers(stdout);
     while (thdwatch_on) {
       int n = 10;
       while (thdwatch_on and n--) {
