@@ -4,9 +4,11 @@
 
 namespace xiinux {
 
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions,hicpp-special-member-functions)
 class widget {
 public:
   virtual ~widget() = default;
+
   virtual void to(reply &x) = 0;
 
   // called when client is sending content
@@ -17,4 +19,5 @@ public:
                           const size_t buf_len, const size_t received_len,
                           const size_t content_len) {}
 };
+
 } // namespace xiinux

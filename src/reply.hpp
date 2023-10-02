@@ -28,12 +28,18 @@ public:
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
-  inline auto get_path() const -> std::string_view { return path_; }
-  inline auto get_query() const -> std::string_view { return query_; }
-  inline auto get_req_headers() const -> const map_headers & {
+  [[nodiscard]] inline auto get_path() const -> std::string_view {
+    return path_;
+  }
+  [[nodiscard]] inline auto get_query() const -> std::string_view {
+    return query_;
+  }
+  [[nodiscard]] inline auto get_req_headers() const -> const map_headers & {
     return req_headers_;
   }
-  inline auto get_session() const -> map_session * { return session_; }
+  [[nodiscard]] inline auto get_session() const -> map_session * {
+    return session_;
+  }
 
   [[nodiscard]] inline auto
   reply_chunky(std::string_view content_type = "text/html;charset=utf-8"sv,
@@ -81,8 +87,8 @@ public:
     if (n < 0 or size_t(n) >= sizeof(header))
       throw client_exception{"reply:http:1"};
 
-    io_send(fd_, header.data(), size_t(n), buf);
-    if (buf) {
+    io_send(fd_, header.data(), size_t(n), buf != nullptr);
+    if (buf != nullptr) {
       io_send(fd_, buf, buf_len);
     }
     return *this;
@@ -100,6 +106,7 @@ public:
     return io_send(fd_, buf, buf_len, buffer_send, throw_if_send_not_complete);
   }
 
+  // NOLINTNEXTLINE(modernize-use-nodiscard) exception thrown instead
   inline auto send(std::string_view sv, const bool buffer_send = false,
                    bool throw_if_send_not_complete = true) const -> size_t {
     return io_send(fd_, sv.data(), sv.size(), buffer_send,

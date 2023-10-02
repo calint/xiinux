@@ -26,7 +26,11 @@ public:
 
   inline ~chunky() override {
     if (!finished_) {
-      finish();
+      try {
+        finish();
+      } catch (...) {
+        // ignore exception in case client is being forcefully closed
+      }
     }
   }
 
@@ -54,6 +58,8 @@ public:
     len_ = 0;
     return *this;
   }
+
+  // xwriter implementation
 
   inline auto p(const std::string_view sv) -> chunky & override {
     const char *str = sv.data();

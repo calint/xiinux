@@ -26,7 +26,7 @@ public:
           const char ch = *p;
           if (ch == short_name)
             return true;
-          if (!ch)
+          if (ch == '\0')
             return false;
           p++;
         }
@@ -37,7 +37,7 @@ public:
   inline auto get_option_value(const char short_name, const char *default_value)
       -> const char * {
     int argc = argc_ - 1;
-    if (!argc)
+    if (argc == 0)
       return default_value;
     const char **argv = argv_;
     while (true) {
@@ -47,11 +47,11 @@ public:
         p++;
         while (true) {
           const char ch = *p;
-          if (!ch)
+          if (ch == '\0')
             break;
           if (ch == short_name) {
             p++;
-            if (!*p) { // e.g. "-p 8080"
+            if (*p == '\0') { // e.g. "-p 8080"
               if (argc > 1)
                 return *(argv + 1);
               return default_value;
@@ -62,7 +62,7 @@ public:
         }
       }
       argc--;
-      if (!argc)
+      if (argc == 0)
         break;
     }
     return default_value;
@@ -79,7 +79,7 @@ public:
       if (*p == '-')
         continue;
       n--;
-      if (!n)
+      if (n == 0)
         return p;
     }
   }

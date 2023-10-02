@@ -16,7 +16,7 @@
   exit(-signum);
 }
 
-auto main(const int argc, const char *argv[]) -> int {
+auto main(const int argc, const char **argv) -> int {
   // catch all signals
   // for (int i = 1; i < NSIG; i++) {
   //   signal(i, sigint);

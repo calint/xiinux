@@ -16,7 +16,7 @@ public:
   client_exception(client_exception &&) = default;
   auto operator=(client_exception &&) -> client_exception & = default;
 
-  inline auto what() const noexcept -> const char * override { return msg_; }
+  [[nodiscard]] inline auto what() const noexcept -> const char * override { return msg_; }
 };
 
 } // namespace xiinux

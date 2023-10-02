@@ -569,8 +569,8 @@ private:
       offset_ = seek_pos;
       count_ = size_in_bytes;
     }
-    inline auto is_done() const -> bool { return size_t(offset_) == count_; }
-    inline auto length() const -> size_t { return count_; }
+    [[nodiscard]] inline auto is_done() const -> bool { return size_t(offset_) == count_; }
+    [[nodiscard]] inline auto length() const -> size_t { return count_; }
     inline auto open(const char *path) -> int {
       fd_ = ::open(path, O_RDONLY | O_CLOEXEC);
       return fd_;
@@ -603,15 +603,16 @@ private:
   class content {
     size_t pos_{};
     size_t len_{};
+    // NOLINTNEXTLINE todo: how to declare it?
     std::unique_ptr<char[]> buf_{};
 
   public:
     inline void rst() { pos_ = len_ = 0; }
-    inline auto buf() const -> char * { return buf_.get(); }
-    inline auto pos() const -> size_t { return pos_; }
-    inline auto remaining() const -> size_t { return len_ - pos_; }
+    [[nodiscard]] inline auto buf() const -> char * { return buf_.get(); }
+    [[nodiscard]] inline auto pos() const -> size_t { return pos_; }
+    [[nodiscard]] inline auto remaining() const -> size_t { return len_ - pos_; }
     inline void unsafe_skip(const size_t n) { pos_ += n; }
-    inline auto content_len() const -> size_t { return len_; }
+    [[nodiscard]] inline auto content_len() const -> size_t { return len_; }
 
     inline void init_for_receive(const std::string_view content_length_str) {
       pos_ = 0;
@@ -619,6 +620,7 @@ private:
       // todo: abuse len
       // todo: atoll error
       if (!buf_) {
+         // NOLINTNEXTLINE how to declare it?
         buf_ = std::make_unique<char[]>(conf::sock_content_buf_size);
       }
     }
@@ -652,11 +654,11 @@ private:
 
   public:
     inline void rst() { p_ = e_ = buf_.data(); }
-    inline auto ptr() const -> char * { return p_; }
+    [[nodiscard]] inline auto ptr() const -> char * { return p_; }
     inline void set_mark() { mark_ = p_; }
-    inline auto get_mark() const -> char * { return mark_; }
-    inline auto has_more() const -> bool { return p_ != e_; }
-    inline auto remaining() const -> size_t { return size_t(e_ - p_); }
+    [[nodiscard]] inline auto get_mark() const -> char * { return mark_; }
+    [[nodiscard]] inline auto has_more() const -> bool { return p_ != e_; }
+    [[nodiscard]] inline auto remaining() const -> size_t { return size_t(e_ - p_); }
     inline void unsafe_skip(const size_t n) { p_ += n; }
     inline auto unsafe_next_char() -> char { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }

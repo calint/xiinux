@@ -12,8 +12,8 @@ template <unsigned N = 1024> class strb final : public xprinter {
   size_t len_ = 0;
 
 public:
-  inline auto buf() const -> const char * { return buf_.data(); }
-  inline auto len() const -> size_t { return len_; }
+  [[nodiscard]] inline auto buf() const -> const char * { return buf_.data(); }
+  [[nodiscard]] inline auto len() const -> size_t { return len_; }
 
   inline auto rst() -> strb & {
     len_ = 0;
@@ -30,6 +30,17 @@ public:
     len_ += str_len;
     return *this;
   }
+
+  template <unsigned M> inline auto p(const strb<M> &sb) -> strb & {
+    p({sb.buf(), sb.len()});
+    return *this;
+  }
+
+  [[nodiscard]] inline auto string_view() const -> std::string_view {
+    return {buf_.data(), len_};
+  }
+
+  // xwrite implementation
 
   inline auto p(const int i) -> strb & override {
     std::array<char, 32> str{};
@@ -72,14 +83,5 @@ public:
   }
 
   inline auto nl() -> strb & override { return p('\n'); }
-
-  template <unsigned M> inline auto p(const strb<M> &sb) -> strb & {
-    p({sb.buf(), sb.len()});
-    return *this;
-  }
-
-  inline auto string_view() const -> std::string_view {
-    return {buf_.data(), len_};
-  }
 };
 } // namespace xiinux
