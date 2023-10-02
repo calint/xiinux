@@ -95,10 +95,9 @@ public:
       thdwatch = std::thread(thdwatch_run);
     }
 
-    struct epoll_event events[conf::server_listen_backlog_size];
+    std::array<struct epoll_event, conf::server_listen_backlog_size> events{};
     while (true) {
-      const int n =
-          epoll_wait(epoll_fd, events, conf::server_listen_backlog_size, -1);
+      const int n = epoll_wait(epoll_fd, events.data(), events.size(), -1);
       if (n == -1) {
         if (errno == EINTR)
           continue; // interrupted system call ok
@@ -127,7 +126,7 @@ public:
           }
 
           if (conf::server_print_events) {
-            char ip[INET_ADDRSTRLEN];
+            std::array<char, INET_ADDRSTRLEN> ip{};
             printf("client connect: event=%x fd=%d ip=%s\n", ev.events,
                    client_fd,
                    ip_addr_to_str(ip, &(client_addr.sin_addr.s_addr)));
@@ -232,7 +231,7 @@ private:
                                             const char *msg) {
     const session *sn = client->get_session();
     const std::string &snid = sn ? sn->get_id() : "n/a";
-    char ip_addr_str[32];
+    std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
     in_addr_t inaddr = client->get_socket_address().sin_addr.s_addr;
     const std::time_t t = std::time(nullptr);
     const std::tm now = *std::localtime(&t);
@@ -241,19 +240,20 @@ private:
               << "  msg=" << msg << std::endl;
   }
 
-  inline static auto ip_addr_to_str(char dst[], void *s_addr) -> char * {
-    if (!inet_ntop(AF_INET, s_addr, dst, INET_ADDRSTRLEN)) {
+  inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,
+                                    void *s_addr) -> char * {
+    if (!inet_ntop(AF_INET, s_addr, dst.data(), unsigned(dst.size()))) {
       perror("ip address to text");
       dst[0] = 0;
     }
-    return dst;
+    return dst.data();
   }
 
   inline static void init_homepage() {
-    char buf[4 * K];
+    std::array<char, 4 * K> buf{};
     // +1 because of '\n' after 'application_name'
     const int n =
-        snprintf(buf, sizeof(buf),
+        snprintf(buf.data(), buf.size(),
                  "HTTP/1.1 200\r\nContent-Length: %zu\r\nContent-Type: "
                  "text/plain\r\n\r\n%s\n",
                  strnlen(conf::application_name, conf::str_len_max) + 1,
@@ -262,7 +262,7 @@ private:
       puts("homepage does not fit in buffer");
       exit(8);
     }
-    homepage = std::make_unique<doc>(std::string{buf, size_t(n)});
+    homepage = std::make_unique<doc>(std::string{buf.data(), size_t(n)});
   }
 
   inline static std::thread thdwatch{};

@@ -4,6 +4,7 @@
 #include "conf.hpp"
 #include "stats.hpp"
 #include "strb.hpp"
+#include <array>
 #include <errno.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -61,10 +62,11 @@ public:
   inline auto http(const int code, const char *buf, size_t buf_len,
                    std::string_view content_type = "text/html;charset=utf-8"sv)
       -> reply & {
-    char header[256];
+
+    std::array<char, 256> header{};
     int n = 0;
     if (!set_session_id_.empty()) {
-      n = snprintf(header, sizeof(header),
+      n = snprintf(header.data(), header.size(),
                    "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
                    "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
                    "GMT;SameSite=Lax\r\nContent-Type: %s\r\n\r\n",
@@ -72,14 +74,14 @@ public:
       set_session_id_ = {};
     } else {
       n = snprintf(
-          header, sizeof(header),
+          header.data(), header.size(),
           "HTTP/1.1 %d\r\nContent-Length: %zu\r\nContent-Type: %s\r\n\r\n",
           code, buf_len, content_type.data());
     }
     if (n < 0 or size_t(n) >= sizeof(header))
       throw client_exception{"reply:http:1"};
 
-    io_send(fd_, header, size_t(n), buf);
+    io_send(fd_, header.data(), size_t(n), buf);
     if (buf) {
       io_send(fd_, buf, buf_len);
     }

@@ -352,17 +352,17 @@ private:
       const time_t timer = time(nullptr);
       struct tm *tm_info = gmtime(&timer);
       // format to e.g. '20150411-225519-ieu44dn'
-      char sid[24];
-      if (!strftime(sid, size_t(24), "%Y%m%d-%H%M%S-", tm_info)) {
+      std::array<char, 24> sid{};
+      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", tm_info)) {
         throw client_exception{"sock:do_serve_widget:1"};
       }
       // 16 is len of "20150411-225519-"
-      char *sid_ptr = sid + 16;
+      char *sid_ptr = sid.data() + 16;
       for (unsigned i = 0; i < 7; i++) {
         *sid_ptr++ = 'a' + char(random() % 26); // NOLINT
       }
       *sid_ptr = '\0';
-      auto ups{std::make_unique<session>(sid)};
+      auto ups{std::make_unique<session>(sid.data())};
       session_ = ups.get();
       sessions.put(std::move(ups));
       send_session_id_in_reply_ = true;
@@ -382,17 +382,20 @@ private:
 
   void do_serve_upload() {
     // file upload
-    char pth[conf::upload_path_size];
+    std::array<char, conf::upload_path_size> pth{};
     // +1 to skip the leading '/'
-    const int res = snprintf(pth, sizeof(pth), "upload/%s",
+    const int res = snprintf(pth.data(), pth.size(), "upload/%s",
                              reqline_.path_.substr(1).data());
-    if (res < 0 or size_t(res) >= sizeof(pth))
+    if (res < 0 or size_t(res) >= pth.size())
       throw client_exception{"sock:pathtrunc"};
-    upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
+
+    upload_fd_ =
+        open(pth.data(), O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
       perror("sock:do_server_upload 1");
       throw client_exception{"sock:err7"};
     }
+
     // check if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
@@ -451,13 +454,14 @@ private:
       return;
     }
     const struct tm *tm = gmtime(&fdstat.st_mtime);
-    char lastmod[64];
+    std::array<char, 64> lastmod{};
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
-    if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm))
+    if (!strftime(lastmod.data(), lastmod.size(), "%a, %d %b %y %H:%M:%S %Z",
+                  tm))
       throw client_exception{"sock:strftime"};
 
     const std::string_view lastmodstr = headers_["if-modified-since"];
-    if (lastmodstr == lastmod) {
+    if (lastmodstr == lastmod.data()) {
       io_send(fd_, "HTTP/1.1 304\r\n\r\n"sv);
       state_ = next_request;
       return;
@@ -485,14 +489,14 @@ private:
                    "HTTP/1.1 206\r\nAccept-Ranges: "
                    "bytes\r\nLast-Modified: %s\r\nContent-Length: "
                    "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
-                   lastmod, len - size_t(offset), offset, len, len);
+                   lastmod.data(), len - size_t(offset), offset, len, len);
     } else {
       file_.init_for_send(size_t(fdstat.st_size));
       header_buf_len =
           snprintf(header_buf, sizeof(header_buf),
                    "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
                    "%s\r\nContent-Length: %zu\r\n\r\n",
-                   lastmod, file_.length());
+                   lastmod.data(), file_.length());
     }
     if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf))
       throw client_exception{"sock:err1"};
