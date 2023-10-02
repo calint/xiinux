@@ -9,7 +9,13 @@ class session final {
   map_widgets widgets_{};
 
 public:
-  inline session(std::string id) : id_{id} { stats.sessions++; }
+  inline explicit session(std::string id) : id_{std::move(id)} {
+    stats.sessions++;
+  }
+  session(const session &) = delete;
+  session &operator=(const session &) = delete;
+  session(session &&) = delete;
+  session &operator=(session &&) = delete;
 
   inline ~session() { stats.sessions--; }
 
@@ -25,7 +31,9 @@ public:
   }
   inline map_session &get_lut() { return kvp_; }
 
-  inline void put(std::string key, std::string str) { kvp_[key] = str; }
+  inline void put(const std::string &key, std::string str) {
+    kvp_[key] = std::move(str);
+  }
 
   inline void put_widget(std::string path, std::unique_ptr<widget> wgt) {
     widgets_[std::move(path)] = std::move(wgt);

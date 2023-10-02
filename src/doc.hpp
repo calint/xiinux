@@ -7,7 +7,7 @@ class doc final {
   std::string str_{};
 
 public:
-  inline doc(std::string str) : str_{str} {}
+  inline explicit doc(std::string str) : str_{std::move(str)} {}
   inline void to(reply &x) const { x.send(str_); }
 };
 } // namespace xiinux

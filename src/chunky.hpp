@@ -12,13 +12,18 @@
 
 namespace xiinux {
 class chunky final : public xprinter {
+  char buf_[conf::chunky_buf_size]{};
   size_t len_{};
-  char buf_[conf::chunky_buf_size]; //? uninitialized
   bool finished_{};
   int fd_{};
 
 public:
-  inline chunky(int sockfd) : fd_{sockfd} {}
+  inline explicit chunky(int sockfd) : fd_{sockfd} {}
+  chunky(const chunky &) = delete;
+  chunky &operator=(const chunky &) = delete;
+  chunky(chunky &&) = delete;
+  chunky &operator=(chunky &&) = delete;
+
   inline ~chunky() override {
     if (!finished_) {
       finish();
@@ -133,7 +138,7 @@ public:
   inline chunky &nl() override { return p('\n'); }
 
 private:
-  inline void send_chunk(const char *buf, const size_t buf_len) {
+  inline void send_chunk(const char *buf, const size_t buf_len) const {
     // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
     // chunk header
     char hdr[32];

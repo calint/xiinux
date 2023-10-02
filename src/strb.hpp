@@ -7,12 +7,10 @@
 
 namespace xiinux {
 template <unsigned N = 1024> class strb final : public xprinter {
+  char buf_[N]{};
   size_t len_ = 0;
-  char buf_[N];
 
 public:
-  inline strb() {}
-
   inline const char *buf() const { return buf_; }
   inline size_t len() const { return len_; }
 

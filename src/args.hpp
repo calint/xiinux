@@ -1,5 +1,5 @@
 #pragma once
-#include <ctype.h>
+#include <cctype>
 
 // todo: review messy but simple code
 namespace xiinux {
@@ -8,7 +8,7 @@ class args final {
   const char **argv_;
 
 public:
-  inline args(const int argc, const char *argv[]) : argc_{argc}, argv_{argv} {}
+  inline args(const int argc, const char **argv) : argc_{argc}, argv_{argv} {}
 
   inline bool has_option(const char short_name) {
     if (argc_ == 1)

@@ -44,7 +44,7 @@ static inline size_t io_send(const int fd, const char *buf, size_t buf_len,
       throw "io_send:1";
     return 0;
   }
-  const size_t nbytes_sent = size_t(n);
+  const auto nbytes_sent = size_t(n);
   stats.output += nbytes_sent;
 
   if (conf::print_traffic) {

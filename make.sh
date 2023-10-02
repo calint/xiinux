@@ -38,6 +38,9 @@ cat all.src|gzip|wc &&
 echo && ls -ho --color $BIN &&
 echo &&
 rm all.src &&
+
+#clang-tidy -header-filter=.* src/main.cpp -- -std=c++20 &&
+
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN

@@ -26,8 +26,10 @@ public:
     stats.socks++;
     // printf("client create %p\n", static_cast<void *>(this));
   }
-  inline sock(const sock &) = delete;
-  inline sock &operator=(const sock &) = delete;
+  sock(const sock &) = delete;
+  sock &operator=(const sock &) = delete;
+  sock(sock &&) = delete;
+  sock &operator=(sock &&) = delete;
 
   inline ~sock() {
     if (!::close(fd_)) {
@@ -70,7 +72,7 @@ public:
           stats.errors++;
           throw "sock:receiving_content";
         }
-        const size_t nbytes_read = size_t(n);
+        const auto nbytes_read = size_t(n);
         const size_t content_rem = content_.remaining();
         const size_t content_len = content_.content_len();
         reply x{fd_, reqline_.path_, reqline_.query_, headers_,
@@ -94,7 +96,7 @@ public:
           stats.errors++;
           throw "sock:receiving_upload";
         }
-        const size_t nbytes_read = size_t(n);
+        const auto nbytes_read = size_t(n);
         const size_t upload_rem = content_.remaining();
         const size_t nbytes_to_write =
             upload_rem > nbytes_read ? nbytes_read : upload_rem;
@@ -261,7 +263,7 @@ private:
       return;
     }
 
-    std::string_view content_type = headers_["content-type"];
+    const std::string_view content_type = headers_["content-type"];
     if (content_type == "file") {
       content_.init_for_receive(headers_["content-length"]);
       do_serve_upload();
@@ -270,7 +272,7 @@ private:
 
     reply x{fd_, reqline_.path_, reqline_.query_, headers_, nullptr};
 
-    std::string_view path =
+    const std::string_view path =
         reqline_.path_.at(0) == '/' ? reqline_.path_.substr(1) : reqline_.path_;
     if (path.empty()) { // uri '/'
       stats.cache++;
@@ -346,7 +348,7 @@ private:
     }
     if (session_id.empty()) {
       // no session id, create session
-      time_t timer = time(nullptr);
+      const time_t timer = time(nullptr);
       struct tm *tm_info = gmtime(&timer);
       // format to e.g. '20150411-225519-ieu44dn'
       char sid[24];
@@ -356,7 +358,7 @@ private:
       // 16 is len of "20150411-225519-"
       char *sid_ptr = sid + 16;
       for (unsigned i = 0; i < 7; i++) {
-        *sid_ptr++ = 'a' + char((random()) % 26);
+        *sid_ptr++ = 'a' + char(random() % 26); // NOLINT
       }
       *sid_ptr = '\0';
       auto ups{std::make_unique<session>(sid)};
@@ -381,12 +383,11 @@ private:
     // file upload
     char pth[conf::upload_path_size];
     // +1 to skip the leading '/'
-    const int res =
-        snprintf(pth, sizeof(pth), "upload/%s",
-                 reqline_.path_.substr(1).data());
+    const int res = snprintf(pth, sizeof(pth), "upload/%s",
+                             reqline_.path_.substr(1).data());
     if (res < 0 or size_t(res) >= sizeof(pth))
       throw "sock:pathtrunc";
-    upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    upload_fd_ = open(pth, O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
       perror("sock:do_server_upload 1");
       throw "sock:err7";
@@ -436,14 +437,14 @@ private:
   }
 
   void do_serve_file(reply &x, std::string_view path) {
-    if (path.find("..") != path.npos) {
+    if (path.find("..") != std::string_view::npos) {
       constexpr char msg[] = "path contains ..\n";
       // -1 to not include '\0'
       x.http(403, {msg, sizeof(msg) - 1});
       state_ = next_request;
       return;
     }
-    struct stat fdstat;
+    struct stat fdstat {};
     if (stat(path.data(), &fdstat)) {
       constexpr char msg[] = "not found\n";
       // -1 to not include '\0'
@@ -464,7 +465,7 @@ private:
     if (!strftime(lastmod, sizeof(lastmod), "%a, %d %b %y %H:%M:%S %Z", tm))
       throw "sock:strftime";
 
-    std::string_view lastmodstr = headers_["if-modified-since"];
+    const std::string_view lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod) {
       constexpr char msg[] = "HTTP/1.1 304\r\n\r\n";
       // -1 to not include '\0'
@@ -480,7 +481,7 @@ private:
       return;
     }
     stats.files++;
-    std::string_view range = headers_["range"];
+    const std::string_view range = headers_["range"];
     char header_buf[512];
     int header_buf_len = 0;
     if (!range.empty()) {
@@ -530,7 +531,7 @@ private:
   }
 
   inline void io_request_read() {
-    struct epoll_event ev;
+    struct epoll_event ev {};
     ev.data.ptr = this;
     ev.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
@@ -538,7 +539,7 @@ private:
   }
 
   inline void io_request_write() {
-    struct epoll_event ev;
+    struct epoll_event ev {};
     ev.data.ptr = this;
     ev.events = EPOLLOUT | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev))
@@ -551,7 +552,7 @@ private:
     int fd_{};
 
   public:
-    inline void close() {
+    inline void close() const {
       if (::close(fd_)) {
         perror("closefile");
       }
@@ -580,7 +581,7 @@ private:
     inline bool is_done() const { return size_t(offset_) == count_; }
     inline size_t length() const { return count_; }
     inline int open(const char *path) {
-      fd_ = ::open(path, O_RDONLY);
+      fd_ = ::open(path, O_RDONLY | O_CLOEXEC);
       return fd_;
     }
     inline void rst() {
@@ -653,7 +654,7 @@ private:
   } content_{};
 
   class reqbuf {
-    char buf_[conf::sock_request_header_buf_size];
+    char buf_[conf::sock_request_header_buf_size]{};
     char *mark_{buf_};
     char *p_{buf_};
     char *e_{buf_};
@@ -721,17 +722,17 @@ private:
   bool send_session_id_in_reply_{};
 
   inline static std::string_view trim(std::string_view in) {
-    auto left = in.begin();
+    const auto *left = in.begin();
     for (;; ++left) {
       if (left == in.end())
-        return std::string_view();
+        return {};
       if (!isspace(*left))
         break;
     }
-    auto right = in.end() - 1;
+    const auto *right = in.end() - 1;
     for (; right > left && isspace(*right); --right)
       ;
-    return std::string_view(left, size_t(std::distance(left, right) + 1));
+    return {left, size_t(std::distance(left, right) + 1)};
   }
 
   inline static void strlwr(char *p) {

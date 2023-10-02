@@ -6,7 +6,7 @@ namespace xiinux {
 
 class widget {
 public:
-  virtual ~widget() {}
+  virtual ~widget() = default;
   virtual void to(reply &x) = 0;
 
   // called when client is sending content
