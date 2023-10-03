@@ -14,7 +14,8 @@
 
 namespace xiinux::web {
 
-using map_widget_factories = std::unordered_map<std::string, widget *(*)()>;
+using map_widget_factories =
+    std::unordered_map<std::string, widget_factory_func_ptr>;
 
 inline static map_widget_factories path_to_widget_map{};
 
