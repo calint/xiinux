@@ -1,9 +1,12 @@
 [ ] ? server: what to do about the raw pointer to sock
     unordered_map<int,std::unique_ptr<sock>> erased at close or exception
-[ ] server: print_client_exception thread safe "localtime(...)"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
+[ ] 'map_session' in 'reply' is a raw pointer to a member of 'session' and may
+    be dangling if 'session' is deleted by 'sessions' while a 'widget' is running.
+    thus 'session' can be owned by 'sessions' using 'unique_ptr' instead of 'shared_ptr'
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
 [ ] when server stops with open connections valgrind reports un-freed memory
+[ ] server: print_client_exception thread safe "localtime(...)"
 [ ] review/refactor args
 [ ] map doc widget to path '/'
 [ ] consider uniform initialization using {...} instead of =
