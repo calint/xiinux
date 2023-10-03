@@ -1,7 +1,6 @@
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
     https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
-[ ] when server stops with open connections valgrind reports un-freed memory
 [ ] server: print_client_exception thread safe "localtime(...)"
 [ ] review/refactor args
 [ ] map doc widget to path '/'
@@ -27,6 +26,8 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] when server stops with open connections valgrind reports un-freed memory
+    => unordered_map<int,std::unique_ptr<sock>>
 [x] ? server: what to do about the raw pointer to sock
     unordered_map<int,std::unique_ptr<sock>> erased at close or exception
 [x] 'map_session' in 'reply' is a raw pointer to a member of 'session' and may
