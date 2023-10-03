@@ -21,7 +21,7 @@ function po(e){
 function upload(path,blobOrFile,progressbarId){
 //	console.log(progressbarId);
 	document.getElementById(progressbarId).value=0;
-	var xhr=new XMLHttpRequest();
+	let xhr=new XMLHttpRequest();
 	xhr.onreadystatechange=function(){
 //		console.log('onreadychange '+xhr.readyState+' status: '+xhr.status+' '+path);
 	};

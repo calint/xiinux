@@ -100,6 +100,6 @@ namespace xiinux::web {
 
 static inline void widget_init_path_to_factory_map();
 static inline auto widget_factory_for_path(std::string_view path)
-    -> widget *(*)();
+    -> widget_factory_func_ptr;
 
 } // namespace xiinux::web
