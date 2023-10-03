@@ -138,10 +138,9 @@ public:
                    ip_addr_to_str(ip_str_buf, &(client_addr.sin_addr.s_addr)),
                    client_fd);
           }
-          // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-          sock *client = new sock(client_fd, client_addr);
-          socks.insert({client_fd, client});
-          ev.data.ptr = client;
+          auto upc{std::make_unique<sock>(client_fd, client_addr)};
+          ev.data.ptr = upc.get();
+          socks.insert({client_fd, std::move(upc)});
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
           if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev)) {
             perror("epoll_ctl");
@@ -192,9 +191,7 @@ public:
         sock *client = static_cast<sock *>(ev.data.ptr);
 
         if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
-          // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
           socks.erase(client->get_fd());
-          delete client;
           continue;
         }
 
@@ -205,23 +202,26 @@ public:
 
   inline static void stop() {
     printf("stopping xiinux\n");
+
     if (close(epoll_fd)) {
       perror("server:stop:close epoll_fd");
     }
+
     if (close(server_fd)) {
       perror("server:stop:close server_fd");
     }
+
     const size_t nsocks = socks.size();
     printf("* disconnecting %lu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
-    for (auto &it : socks) {
-      delete it.second;
-    }
+    socks.clear();
+
     if (thdwatch_on) {
       printf("* stopping metrics watch\n");
       thdwatch_on = false;
       thdwatch.join();
     }
-    printf("* done\n");
+
+    printf("xiinux stopped\n");
   }
 
 private:
@@ -232,19 +232,14 @@ private:
     } catch (const client_closed_exception &) {
       stats.brkp++;
       socks.erase(client->get_fd());
-      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-      delete client;
     } catch (const client_exception &e) {
       stats.errors++;
       print_client_exception(client, e.what());
       socks.erase(client->get_fd());
-      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-      delete client;
     } catch (...) {
       stats.errors++;
       print_client_exception(client, "n/a due to catch(...)");
-      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-      delete client;
+      socks.erase(client->get_fd());
     }
   }
 
@@ -316,6 +311,6 @@ private:
   }
 
   inline static int server_fd{};
-  inline static std::unordered_map<int, sock *> socks{};
+  inline static std::unordered_map<int, std::unique_ptr<sock>> socks{};
 };
 } // namespace xiinux

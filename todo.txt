@@ -1,12 +1,4 @@
-[ ] ? server: what to do about the raw pointer to sock
-    unordered_map<int,std::unique_ptr<sock>> erased at close or exception
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
-[ ] 'map_session' in 'reply' is a raw pointer to a member of 'session' and may
-    be dangling if 'session' is deleted by 'sessions' while a 'widget' is running.
-    but 'session' can be owned by 'sessions' using 'unique_ptr' instead of 'shared_ptr'.
-    life-time of 'sessions' is global so 'session' is valid till 'main' exits.
-    same for 'widget' in 'sock'. 'widget' is valid till 'session' containing it is
-    deleted which is at 'main' exit so a raw pointer is ok.
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
     https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] when server stops with open connections valgrind reports un-freed memory
@@ -35,6 +27,15 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] ? server: what to do about the raw pointer to sock
+    unordered_map<int,std::unique_ptr<sock>> erased at close or exception
+[x] 'map_session' in 'reply' is a raw pointer to a member of 'session' and may
+    be dangling if 'session' is deleted by 'sessions' while a 'widget' is running.
+    but 'session' can be owned by 'sessions' using 'unique_ptr' instead of 'shared_ptr'.
+    life-time of 'sessions' is global so 'session' is valid till 'main' exits.
+    same for 'widget' in 'sock'. 'widget' is valid till 'session' containing it is
+    deleted which is at 'main' exit so a raw pointer is ok.
+    => reverted to raw pointer to 'session' and 'widget' in 'sock'
 [x] sock: make std::shared_ptr for session and widget
 [x] clang-tidy
 [x] consider "auto f() -> void" type of function declaration
