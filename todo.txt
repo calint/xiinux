@@ -1,6 +1,8 @@
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] save and load sessions at start and exit
+[ ] upload.html send file modified time
+[ ] sock: upload handle content-type: file; [millis since January 1, 1970 (Unix timestamp)]
 [ ] map doc widget to path '/'
 [ ] uploaded file to session directory
 [ ] better handling of "accept: Too many open files"

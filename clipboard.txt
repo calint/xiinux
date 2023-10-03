@@ -39,77 +39,9 @@ sudo sysctl net.ipv4.tcp_fin_timeout=5
 hey -n 10000 -c 1 http://localhost:8088/qa/files/far_side_dog_ok.jpg
 
 
-	static inline void urldecode(char*str){
-		const char*p{str};
-		while(*p){
-			if(*p=='+'){
-				*str++=' ';
-				p++;
-				continue;
-			}
-			char a,b;
-			if(*p=='%'&&(a=p[1])&&(b=p[2])&&isxdigit(a)&&isxdigit(b)){
-				if(a>='a')a-='a'-'A';
-				if(a>='A')a-='A'-10;else a-='0';
-				if(b>='a')b-='a'-'A';
-				if(b>='A')b-='A'-10;else b-='0';
-				*str++=16*a+b;
-				p+=3;
-				continue;
-			}
-			*str++=*p++;
-		}
-		*str='\0';
-	}
-
-To pause a pthread and wait for a notify from a different thread in Linux using C++, you can make use of condition variables. Condition variables are synchronization primitives that allow a thread to wait until it is notified by another thread.
-
-Here's a general outline of how you can achieve this:
-
-    Define a condition variable and a mutex that will be used to synchronize access to the shared variable and coordinate between threads.
-
-
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
-
-    In the thread that you want to pause:
-
-
-    Acquire the mutex.
-    Check a condition using a while loop. If the condition is not met, wait on the condition variable.
-    When the condition is met, proceed with the desired task.
-    Release the mutex.
-
-
-pthread_mutex_lock(&mutex);
-while (!condition) {
-    pthread_cond_wait(&cond, &mutex);
-}
-// Perform the task when the condition is met
-pthread_mutex_unlock(&mutex);
-
-
-    In the other thread that will notify:
-
-
-    Acquire the mutex.
-    Update the shared variable or perform the necessary action.
-    Signal or broadcast the condition variable to wake up the waiting thread.
-    Release the mutex.
-
-
-pthread_mutex_lock(&mutex);
-// Update the shared variable or perform the necessary action
-pthread_cond_signal(&cond); // or pthread_cond_broadcast(&cond) to wake up multiple threads
-pthread_mutex_unlock(&mutex);
-
-
-This way, the first thread will pause and wait until the condition is met and it receives a notification from the other thread.
-
-Remember to properly handle error conditions and ensure that the mutex and condition variable are destroyed when they are no longer needed.
-
-Note: The code provided is a general outline and may need to be adapted to your specific use case.
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
 // Create epoll instance
@@ -161,3 +93,37 @@ while (true) {
 close(socket_fd);
 close(epoll_fd);
 close(timer_fd);
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+
+Retrieve the lastModified value from the File object, which represents the number of milliseconds since January 1, 1970 (Unix timestamp).
+
+#include <iostream>
+#include <sys/stat.h>
+
+void setModifiedTime(const std::string& filePath, time_t modifiedTime) {
+    struct utimbuf timeBuf;
+    timeBuf.actime = modifiedTime; // access time (not modified)
+    timeBuf.modtime = modifiedTime; // modified time
+
+    // Set the modified time of the file
+    if (utime(filePath.c_str(), &timeBuf) != 0) {
+        std::cerr << "Failed to set the modified time of the file." << std::endl;
+    }
+}
+
+int main() {
+    // Example usage
+    std::string filePath = "/path/to/file.txt";
+    time_t lastModified = selectedFiles[i].lastModified / 1000; // Convert to seconds
+
+    setModifiedTime(filePath, lastModified);
+
+    return 0;
+}
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------

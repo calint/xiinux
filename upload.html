@@ -7,6 +7,11 @@ function send(){
 	document.getElementById('outp').innerHTML='';
 	let files=document.getElementById("files").files;
 	for(let i=0,f;f=files[i];i++){
+		console.log('File Name:', f.name);
+  		console.log('File Size:', f.size);
+		console.log('File Type:', f.type);	
+		console.log('Last Modified:', f.lastModified);
+		console.log('Last Modified Date:', f.lastModifiedDate);
 		document.getElementById('outp').innerHTML+=f.name+'  '+f.size+'\n<progress id=pb'+i+' value=0 style=width:100%></progress>\n';
 		upload(f.name,f,'pb'+i);
 	}
