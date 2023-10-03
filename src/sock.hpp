@@ -807,13 +807,14 @@ private:
 
   inline static auto trim(std::string_view in) -> std::string_view {
     const auto *left = in.begin();
-    for (;; ++left) {
+    while (true) {
       if (left == in.end()) {
         return {};
       }
       if (!isspace(*left)) {
         break;
       }
+      ++left;
     }
     const auto *right = in.end() - 1;
     while (right > left && isspace(*right)) {
