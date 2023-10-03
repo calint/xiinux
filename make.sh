@@ -29,7 +29,9 @@ OPT=-O3
 #OPT=-Os
 
 echo > all.src &&
-for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
+#for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
+find src -type f -exec cat {} + >> all.src
+
 
 echo &&
 $CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS && 
