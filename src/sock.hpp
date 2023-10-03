@@ -361,7 +361,7 @@ private:
       send_session_id_in_reply_ = false;
     }
     // check if request has content
-    auto content_length_str = headers_["content-length"];
+    const std::string_view content_length_str = headers_["content-length"];
     if (content_length_str.empty()) {
       // no content from client, render widget
       widget_->to(x);

@@ -20,6 +20,17 @@ public:
     return *this;
   }
 
+  template <unsigned M> inline auto p(const strb<M> &sb) -> strb & {
+    p({sb.buf(), sb.len()});
+    return *this;
+  }
+
+  [[nodiscard]] inline auto string_view() const -> std::string_view {
+    return {buf_.data(), len_};
+  }
+
+  // xwrite implementation
+
   inline auto p(const std::string_view sv) -> strb & override {
     const char *str = sv.data();
     const size_t str_len = sv.size();
@@ -31,17 +42,6 @@ public:
     len_ += str_len;
     return *this;
   }
-
-  template <unsigned M> inline auto p(const strb<M> &sb) -> strb & {
-    p({sb.buf(), sb.len()});
-    return *this;
-  }
-
-  [[nodiscard]] inline auto string_view() const -> std::string_view {
-    return {buf_.data(), len_};
-  }
-
-  // xwrite implementation
 
   inline auto p(const int i) -> strb & override {
     std::array<char, 32> str{};
