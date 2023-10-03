@@ -5,16 +5,16 @@
 <script>
 function send(){
 	document.getElementById('outp').innerHTML='';
-	var files=document.getElementById("files").files;
-	for(var i=0,f;f=files[i];i++){
+	let files=document.getElementById("files").files;
+	for(let i=0,f;f=files[i];i++){
 		document.getElementById('outp').innerHTML+=f.name+'  '+f.size+'\n<progress id=pb'+i+' value=0 style=width:100%></progress>\n';
 		upload(f.name,f,'pb'+i);
 	}
 }
 function po(e){
 	console.log(e+"\n");
-	for(var nm in e){
-		var v=e[nm];
+	for(let nm in e){
+		let v=e[nm];
 		console.log("  "+nm+"="+v+"\n");
 	}
 }
