@@ -2,7 +2,11 @@
 #pragma once
 #include "exceptions.hpp"
 #include "stats.hpp"
+#include <arpa/inet.h>
+#include <array>
+#include <chrono>
 #include <memory>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <unordered_map>
 
@@ -67,6 +71,27 @@ static inline auto io_send(const int fd, std::string_view sv,
     -> size_t {
   return io_send(fd, sv.data(), sv.size(), buffer_send,
                  throw_if_send_not_complete);
+}
+
+inline static auto current_time_to_string(std::array<char, 26> &time_str_buf)
+    -> const char * {
+  const auto chrono_now = std::chrono::system_clock::now();
+  const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);
+  if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",
+                     std::localtime(&time_now))) {
+    // some error
+    time_str_buf[0] = '\0';
+  }
+  return time_str_buf.data();
+}
+
+inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,
+                                  void *s_addr) -> const char * {
+  if (!inet_ntop(AF_INET, s_addr, dst.data(), unsigned(dst.size()))) {
+    perror("ip address to text");
+    dst[0] = 0;
+  }
+  return dst.data();
 }
 } // namespace xiinux
 

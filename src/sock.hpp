@@ -31,6 +31,12 @@ public:
 
   inline ~sock() {
     stats.socks--;
+    if constexpr (conf::server_print_client_disconnect_event) {
+      std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
+      std::array<char, 26> time_str_buf{};
+      printf("%s  disconnect: ip=%s fd=%d\n", current_time_to_string(time_str_buf),
+             ip_addr_to_str(ip_str_buf, &(sock_addr_.sin_addr.s_addr)), fd_);
+    }
     if (!::close(fd_)) {
       // printf("client close %p\n", static_cast<void *>(this));
       return;

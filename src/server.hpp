@@ -31,7 +31,7 @@ public:
       return 1;
     }
 
-    if (conf::server_reuse_addr_and_port) {
+    if constexpr (conf::server_reuse_addr_and_port) {
       int option = 1;
       if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
                      sizeof(option))) {
@@ -46,7 +46,7 @@ public:
       }
     }
 
-    if (conf::server_print_listen_socket_conf) {
+    if constexpr (conf::server_print_listen_socket_conf) {
       printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
              get_sock_option(server_fd, SO_SNDBUF, SOL_SOCKET),
              get_sock_option(server_fd, TCP_NODELAY),
@@ -107,7 +107,7 @@ public:
         perror("epoll_wait");
         continue;
       }
-      if (conf::server_print_epoll_events) {
+      if constexpr (conf::server_print_epoll_events) {
         printf("events %d\n", n);
       }
       for (unsigned i = 0; i < unsigned(n); i++) {
@@ -130,7 +130,7 @@ public:
             continue;
           }
 
-          if (conf::server_print_client_connect_event) {
+          if constexpr (conf::server_print_client_connect_event) {
             std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
             std::array<char, 26> time_str_buf{};
             printf("%s  connect: ip=%s fd=%d\n",
@@ -140,6 +140,7 @@ public:
           }
           // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
           sock *client = new sock(client_fd, client_addr);
+          socks.insert({client_fd, client});
           ev.data.ptr = client;
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
           if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev)) {
@@ -147,7 +148,7 @@ public:
             continue;
           }
 
-          if (conf::sock_send_buffer_size) {
+          if constexpr (conf::sock_send_buffer_size) {
             if (setsockopt(client_fd, SOL_SOCKET, SO_SNDBUF,
                            &conf::sock_send_buffer_size,
                            sizeof(conf::sock_send_buffer_size))) {
@@ -169,7 +170,7 @@ public:
             }
           }
 
-          if (conf::server_print_client_socket_conf) {
+          if constexpr (conf::server_print_client_socket_conf) {
             printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
                    get_sock_option(client_fd, SO_SNDBUF, SOL_SOCKET),
                    get_sock_option(client_fd, TCP_NODELAY),
@@ -183,7 +184,7 @@ public:
         }
 
         // client sock, read, write or hang-up available
-        if (conf::server_print_epoll_events) {
+        if constexpr (conf::server_print_epoll_events) {
           printf("client %p event=%x\n", ev.data.ptr, ev.events);
         }
 
@@ -192,6 +193,7 @@ public:
 
         if (ev.events & (EPOLLRDHUP | EPOLLHUP)) {
           // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+          socks.erase(client->get_fd());
           delete client;
           continue;
         }
@@ -202,16 +204,24 @@ public:
   }
 
   inline static void stop() {
+    printf("stopping xiinux\n");
     if (close(epoll_fd)) {
       perror("server:stop:close epoll_fd");
     }
     if (close(server_fd)) {
       perror("server:stop:close server_fd");
     }
+    const size_t nsocks = socks.size();
+    printf("* disconnecting %lu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
+    for (auto &it : socks) {
+      delete it.second;
+    }
     if (thdwatch_on) {
+      printf("* stopping metrics watch\n");
       thdwatch_on = false;
       thdwatch.join();
     }
+    printf("* done\n");
   }
 
 private:
@@ -221,11 +231,13 @@ private:
       client->run();
     } catch (const client_closed_exception &) {
       stats.brkp++;
+      socks.erase(client->get_fd());
       // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     } catch (const client_exception &e) {
       stats.errors++;
       print_client_exception(client, e.what());
+      socks.erase(client->get_fd());
       // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       delete client;
     } catch (...) {
@@ -253,27 +265,6 @@ private:
     // output
     printf("!!! exception %s  %s  session=%s  msg=%s\n", time_str_buf.data(),
            ip_addr_to_str(ip_addr_str, &addr), ses_id.c_str(), msg);
-  }
-
-  inline static auto current_time_to_string(std::array<char, 26> &time_str_buf)
-      -> const char * {
-    const auto chrono_now = std::chrono::system_clock::now();
-    const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);
-    if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",
-                       std::localtime(&time_now))) {
-      // some error
-      time_str_buf[0] = '\0';
-    }
-    return time_str_buf.data();
-  }
-
-  inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,
-                                    void *s_addr) -> const char * {
-    if (!inet_ntop(AF_INET, s_addr, dst.data(), unsigned(dst.size()))) {
-      perror("ip address to text");
-      dst[0] = 0;
-    }
-    return dst.data();
   }
 
   [[nodiscard]] inline static auto init_homepage() -> bool {
@@ -324,6 +315,7 @@ private:
     return option;
   }
 
-  inline static int server_fd = 0;
+  inline static int server_fd{};
+  inline static std::unordered_map<int, sock *> socks{};
 };
 } // namespace xiinux

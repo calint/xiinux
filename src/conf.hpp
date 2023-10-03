@@ -8,6 +8,7 @@ static constexpr bool server_reuse_addr_and_port = true;
 static constexpr bool server_print_listen_socket_conf = false;
 static constexpr bool server_print_client_socket_conf = false;
 static constexpr bool server_print_client_connect_event = true;
+static constexpr bool server_print_client_disconnect_event = true;
 static constexpr bool server_print_epoll_events = false;
 static constexpr size_t sock_request_header_buf_size = K;
 static constexpr size_t sock_content_buf_size = 4 * K;
