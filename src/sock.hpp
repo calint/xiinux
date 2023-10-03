@@ -266,7 +266,7 @@ public:
   inline auto get_path() const -> std::string_view { return reqline_.path_; }
   inline auto get_query() const -> std::string_view { return reqline_.query_; }
   inline auto get_headers() const -> const map_headers & { return headers_; }
-  inline auto get_session() const -> session * { return session_.get(); }
+  inline auto get_session() const -> session * { return session_; }
 
 private:
   void do_after_headers() {
@@ -392,8 +392,9 @@ private:
       }
       *sid_ptr = '\0';
       // make unique pointer of 'session' with lifetime of 'sessions'
-      session_ = std::make_shared<session>(sid.data());
-      sessions.put(session_);
+      auto up{std::make_unique<session>(sid.data())};
+      session_ = up.get();
+      sessions.put(std::move(up));
       send_session_id_in_reply_ = true;
       return;
     }
@@ -403,9 +404,9 @@ private:
       return; // session found, done
     }
     // session not found, create
-    session_ = std::make_shared<session>(std::string{session_id});
-    // put it in sessions
-    sessions.put(session_);
+    auto up{std::make_unique<session>(std::string{session_id})};
+    session_ = up.get();
+    sessions.put(std::move(up));
   }
 
   void do_serve_upload() {
@@ -786,7 +787,7 @@ private:
   map_headers headers_{};
   int upload_fd_{};
   std::shared_ptr<widget> widget_{};
-  std::shared_ptr<session> session_{};
+  session *session_{};
   bool send_session_id_in_reply_{};
 
   inline static auto trim(std::string_view in) -> std::string_view {
