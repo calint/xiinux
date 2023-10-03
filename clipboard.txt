@@ -1,5 +1,8 @@
 watch cat /proc/$(ps a|grep xiinux|head -n1|awk '{print $1}')/status
 
+cppcheck --enable=all src/main.cpp
+
+
 # watch open sockets count
 XID=$(ps a|grep xiinux|head -n1|awk '{print $1}') watch -n 1 "lsof -a -p $XID -i | grep TCP | wc -l"
 
