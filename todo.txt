@@ -3,6 +3,7 @@
     https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] server: print_client_exception thread safe "localtime(...)"
 [ ] review/refactor args
+[ ] save and load sessions at start and exit
 [ ] map doc widget to path '/'
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
