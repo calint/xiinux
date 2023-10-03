@@ -10,6 +10,7 @@ static constexpr bool server_print_client_socket_conf = false;
 static constexpr bool server_print_client_connect_event = true;
 static constexpr bool server_print_client_disconnect_event = true;
 static constexpr bool server_print_epoll_events = false;
+static constexpr bool sock_print_client_requests = true;
 static constexpr size_t sock_request_header_buf_size = K;
 static constexpr size_t sock_content_buf_size = 4 * K;
 static constexpr int sock_send_buffer_size = 0; // 0 means system default
@@ -18,6 +19,6 @@ static constexpr size_t widget_key_size = 128;
 static constexpr size_t upload_path_size = 256;
 static constexpr unsigned path_to_widget_lut_size = 16;
 static constexpr size_t str_len_max = K * M;
-static constexpr bool print_traffic = true;
+static constexpr bool print_traffic = false;
 static constexpr int print_traffic_fd = 1; // stdout
 } // namespace xiinux::conf

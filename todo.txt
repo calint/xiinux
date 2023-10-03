@@ -1,5 +1,4 @@
 [ ] save and load sessions at start and exit
-[ ] sock: session id from cookie accessible in requests for file and upload
 [ ] map doc widget to path '/'
 [ ] uploaded file names are urlencoded
 [ ] uploaded file to session directory
@@ -24,6 +23,7 @@
 [ ] websockets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] sock: session id from cookie accessible in requests for file and upload
 [-] consider uniform initialization using {...} instead of =
     =>
         auto upc = std::make_unique<sock>(client_fd, client_addr);

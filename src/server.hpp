@@ -242,8 +242,7 @@ private:
   inline static void print_client_exception(const sock *client,
                                             const char *msg) {
     // client session id
-    const session *ses = client->get_session();
-    const std::string &ses_id = ses ? ses->get_id() : "n/a";
+    const std::string &ses_id = client->get_session_id();
 
     // client ip
     std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
@@ -255,7 +254,8 @@ private:
 
     // output
     printf("!!! exception %s  %s  session=%s  msg=%s\n", time_str_buf.data(),
-           ip_addr_to_str(ip_addr_str, &addr), ses_id.c_str(), msg);
+           ip_addr_to_str(ip_addr_str, &addr),
+           ses_id.empty() ? "n/a" : ses_id.c_str(), msg);
   }
 
   [[nodiscard]] inline static auto init_homepage() -> bool {

@@ -152,6 +152,7 @@ public:
         headers_.clear();
         upload_fd_ = 0;
         widget_ = nullptr;
+        session_id_ = {};
         session_ = nullptr;
         state_ = method;
       }
@@ -274,9 +275,29 @@ public:
   inline auto get_query() const -> std::string_view { return reqline_.query_; }
   inline auto get_headers() const -> const map_headers & { return headers_; }
   inline auto get_session() const -> session * { return session_; }
+  inline auto get_session_id() const -> const std::string & {
+    return session_id_;
+  }
 
 private:
   void do_after_headers() {
+    retrieve_session_id_from_cookie();
+    if constexpr (conf::sock_print_client_requests) {
+      // client ip
+      std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
+      in_addr_t addr = get_socket_address().sin_addr.s_addr;
+
+      // current time
+      std::array<char, 26> time_str_buf{};
+      current_time_to_str(time_str_buf);
+
+      // output
+      printf("%s  %s  session=%s  path=%s  query=%s\n", time_str_buf.data(),
+             ip_addr_to_str(ip_addr_str, &addr),
+             session_id_.empty() ? "n/a" : session_id_.c_str(),
+             get_path().data(), get_query().data());
+    }
+
     // check if there is a widget factory bound to path
     const widget_factory_func_ptr factory =
         web::widget_factory_for_path(reqline_.path_);
@@ -313,10 +334,13 @@ private:
     do_serve_file(x, path);
   }
 
-  void do_serve_widget(widget *(*factory)()) {
+  void do_serve_widget(widget_factory_func_ptr factory) {
     stats.widgets++;
-    // get session id from cookie or create new
+
+    retrieve_session_id_from_cookie();
+
     retrieve_or_create_session();
+
     // get widget from session using path
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
@@ -326,12 +350,14 @@ private:
       // move widget to session
       session_->put_widget(std::string{reqline_.path_}, std::move(up_wdgt));
     }
+
     // build reply object
     reply x{fd_, reqline_.path_, reqline_.query_, headers_,
             &session_->get_lut()};
+
     // if a new session has been created send session id at next opportunity
     if (send_session_id_in_reply_) {
-      x.send_session_id_at_next_opportunity(session_->get_id());
+      x.send_session_id_at_next_opportunity(session_id_);
       send_session_id_in_reply_ = false;
     }
     // check if request has content
@@ -373,16 +399,18 @@ private:
     state_ = receiving_content;
   }
 
-  void retrieve_or_create_session() {
-    // after this a session will be available either created or retrieved
-    auto cookie = headers_["cookie"];
-    std::string_view session_id{};
+  void retrieve_session_id_from_cookie() {
+    // get session id from cookie or create new
+    const std::string_view cookie = headers_["cookie"];
     if (cookie.starts_with("i=")) {
       // 2 to skip 'i='
-      session_id = cookie.substr(2);
+      session_id_ = cookie.substr(2);
     }
+  }
+
+  void retrieve_or_create_session() {
     // check if session id is in cookie
-    if (session_id.empty()) {
+    if (session_id_.empty()) {
       // no session id, create session id with format e.g.
       // '20150411-225519-ieu44dn'
       const time_t timer = time(nullptr);
@@ -396,10 +424,12 @@ private:
       }
       // 16 is len of "20150411-225519-"
       char *sid_ptr = sid.data() + 16;
+      // generate 7 random characters between 'a' and 'z'
       for (unsigned i = 0; i < 7; i++) {
         *sid_ptr++ = 'a' + char(random() % 26); // NOLINT
       }
       *sid_ptr = '\0';
+      session_id_ = sid.data();
       // make unique pointer of 'session' with lifetime of 'sessions'
       auto up = std::make_unique<session>(sid.data());
       session_ = up.get();
@@ -408,12 +438,12 @@ private:
       return;
     }
     // session id in cookie. try to get from 'sessions'
-    session_ = sessions.get(session_id);
+    session_ = sessions.get(session_id_);
     if (session_) {
       return; // session found, done
     }
     // session not found, create
-    auto up = std::make_unique<session>(std::string{session_id});
+    auto up = std::make_unique<session>(std::string{session_id_});
     session_ = up.get();
     sessions.put(std::move(up));
   }
@@ -796,6 +826,7 @@ private:
   struct sockaddr_in sock_addr_ {};
   map_headers headers_{};
   int upload_fd_{};
+  std::string session_id_{};
   // note
   // 'widget' lifetime is same as 'session'
   // 'session' lifetime is same as 'sessions'
