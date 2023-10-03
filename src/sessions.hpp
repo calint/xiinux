@@ -10,6 +10,11 @@ class sessions final {
   map_sessions sessions_{};
 
 public:
+  inline ~sessions() {
+    printf("* deleting %lu session%s\n", sessions_.size(),
+           sessions_.size() == 1 ? "" : "s");
+  }
+
   inline auto get(std::string_view id) -> session * {
     return sessions_[std::string{id}].get();
   }

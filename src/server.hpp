@@ -220,8 +220,6 @@ public:
       thdwatch_on = false;
       thdwatch.join();
     }
-
-    printf("xiinux stopped\n");
   }
 
 private:
