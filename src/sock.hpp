@@ -794,6 +794,11 @@ private:
   struct sockaddr_in sock_addr_ {};
   map_headers headers_{};
   int upload_fd_{};
+  // note
+  // 'widget' lifetime is same as 'session'
+  // 'session' lifetime is same as 'sessions'
+  // 'sessions' lifetime is same as program > 'sock' lifetime
+  // raw pointers ok
   widget *widget_{};
   session *session_{};
   bool send_session_id_in_reply_{};

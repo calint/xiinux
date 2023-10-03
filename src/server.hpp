@@ -38,7 +38,6 @@ public:
         perror("setsockopt SO_REUSEADDR");
         return 2;
       }
-
       if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &option,
                      sizeof(option))) {
         perror("setsockopt SO_REUSEPORT");
@@ -133,8 +132,7 @@ public:
           if constexpr (conf::server_print_client_connect_event) {
             std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
             std::array<char, 26> time_str_buf{};
-            printf("%s  %s  connect fd=%d\n",
-                   current_time_to_str(time_str_buf),
+            printf("%s  %s  connect fd=%d\n", current_time_to_str(time_str_buf),
                    ip_addr_to_str(ip_str_buf, &(client_addr.sin_addr.s_addr)),
                    client_fd);
           }
@@ -156,7 +154,6 @@ public:
           }
 
           if (option_benchmark_mode) {
-            // note. setsockopt may fail to set value without raising error
             int option = 1;
             if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &option,
                            sizeof(option))) {
@@ -282,16 +279,18 @@ private:
   inline static bool thdwatch_stats_to_file = false;
   inline static void thdwatch_run() {
     stats::print_headers(stdout);
+    constexpr int sleep_us = 100'000;
+    constexpr int dt_ms = sleep_us / 1'000;
+    constexpr bool metrics_print_new_line = true;
     while (thdwatch_on) {
       int n = 10;
       while (thdwatch_on and n--) {
-        const int sleep_us = 100'000;
         usleep(sleep_us);
-        stats.ms += sleep_us / 1'000; //? not really
+        stats.ms += dt_ms; //? not really
         stats.print_stats(stdout);
         printf(thdwatch_stats_to_file ? "\n" : "\r");
       }
-      if (!thdwatch_stats_to_file) {
+      if (!thdwatch_stats_to_file and metrics_print_new_line) {
         (void)fprintf(stdout, "\n");
       }
     }
