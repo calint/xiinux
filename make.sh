@@ -29,9 +29,14 @@ OPT=-O3
 #OPT=-Os
 
 echo > all.src &&
-#for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
-find src -type f -exec cat {} + >> all.src
 
+#for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
+
+# find all files, concatinate into a file
+#  exclude empty lines, comment lines, lines containing only '}'
+#   and lines starting with '#'
+find src -type f -exec cat {} + | \
+    grep -vE '^\s*//|^\s*$|^\s*}\s*$|^#.*$' >> all.src
 
 echo &&
 $CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS && 
