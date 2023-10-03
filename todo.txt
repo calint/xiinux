@@ -8,6 +8,7 @@
     same for 'widget' in 'sock'. 'widget' is valid till 'session' containing it is
     deleted which is at 'main' exit so a raw pointer is ok.
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
+    https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] when server stops with open connections valgrind reports un-freed memory
 [ ] server: print_client_exception thread safe "localtime(...)"
 [ ] review/refactor args
