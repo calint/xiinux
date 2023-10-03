@@ -20,16 +20,19 @@ WARNINGS="-Weverything \
 
 BIN=xiinux
 SRC=src/main.cpp
+#ETC="-static -Wfatal-errors"
+ETC=-Wfatal-errors
 #DBG=-g
-#OPTS=-Wfatal-errors
+#OPT=-Wfatal-errors
 DBG=
-OPTS="-Os -Wfatal-errors"
+OPT=-O3
+#OPT=-Os
 
 echo > all.src &&
 for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
 
 echo &&
-$CC -o $BIN $SRC $DBG $OPTS $WARNINGS && 
+$CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS && 
 echo    "            lines   words   chars" &&
 echo -n "   source:" &&
 cat all.src|wc &&
