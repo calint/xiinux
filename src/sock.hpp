@@ -34,7 +34,8 @@ public:
     if constexpr (conf::server_print_client_disconnect_event) {
       std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
       std::array<char, 26> time_str_buf{};
-      printf("%s  disconnect: ip=%s fd=%d\n", current_time_to_string(time_str_buf),
+      printf("%s  %s  disconnect fd=%d\n",
+             current_time_to_string(time_str_buf),
              ip_addr_to_str(ip_str_buf, &(sock_addr_.sin_addr.s_addr)), fd_);
     }
     if (!::close(fd_)) {
@@ -398,7 +399,7 @@ private:
       }
       *sid_ptr = '\0';
       // make unique pointer of 'session' with lifetime of 'sessions'
-      auto up{std::make_unique<session>(sid.data())};
+      auto up = std::make_unique<session>(sid.data());
       session_ = up.get();
       sessions.put(std::move(up));
       send_session_id_in_reply_ = true;
@@ -410,7 +411,7 @@ private:
       return; // session found, done
     }
     // session not found, create
-    auto up{std::make_unique<session>(std::string{session_id})};
+    auto up = std::make_unique<session>(std::string{session_id});
     session_ = up.get();
     sessions.put(std::move(up));
   }

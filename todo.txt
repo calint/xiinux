@@ -4,11 +4,6 @@
 [ ] server: print_client_exception thread safe "localtime(...)"
 [ ] review/refactor args
 [ ] map doc widget to path '/'
-[ ] consider uniform initialization using {...} instead of =
-[ ] examine why size of executable compiled by g++ grew from 51K to 61K
-    when "template <unsigned M> inline strb &p(const strb<M> &sb)"
-    was added to 'strb' and several instances with different sizes
-    were created with 'strb' template
 [ ] decode query string on demand
 [ ] uploaded file names are urlencoded
 [ ] sock: consolidate recv(...) in content and buf
@@ -26,6 +21,17 @@
 [ ] hierarchial widgets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[-] consider uniform initialization using {...} instead of =
+    =>
+        auto upc = std::make_unique<sock>(client_fd, client_addr);
+            and
+        auto upc {std::make_unique<sock>(client_fd, client_addr)};
+        generate same binary with the '=' being cleaner look
+[x] examine why size of executable compiled by g++ grew from 51K to 61K
+    when "template <unsigned M> inline strb &p(const strb<M> &sb)"
+    was added to 'strb' and several instances with different sizes
+    were created with 'strb' template
+    => upsides of using C++ templates outweighs binary size 
 [x] when server stops with open connections valgrind reports un-freed memory
     => unordered_map<int,std::unique_ptr<sock>>
 [x] ? server: what to do about the raw pointer to sock

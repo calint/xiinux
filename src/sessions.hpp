@@ -10,6 +10,12 @@ class sessions final {
   map_sessions sessions_{};
 
 public:
+  inline sessions() = default;
+  sessions(const sessions &) = delete;
+  auto operator=(const sessions &) -> sessions & = delete;
+  sessions(sessions &&) = delete;
+  auto operator=(sessions &&) -> sessions & = delete;
+
   inline ~sessions() {
     printf("* deleting %lu session%s\n", sessions_.size(),
            sessions_.size() == 1 ? "" : "s");

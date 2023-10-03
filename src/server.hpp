@@ -133,12 +133,12 @@ public:
           if constexpr (conf::server_print_client_connect_event) {
             std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
             std::array<char, 26> time_str_buf{};
-            printf("%s  connect: ip=%s fd=%d\n",
+            printf("%s  %s  connect fd=%d\n",
                    current_time_to_string(time_str_buf),
                    ip_addr_to_str(ip_str_buf, &(client_addr.sin_addr.s_addr)),
                    client_fd);
           }
-          auto upc{std::make_unique<sock>(client_fd, client_addr)};
+          auto upc = std::make_unique<sock>(client_fd, client_addr);
           ev.data.ptr = upc.get();
           socks.insert({client_fd, std::move(upc)});
           ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET;

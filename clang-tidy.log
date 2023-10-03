@@ -1,8 +1,5 @@
-tis  3 okt 2023 04:05:16 CEST
+tis  3 okt 2023 04:36:12 CEST
 /home/c/w/xiinux/src/decouple.hpp:81:22: warning: function is not thread safe [concurrency-mt-unsafe]
                      std::localtime(&time_now))) {
                      ^
-/home/c/w/xiinux/src/sessions.hpp:9:7: warning: class 'sessions' defines a non-default destructor but does not define a copy constructor, a copy assignment operator, a move constructor or a move assignment operator [cppcoreguidelines-special-member-functions,hicpp-special-member-functions]
-class sessions final {
-      ^
-tis  3 okt 2023 04:05:30 CEST
+tis  3 okt 2023 04:36:25 CEST
