@@ -1,2 +1,25 @@
-tis  3 okt 2023 16:03:49 CEST
+tis  3 okt 2023 19:14:08 CEST
 Checking ../../src/main.cpp ...
+../../src/server.hpp:292:16: style: Condition 'thdwatch_stats_to_file' is always false [knownConditionTrueFalse]
+        printf(thdwatch_stats_to_file ? "\n" : "\r");
+               ^
+../../src/server.hpp:294:11: style: Condition '!thdwatch_stats_to_file' is always true [knownConditionTrueFalse]
+      if (!thdwatch_stats_to_file and metrics_print_new_line) {
+          ^
+../../src/chunky.hpp:151:25: portability: %lx in format string (no. 1) requires 'unsigned long' but the argument type is 'size_t {aka unsigned long}'. [invalidPrintfArgType_uint]
+    const int hdr_len = snprintf(hdr.data(), hdr.size(), "%lx\r\n", buf_len);
+                        ^
+../../src/sessions.hpp:20:5: portability: %lu in format string (no. 1) requires 'unsigned long' but the argument type is 'std::size_t {aka unsigned long}'. [invalidPrintfArgType_uint]
+    printf("* deleting %lu session%s\n", sessions_.size(),
+    ^
+../../src/server.hpp:213:5: portability: %lu in format string (no. 1) requires 'unsigned long' but the argument type is 'size_t {aka unsigned long}'. [invalidPrintfArgType_uint]
+    printf("* disconnecting %lu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
+    ^
+../../src/session.hpp:11:39: performance: Function parameter 'id' should be passed by const reference. [passedByValue]
+  inline explicit session(std::string id) noexcept : id_{std::move(id)} {
+                                      ^
+../../src/doc.hpp:11:25: style: Parameter 'x' can be declared as reference to const [constParameter]
+  inline void to(reply &x) const { x.send(str_); }
+                        ^
+nofile:0:0: information: Cppcheck cannot find all the include files (use --check-config for details) [missingIncludeSystem]
+

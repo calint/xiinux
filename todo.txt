@@ -2,7 +2,6 @@
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] save and load sessions at start and exit
 [ ] map doc widget to path '/'
-[x] uploaded file names are urlencoded
 [ ] uploaded file to session directory
 [ ] better handling of "accept: Too many open files"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
@@ -24,6 +23,7 @@
 [ ] websockets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] uploaded file names are urlencoded
 [x] sock: session id from cookie accessible in requests for file and upload
 [-] consider uniform initialization using {...} instead of =
     =>
