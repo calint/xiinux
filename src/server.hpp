@@ -134,7 +134,7 @@ public:
             std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
             std::array<char, 26> time_str_buf{};
             printf("%s  %s  connect fd=%d\n",
-                   current_time_to_string(time_str_buf),
+                   current_time_to_str(time_str_buf),
                    ip_addr_to_str(ip_str_buf, &(client_addr.sin_addr.s_addr)),
                    client_fd);
           }
@@ -253,7 +253,7 @@ private:
 
     // current time
     std::array<char, 26> time_str_buf{};
-    current_time_to_string(time_str_buf);
+    current_time_to_str(time_str_buf);
 
     // output
     printf("!!! exception %s  %s  session=%s  msg=%s\n", time_str_buf.data(),

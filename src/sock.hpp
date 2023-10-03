@@ -34,8 +34,7 @@ public:
     if constexpr (conf::server_print_client_disconnect_event) {
       std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
       std::array<char, 26> time_str_buf{};
-      printf("%s  %s  disconnect fd=%d\n",
-             current_time_to_string(time_str_buf),
+      printf("%s  %s  disconnect fd=%d\n", current_time_to_str(time_str_buf),
              ip_addr_to_str(ip_str_buf, &(sock_addr_.sin_addr.s_addr)), fd_);
     }
     if (!::close(fd_)) {
@@ -139,7 +138,7 @@ public:
         // if previous request had header 'Connection: close'
         auto connection = headers_["connection"];
         if (connection == "close") {
-          delete this;
+          printf("*** close\n"); // todo
           return;
         }
         stats.requests++;
@@ -190,7 +189,6 @@ public:
           }
           if (ch == '?') {
             reqbuf_.set_eos();
-            // -1 because reqbuf.ptr is one step past '\+'
             reqline_.path_ = reqbuf_.string_view_from_mark();
             state_ = query;
             break;
@@ -227,6 +225,7 @@ public:
           }
           if (ch == ':') {
             reqbuf_.set_eos();
+            // RFC 2616: header field names are case-insensitive
             strlwr(reqbuf_.get_mark()); // to lower string
             header_.name_ = reqbuf_.string_view_from_mark();
             header_.name_ = trim(header_.name_);
@@ -241,7 +240,6 @@ public:
           if (c == '\n') {
             reqbuf_.set_eos();
             header_.value_ = reqbuf_.string_view_from_mark();
-            // RFC 2616: header field names are case-insensitive
             header_.value_ = trim(header_.value_);
 
             // std::cout << "key :'" << header_.name_ << "' value '"
@@ -278,7 +276,8 @@ public:
 private:
   void do_after_headers() {
     // check if there is a widget factory bound to path
-    widget *(*factory)() = web::widget_factory_for_path(reqline_.path_);
+    const widget_factory_func_ptr factory =
+        web::widget_factory_for_path(reqline_.path_);
     if (factory) {
       // this path is served by a widget
       do_serve_widget(factory);
@@ -320,9 +319,10 @@ private:
     widget_ = session_->get_widget(reqline_.path_);
     if (!widget_) {
       // widget not found in session, create using supplied factory
-      widget_.reset(factory());
-      // put widget in session
-      session_->put_widget(std::string{reqline_.path_}, widget_);
+      auto up_wdgt = std::unique_ptr<widget>(factory());
+      widget_ = up_wdgt.get();
+      // move widget to session
+      session_->put_widget(std::string{reqline_.path_}, std::move(up_wdgt));
     }
     // build reply object
     reply x{fd_, reqline_.path_, reqline_.query_, headers_,
@@ -564,7 +564,7 @@ private:
                    "%s\r\nContent-Length: %zu\r\n\r\n",
                    lastmod.data(), file_.length());
     }
-    if (header_buf_len < 0 or size_t(header_buf_len) >= sizeof(header_buf)) {
+    if (header_buf_len < 0 or size_t(header_buf_len) >= header_buf.size()) {
       throw client_exception{"sock:err1"};
     }
     // send reply with buffering of packets
@@ -746,6 +746,7 @@ private:
     inline auto string_view_from_mark() -> std::string_view {
       char *m = mark_;
       mark_ = p_;
+      // -1 because 'p_' is 1 character past '\0'
       return {m, size_t(p_ - m - 1)};
     }
     inline auto receive_from(const int fd_in) -> ssize_t {
@@ -793,7 +794,7 @@ private:
   struct sockaddr_in sock_addr_ {};
   map_headers headers_{};
   int upload_fd_{};
-  std::shared_ptr<widget> widget_{};
+  widget *widget_{};
   session *session_{};
   bool send_session_id_in_reply_{};
 

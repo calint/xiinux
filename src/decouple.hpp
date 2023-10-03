@@ -27,7 +27,8 @@ class widget;
 
 using map_headers = std::unordered_map<std::string_view, std::string_view>;
 using map_session = std::unordered_map<std::string, std::string>;
-using map_widgets = std::unordered_map<std::string, std::shared_ptr<widget>>;
+using map_widgets = std::unordered_map<std::string, std::unique_ptr<widget>>;
+using widget_factory_func_ptr = widget *(*)();
 
 static int epoll_fd{};
 static std::unique_ptr<doc> homepage{};
@@ -73,7 +74,7 @@ static inline auto io_send(const int fd, std::string_view sv,
                  throw_if_send_not_complete);
 }
 
-inline static auto current_time_to_string(std::array<char, 26> &time_str_buf)
+inline static auto current_time_to_str(std::array<char, 26> &time_str_buf)
     -> const char * {
   const auto chrono_now = std::chrono::system_clock::now();
   const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);

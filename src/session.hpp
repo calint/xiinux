@@ -22,11 +22,10 @@ public:
   inline auto operator[](const std::string &key) const -> const std::string & {
     return kvp_.at(key);
   }
-  inline auto get_widget(std::string_view key) const
-      -> std::shared_ptr<widget> {
+  inline auto get_widget(std::string_view key) const -> widget * {
     auto it = widgets_.find(std::string{key}); //? creates a string
     if (it != widgets_.end()) {
-      return it->second;
+      return it->second.get();
     }
     return nullptr;
   }
@@ -36,7 +35,7 @@ public:
     kvp_[key] = std::move(str);
   }
 
-  inline void put_widget(std::string path, std::shared_ptr<widget> wgt) {
+  inline void put_widget(std::string path, std::unique_ptr<widget> wgt) {
     widgets_[std::move(path)] = std::move(wgt);
   }
 };
