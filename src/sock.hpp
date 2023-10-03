@@ -35,8 +35,10 @@ public:
     if constexpr (conf::server_print_client_disconnect_event) {
       std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
       std::array<char, 26> time_str_buf{};
-      printf("%s  %s  disconnect fd=%d\n", current_time_to_str(time_str_buf),
-             ip_addr_to_str(ip_str_buf, &(sock_addr_.sin_addr.s_addr)), fd_);
+      printf("%s  %s  session=[%s]  disconnect fd=[%d]\n",
+             current_time_to_str(time_str_buf),
+             ip_addr_to_str(ip_str_buf, &(sock_addr_.sin_addr.s_addr)),
+             session_id_.empty() ? "n/a" : session_id_.data(), fd_);
     }
     if (!::close(fd_)) {
       // printf("client close %p\n", static_cast<void *>(this));
@@ -297,8 +299,8 @@ private:
       current_time_to_str(time_str_buf);
 
       // output
-      printf("%s  %s  session=%s  path=%s  query=%s\n", time_str_buf.data(),
-             ip_addr_to_str(ip_addr_str, &addr),
+      printf("%s  %s  session=[%s]  path=[%s]  query=[%s]\n",
+             time_str_buf.data(), ip_addr_to_str(ip_addr_str, &addr),
              session_id_.empty() ? "n/a" : session_id_.c_str(),
              get_path().data(), get_query().data());
     }

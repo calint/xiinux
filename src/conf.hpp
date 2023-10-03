@@ -19,6 +19,6 @@ static constexpr size_t widget_key_size = 128;
 static constexpr size_t upload_path_size = 256;
 static constexpr unsigned path_to_widget_lut_size = 16;
 static constexpr size_t str_len_max = K * M;
-static constexpr bool print_traffic = true;
+static constexpr bool print_traffic = false;
 static constexpr int print_traffic_fd = 1; // stdout
 } // namespace xiinux::conf
