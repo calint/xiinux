@@ -1,3 +1,5 @@
+[ ] sock: consolidate recv(...) in content and buf
+[ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] save and load sessions at start and exit
 [ ] map doc widget to path '/'
 [ ] uploaded file names are urlencoded
@@ -12,7 +14,6 @@
 [ ] review perror(...) messages
 [ ] review/refactor args
 [ ] decode query string on demand
-[ ] sock: consolidate recv(...) in content and buf
 [ ] server: sockopt TCP_FASTOPEN
 [ ] xprinter for sockets with buffered sends
 [ ] MIME type for ".js" files (warning in Firefox when absent)
