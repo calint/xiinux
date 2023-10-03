@@ -16,6 +16,7 @@ auto main(const int argc, const char **argv) -> int {
   //   signal(i, sigint);
   // }
   (void)signal(SIGINT, sigint);   // close at '^C'
+  (void)signal(SIGTERM, sigint);  // 'killall' and 'kill' commands
   (void)signal(SIGPIPE, SIG_IGN); // 'sendfile' raises signal when 'Broken pipe'
   (void)signal(28, SIG_IGN);      // 'Window changed'
   return xiinux::server::start(argc, argv);

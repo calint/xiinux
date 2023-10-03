@@ -199,7 +199,7 @@ public:
   }
 
   inline static void stop() {
-    printf("stopping xiinux\n");
+    printf("\n\nstopping xiinux\n");
 
     if (close(epoll_fd)) {
       perror("server:stop:close epoll_fd");
