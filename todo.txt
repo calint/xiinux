@@ -9,6 +9,7 @@
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
     https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] review throws messages
+[ ] consider using format -> "std::string const &" rather than "const std::string &"
 [ ] review perror(...) messages
 [ ] review/refactor args
 [ ] decode query string on demand

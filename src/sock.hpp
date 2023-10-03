@@ -136,12 +136,13 @@ public:
         state_ = next_request;
       }
       if (state_ == next_request) {
+        // note. int http 1.1 default is to keep connections open
         // if previous request had header 'Connection: close'
-        auto connection = headers_["connection"];
-        if (connection == "close") {
-          printf("*** close\n"); // todo
-          return;
-        }
+        // auto connection = headers_["connection"];
+        // if (connection == "close") {
+        //   printf("*** close\n"); // todo
+        //   return;
+        // }
         stats.requests++;
         file_.rst();
         reqline_.rst();
