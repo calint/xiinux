@@ -3,7 +3,10 @@
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
 [ ] 'map_session' in 'reply' is a raw pointer to a member of 'session' and may
     be dangling if 'session' is deleted by 'sessions' while a 'widget' is running.
-    thus 'session' can be owned by 'sessions' using 'unique_ptr' instead of 'shared_ptr'
+    but 'session' can be owned by 'sessions' using 'unique_ptr' instead of 'shared_ptr'.
+    life-time of 'sessions' is global so 'session' is valid till 'main' exits.
+    same for 'widget' in 'sock'. 'widget' is valid till 'session' containing it is
+    deleted which is at 'main' exit so a raw pointer is ok.
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
 [ ] when server stops with open connections valgrind reports un-freed memory
 [ ] server: print_client_exception thread safe "localtime(...)"
