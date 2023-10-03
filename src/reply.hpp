@@ -79,10 +79,12 @@ public:
     if (n < 0 or size_t(n) >= sizeof(header)) {
       throw client_exception{"reply:http:1"};
     }
+
     io_send(fd_, header.data(), size_t(n), buf != nullptr);
     if (buf != nullptr) {
       io_send(fd_, buf, buf_len);
     }
+
     return *this;
   }
 

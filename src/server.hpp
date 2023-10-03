@@ -107,9 +107,11 @@ public:
         perror("epoll_wait");
         continue;
       }
+
       if constexpr (conf::server_print_epoll_events) {
         printf("events %d\n", n);
       }
+
       for (unsigned i = 0; i < unsigned(n); i++) {
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         struct epoll_event &ev = events[i];
@@ -137,6 +139,7 @@ public:
                    ip_addr_to_str(ip_str_buf, &(client_addr.sin_addr.s_addr)),
                    client_fd);
           }
+
           auto upc = std::make_unique<sock>(client_fd, client_addr);
           ev.data.ptr = upc.get();
           socks.insert({client_fd, std::move(upc)});
@@ -253,8 +256,8 @@ private:
     current_time_to_str(time_str_buf);
 
     // output
-    printf("!!! exception %s  %s  session=[%s]  msg=[%s]\n", time_str_buf.data(),
-           ip_addr_to_str(ip_addr_str, &addr),
+    printf("!!! exception %s  %s  session=[%s]  msg=[%s]\n",
+           time_str_buf.data(), ip_addr_to_str(ip_addr_str, &addr),
            ses_id.empty() ? "n/a" : ses_id.c_str(), msg);
   }
 

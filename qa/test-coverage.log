@@ -1,5 +1,5 @@
 
-tis  3 okt 2023 19:16:57 CEST
+tis  3 okt 2023 20:08:13 CEST
 coverage tests on http://localhost:8088
  * small file
  * larger file 16K
@@ -20,5 +20,5 @@ coverage tests on http://localhost:8088
  * widget zero length content post
  * widget 'counter' 
  * abuse request >1K 
-tis  3 okt 2023 19:16:59 CEST
+tis  3 okt 2023 20:08:14 CEST
 

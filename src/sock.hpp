@@ -17,7 +17,6 @@
 #include <unistd.h>
 
 namespace xiinux {
-
 class sock final {
 public:
   inline sock(const int fd, struct sockaddr_in sock_addr)
@@ -138,20 +137,13 @@ public:
         state_ = next_request;
       }
       if (state_ == next_request) {
-        // note. int http 1.1 default is to keep connections open
-        // if previous request had header 'Connection: close'
-        // auto connection = headers_["connection"];
-        // if (connection == "close") {
-        //   printf("*** close\n"); // todo
-        //   return;
-        // }
         stats.requests++;
-        file_.rst();
-        reqline_.rst();
         reqbuf_.rst();
+        reqline_.rst();
         header_.rst();
-        content_.rst();
         headers_.clear();
+        content_.rst();
+        file_.rst();
         upload_fd_ = 0;
         widget_ = nullptr;
         session_id_ = {};
@@ -288,7 +280,9 @@ public:
 
 private:
   void do_after_headers() {
+
     retrieve_session_id_from_cookie();
+
     if constexpr (conf::sock_print_client_requests) {
       // client ip
       std::array<char, INET_ADDRSTRLEN> ip_addr_str{};
@@ -308,6 +302,7 @@ private:
     // check if there is a widget factory bound to path
     const widget_factory_func_ptr factory =
         web::widget_factory_for_path(reqline_.path_);
+
     if (factory) {
       // this path is served by a widget
       do_serve_widget(factory);
@@ -344,8 +339,6 @@ private:
   void do_serve_widget(widget_factory_func_ptr factory) {
     stats.widgets++;
 
-    retrieve_session_id_from_cookie();
-
     retrieve_or_create_session();
 
     // get widget from session using path
@@ -367,6 +360,7 @@ private:
       x.send_session_id_at_next_opportunity(session_id_);
       send_session_id_in_reply_ = false;
     }
+
     // check if request has content
     const std::string_view content_length_str = headers_["content-length"];
     if (content_length_str.empty()) {
@@ -376,11 +370,14 @@ private:
       state_ = next_request;
       return;
     }
+
     // initiate for content from client
     content_.init_for_receive(content_length_str);
     const size_t content_len = content_.content_len();
+
     // initiating call to widget with buf=nullptr
     widget_->on_content(x, nullptr, 0, 0, content_len);
+
     // if client expects 100 continue before sending post
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
@@ -388,6 +385,7 @@ private:
       state_ = receiving_content;
       return;
     }
+
     // check if all the content is in the request buffer
     const size_t rem = reqbuf_.remaining();
     if (rem >= content_len) {
@@ -398,10 +396,12 @@ private:
       state_ = next_request;
       return;
     }
+
     // beginning of the content is in 'reqbuf'
     widget_->on_content(x, reqbuf_.ptr(), rem, rem, content_len);
     // advance by the number of bytes received
     content_.unsafe_skip(rem);
+
     // continue receiving content
     state_ = receiving_content;
   }
