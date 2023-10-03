@@ -2,7 +2,7 @@
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] save and load sessions at start and exit
 [ ] map doc widget to path '/'
-[ ] uploaded file names are urlencoded
+[x] uploaded file names are urlencoded
 [ ] uploaded file to session directory
 [ ] better handling of "accept: Too many open files"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)

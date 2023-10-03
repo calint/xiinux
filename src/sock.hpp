@@ -186,13 +186,18 @@ public:
           const char ch = reqbuf_.unsafe_next_char();
           if (ch == ' ') {
             reqbuf_.set_eos();
-            reqline_.path_ = reqbuf_.string_view_from_mark();
+            char *bgn = reqbuf_.get_mark();
+            const char *end = urldecode(bgn);
+            reqline_.path_ = {bgn, size_t(end - bgn)};
             state_ = protocol;
             break;
           }
           if (ch == '?') {
             reqbuf_.set_eos();
-            reqline_.path_ = reqbuf_.string_view_from_mark();
+            char *bgn = reqbuf_.get_mark();
+            const char *end = urldecode(bgn);
+            reqline_.path_ = {bgn, size_t(end - bgn)};
+            reqbuf_.set_mark();
             state_ = query;
             break;
           }
@@ -859,6 +864,42 @@ private:
       *p = char(tolower(*p));
       p++;
     }
+  }
+
+  inline static auto urldecode(char *str) -> char * {
+    const char *p = str;
+    while (*p) {
+      if (*p == '+') {
+        *str++ = ' ';
+        p++;
+        continue;
+      }
+      char a = p[1]; // +1 might be '\0'
+      char b = a == '\0' ? '\0' : p[2];
+      if (*p == '%' and a and b and isxdigit(a) and isxdigit(b)) {
+        if (a >= 'a') {
+          a -= 'a' - 'A';
+        }
+        if (a >= 'A') {
+          a -= 'A' - 10;
+        } else {
+          a -= '0';
+        }
+        if (b >= 'a') {
+          b -= 'a' - 'A';
+        }
+        if (b >= 'A') {
+          b -= 'A' - 10;
+        } else {
+          b -= '0';
+        }
+        *str++ = char(16 * a + b);
+        p += 3;
+        continue;
+      }
+      *str++ = *p++;
+    }
+    return str;
   }
 };
 } // namespace xiinux

@@ -49,7 +49,8 @@ function upload(path,blobOrFile,progressbarId){
 	xhr.onloadend=function(e){
 //		console.log('onloadend '+path+'  '+progressbarId+'  status:'+xhr.status);
 	};
-	xhr.open('PUT','/'+escape(path),true);
+	console.log("upload '"+path+"'");
+	xhr.open('PUT',path,true);
 	xhr.setRequestHeader("Content-Type","file");
 	xhr.send(blobOrFile);
 }
