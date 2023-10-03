@@ -80,6 +80,14 @@ diff -q cmp files/far_side_dog_ok.jpg&&
 rm cmp&&
 rm ../upload/upl&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * upload file with utf-8 name" &&
+curl -sq -XPUT --header "Content-Type:file" --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
+curl -s $HTTP/upload/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
+diff -q cmp "files/hello ᐖᐛツ.txt" &&
+rm cmp &&
+[[ -e "../upload/hello ᐖᐛツ.txt" ]] &&
+rm "../upload/hello ᐖᐛツ.txt" &&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained upload"&&
 #nc -w1 $HOST $PORT<t12.in>cmp&&

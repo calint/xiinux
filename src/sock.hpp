@@ -899,6 +899,7 @@ private:
       }
       *str++ = *p++;
     }
+    *str = '\0';
     return str;
   }
 };

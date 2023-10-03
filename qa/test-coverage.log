@@ -1,5 +1,5 @@
 
-tis  3 okt 2023 17:17:02 CEST
+tis  3 okt 2023 18:08:26 CEST
 coverage tests on http://localhost:8088
  * small file
  * larger file 16K
@@ -13,11 +13,12 @@ coverage tests on http://localhost:8088
  * bigger post >4K
  * upload small file 17B
  * upload bigger file 128K
+ * upload file with utf-8 name
  * chunked small 12B
  * chunked many small to larger than chunk size >4K 
  * chunked reply data larger than chunk buffer >256K 
  * widget zero length content post
  * widget 'counter' 
  * abuse request >1K 
-tis  3 okt 2023 17:17:34 CEST
+tis  3 okt 2023 18:08:28 CEST
 
