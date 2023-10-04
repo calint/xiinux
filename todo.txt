@@ -1,27 +1,28 @@
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
-[ ] save and load sessions at start and exit
+[ ] load save and sessions at start and exit
 [ ] upload.html send file modified time
+[ ] uploaded file to session directory
+[ ] send_session_id_ at upload confirmation
 [ ] sock: upload handle content-type: file; [millis since January 1, 1970 (Unix timestamp)]
 [ ] map doc widget to path '/'
-[ ] uploaded file to session directory
 [ ] better handling of "accept: Too many open files"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
 [ ] server: print_client_exception thread safe "localtime(...)"
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
     https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] review throws messages
-[ ] consider using format -> "std::string const &" rather than "const std::string &"
 [ ] review perror(...) messages
+[ ] consider using format -> "Type const &" rather than "const Type &"
 [ ] review/refactor args
 [ ] decode query string on demand
 [ ] server: sockopt TCP_FASTOPEN
-[ ] xprinter for sockets with buffered sends
 [ ] MIME type for ".js" files (warning in Firefox when absent)
+[ ] hierarchial widgets ui framework
 [ ] multi-threading clients, chunky pause and resume when write would block
 [ ] multi-threading file downloads
     (for nginx performance on multiple worker threads configuration)
-[ ] hierarchial widgets ui framework
+[ ] xprinter for sockets with buffered sends
 [ ] websockets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
