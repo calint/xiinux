@@ -1,27 +1,30 @@
+#!/bin/bash
+
 HOST=localhost
 PORT=8088
 HTTP=http://$HOST:$PORT
+ROOT_DIR=../..
 
-echo&&date&&echo coverage tests on $HTTP&&
+echo && date && echo coverage tests on $HTTP &&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * directory default file " &&
-curl -s $HTTP/qa > cmp &&
+curl -s $HTTP/qa/coverage > cmp &&
 diff -q cmp t21.cmp &&
 rm cmp &&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * small file" &&
-curl -s $HTTP/qa/q01.txt > cmp &&
+curl -s $HTTP/qa/coverage/q01.txt > cmp &&
 diff -q cmp t01.cmp &&
 rm cmp &&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
 echo " * larger file 16K" &&
-curl -s $HTTP/qa/ipsum16k.txt > cmp &&
+curl -s $HTTP/qa/coverage/ipsum16k.txt > cmp &&
 diff -q cmp ipsum16k.txt &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 echo " * if-modified-since" &&
-HEADER=$(printf "If-modified-since:";curl -si $HTTP/qa/q01.txt|grep ^Last-Modified:|awk '{printf $1="";print $0}')
-curl -siH"$HEADER" $HTTP/qa/q01.txt > cmp &&
+HEADER=$(printf "If-modified-since:";curl -si $HTTP/qa/coverage/q01.txt|grep ^Last-Modified:|awk '{printf $1="";print $0}') &&
+curl -siH"$HEADER" $HTTP/qa/coverage/q01.txt > cmp &&
 diff -q cmp t07.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -31,7 +34,7 @@ diff -q cmp t02.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * resumable download" &&
-curl -sr 1- $HTTP/qa/q01.txt>cmp &&
+curl -sr 1- $HTTP/qa/coverage/q01.txt>cmp &&
 diff -q cmp t05.cmp &&
 rm cmp &&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
@@ -76,22 +79,22 @@ curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl > /
 curl -s $HTTP/upload/upl > cmp &&
 diff -q cmp q01.txt &&
 rm cmp &&
-rm ../upload/upl &&
+rm $ROOT_DIR/upload/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload bigger file 128K" &&
 curl -sq -XPUT --header "Content-Type:file" --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
 curl -s $HTTP/upload/upl>cmp &&
 diff -q cmp files/far_side_dog_ok.jpg &&
 rm cmp &&
-rm ../upload/upl &&
+rm $ROOT_DIR/upload/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload file with utf-8 name" &&
 curl -sq -XPUT --header "Content-Type:file" --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
 curl -s $HTTP/upload/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
 diff -q cmp "files/hello ᐖᐛツ.txt" &&
 rm cmp &&
-[[ -e "../upload/hello ᐖᐛツ.txt" ]] &&
-rm "../upload/hello ᐖᐛツ.txt" &&
+[[ -e "$ROOT_DIR/upload/hello ᐖᐛツ.txt" ]] &&
+rm "$ROOT_DIR/upload/hello ᐖᐛツ.txt" &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained upload"&&
@@ -102,8 +105,8 @@ rm "../upload/hello ᐖᐛツ.txt" &&
 #curl -s $HTTP/upload/upl2>cmp&&
 #diff -q cmp t14.cmp&&
 #rm cmp&&
-#rm ../upload/upl&&
-#rm ../upload/upl2&&
+#rm $ROOT_DIR/upload/upl&&
+#rm $ROOT_DIR/upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * chunked small 12B" &&
 curl -s $HTTP/qa/chunked > cmp &&
@@ -145,4 +148,4 @@ nc -w1 $HOST $PORT < t18.in > cmp &&
 diff -q cmp t18.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
-date&&echo
+date && echo
