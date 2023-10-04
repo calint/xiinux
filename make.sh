@@ -20,7 +20,7 @@ WARNINGS="-Weverything \
 #          -Wsign-conversion -Wold-style-cast -Wshadow -Wmissing-include-dirs \
 #          -Woverloaded-virtual -Wredundant-decls -Wshadow -Wctad-maybe-unsupported \
 #          -Wsign-promo -Wstrict-null-sentinel -Wswitch-default -Wundef -Wfloat-equal \
-#          -Wnoexcept -Wno-unused-parameter -Wno-stringop-truncation"
+#          -Wnoexcept -Wno-stringop-truncation"
 
 BIN=xiinux
 SRC=src/main.cpp
@@ -29,13 +29,13 @@ ETC=-Wfatal-errors
 DBG=
 OPT=-O3
 if [ "$1" = "qa" ]; then
-    ETC="$ETC -fprofile-instr-generate -fcoverage-mapping"
+    ETC="-fprofile-instr-generate -fcoverage-mapping $ETC"
     DBG=-g
 fi
 
 echo
 
-CMD="$CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS"
+CMD="$CC -o $BIN $SRC $OPT $DBG $ETC $WARNINGS"
 echo $CMD
 $CMD
 if [ $? != "0" ]; then exit $?; fi
