@@ -296,6 +296,7 @@ private:
         (void)fprintf(stdout, "\n");
       }
     }
+    printf(" * metrics watcher stopped\n");
   }
 
   inline static auto get_sock_option(const int fd, const int opt,
