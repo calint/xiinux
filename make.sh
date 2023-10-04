@@ -1,7 +1,17 @@
+#!/bin/bash
+
 # tools:
-#      g++: (Ubuntu 12.3.0-1ubuntu1~23.04) 12.3.0
-#  clang++: Ubuntu clang version 15.0.7
-# valgrind: 3.19.0
+#           g++: 12.3.0
+#       clang++: 15.0.7
+#      valgrind: 3.19.0
+# llvm-profdata: 
+#      llvm-cov: 15.0.7
+#       genhtml: 1.16
+
+CC="clang++ -std=c++20"
+WARNINGS="-Weverything \
+          -Wno-c++98-compat -Wno-unused-parameter -Wno-weak-vtables \
+          -Wno-padded -Wno-global-constructors -Wno-exit-time-destructors"
 
 #CC="g++ -std=c++23"
 #WARNINGS="-Wall -Wextra -Wpedantic \
@@ -10,28 +20,28 @@
 #          -Wsign-conversion -Wold-style-cast -Wshadow -Wmissing-include-dirs \
 #          -Woverloaded-virtual -Wredundant-decls -Wshadow -Wctad-maybe-unsupported \
 #          -Wsign-promo -Wstrict-null-sentinel -Wswitch-default -Wundef -Wfloat-equal \
-#          -Wnoexcept -Wno-unused-parameter"
-
-CC="clang++ -std=c++20"
-WARNINGS="-Weverything \
-          -Weffc++ -Wno-unused-parameter -Wno-c++98-compat -Wno-weak-vtables \
-          -Wno-padded -Wno-global-constructors -Wno-exit-time-destructors \
-          -Wno-format-nonliteral"
+#          -Wnoexcept -Wno-unused-parameter -Wno-stringop-truncation"
 
 BIN=xiinux
 SRC=src/main.cpp
 ETC=-Wfatal-errors
 #ETC="$ETC -static"
-ETC="$ETC -fprofile-instr-generate -fcoverage-mapping"
-#DBG=-g
-#OPT=-Og
 DBG=
 OPT=-O3
-#OPT=-Os
+if [ "$1" = "qa" ]; then
+    ETC="$ETC -fprofile-instr-generate -fcoverage-mapping"
+    DBG=-g
+fi
 
+echo
+
+CMD="$CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS"
+echo $CMD
+$CMD
+if [ $? != "0" ]; then exit $?; fi
+
+# stats on source code
 echo > all.src &&
-
-#for f in $(find src);do if [ -f $f ];then cat $f>>all.src;fi;done
 
 # find all files, concatinate into a file
 #  exclude empty lines, comment lines, lines containing only '}'
@@ -39,27 +49,31 @@ echo > all.src &&
 find src -type f -exec cat {} + | \
     grep -vE '^\s*//|^\s*$|^\s*}\s*$|^#.*$' >> all.src
 
-echo &&
-CMD="$CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS" &&
-echo $CMD &&
-$CMD &&
-echo && 
-echo    "            lines   words   chars" &&
-echo -n "   source:" &&
-cat all.src|wc &&
-echo -n "  gzipped:" &&
-cat all.src|gzip|wc &&
-echo && ls -ho --color $BIN &&
-echo &&
-rm all.src &&
+echo
+echo    "            lines   words   chars"
+echo -n "   source:"
+cat all.src | wc
+echo -n "  gzipped:"
+cat all.src | gzip | wc
+echo
+ls -ho --color $BIN
+echo
+rm all.src
 
-#./clang-tidy.sh &&
+if [ "$1" != "qa" ]; then exit; fi
+
+# run xiinux using valgrind and generate coverage reports
+
+# don't end script at "^C"
+trap '' SIGINT
 
 #valgrind ./$BIN
 #valgrind --leak-check=full ./$BIN
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
 echo
-# coverage
-llvm-profdata merge -sparse default.profraw -o default.profdata
-llvm-cov export --format=lcov --instr-profile default.profdata --object xiinux > lcov.info
+echo generating coverage report to "qa/coverage/report/"
+llvm-profdata merge -sparse default.profraw -o xiinux.profdata
+llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux > lcov.info
+genhtml lcov.info --output-directory qa/coverage/report/
+rm default.profraw xiinux.profdata
