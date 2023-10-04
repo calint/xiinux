@@ -33,7 +33,7 @@ public:
 
   // xwrite implementation
 
-  inline auto p(const std::string_view sv) -> strb & override {
+  inline auto p(const std::string_view &sv) -> strb & override {
     const char *str = sv.data();
     const size_t str_len = sv.size();
     const ssize_t rem = ssize_t(buf_.size()) - ssize_t(len_) - ssize_t(str_len);

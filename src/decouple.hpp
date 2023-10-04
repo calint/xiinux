@@ -66,7 +66,7 @@ static inline auto io_send(const int fd, const char *buf, size_t buf_len,
   return nbytes_sent;
 }
 
-static inline auto io_send(const int fd, std::string_view sv,
+static inline auto io_send(const int fd, const std::string_view &sv,
                            const bool buffer_send = false,
                            const bool throw_if_send_not_complete = true)
     -> size_t {
@@ -99,7 +99,7 @@ inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,
 namespace xiinux::web {
 
 static inline void widget_init_path_to_factory_map();
-static inline auto widget_factory_for_path(std::string_view path)
+static inline auto widget_factory_for_path(const std::string_view &path)
     -> widget_factory_func_ptr;
 
 } // namespace xiinux::web

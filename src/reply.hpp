@@ -15,15 +15,16 @@ class reply final {
   std::string_view set_session_id_{};
 
 public:
-  inline reply(const int fd, std::string_view path, std::string_view query,
-               const map_headers &req_headers, map_session *session)
+  inline reply(const int fd, const std::string_view &path,
+               const std::string_view &query, const map_headers &req_headers,
+               map_session *session)
       : fd_{fd}, path_{path}, query_{query},
         req_headers_{req_headers}, session_{session} {}
 
-  [[nodiscard]] inline auto get_path() const -> std::string_view {
+  [[nodiscard]] inline auto get_path() const -> const std::string_view & {
     return path_;
   }
-  [[nodiscard]] inline auto get_query() const -> std::string_view {
+  [[nodiscard]] inline auto get_query() const -> const std::string_view & {
     return query_;
   }
   [[nodiscard]] inline auto get_req_headers() const -> const map_headers & {
@@ -33,9 +34,9 @@ public:
     return session_;
   }
 
-  [[nodiscard]] inline auto
-  reply_chunky(std::string_view content_type = "text/html;charset=utf-8"sv,
-               const int response_code = 200) -> std::unique_ptr<chunky> {
+  [[nodiscard]] inline auto reply_chunky(
+      const std::string_view &content_type = "text/html;charset=utf-8"sv,
+      const int response_code = 200) -> std::unique_ptr<chunky> {
 
     auto rsp{std::make_unique<chunky>(fd_)};
 
@@ -53,12 +54,13 @@ public:
     return rsp;
   }
 
-  inline void send_session_id_at_next_opportunity(std::string_view id) {
+  inline void send_session_id_at_next_opportunity(const std::string_view &id) {
     set_session_id_ = id;
   }
 
-  inline auto http(const int code, const char *buf, size_t buf_len,
-                   std::string_view content_type = "text/html;charset=utf-8"sv)
+  inline auto
+  http(const int code, const char *buf, size_t buf_len,
+       const std::string_view &content_type = "text/html;charset=utf-8"sv)
       -> reply & {
 
     std::array<char, 256> header{};
@@ -88,8 +90,9 @@ public:
     return *this;
   }
 
-  inline auto http(const int code, std::string_view content,
-                   std::string_view content_type = "text/html;charset=utf-8"sv)
+  inline auto
+  http(const int code, const std::string_view &content,
+       const std::string_view &content_type = "text/html;charset=utf-8"sv)
       -> reply & {
     return http(code, content.data(), content.size(), content_type);
   }
@@ -101,7 +104,7 @@ public:
   }
 
   // NOLINTNEXTLINE(modernize-use-nodiscard) not when exception thrown instead
-  inline auto send(std::string_view sv, const bool buffer_send = false,
+  inline auto send(const std::string_view &sv, const bool buffer_send = false,
                    bool throw_if_send_not_complete = true) const -> size_t {
     return io_send(fd_, sv.data(), sv.size(), buffer_send,
                    throw_if_send_not_complete);

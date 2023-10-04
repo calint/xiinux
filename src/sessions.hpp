@@ -21,7 +21,7 @@ public:
            sessions_.size() == 1 ? "" : "s");
   }
 
-  inline auto get(std::string_view id) -> session * {
+  inline auto get(const std::string_view &id) -> session * {
     return sessions_[std::string{id}].get();
   }
 

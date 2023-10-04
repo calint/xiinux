@@ -22,7 +22,7 @@ public:
   inline auto operator[](const std::string &key) const -> const std::string & {
     return kvp_.at(key);
   }
-  inline auto get_widget(std::string_view key) const -> widget * {
+  inline auto get_widget(const std::string_view &key) const -> widget * {
     auto it = widgets_.find(std::string{key}); //? creates a string
     if (it != widgets_.end()) {
       return it->second.get();

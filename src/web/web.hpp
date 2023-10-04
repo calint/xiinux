@@ -19,7 +19,7 @@ using map_widget_factories =
 
 inline static map_widget_factories path_to_widget_map{};
 
-static inline auto widget_factory_for_path(std::string_view path)
+static inline auto widget_factory_for_path(const std::string_view &path)
     -> widget_factory_func_ptr {
   auto it = path_to_widget_map.find(std::string{path}); //? creates a string
   if (it != path_to_widget_map.end()) {

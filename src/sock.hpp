@@ -281,8 +281,12 @@ public:
   }
 
   inline auto get_fd() const -> int { return fd_; }
-  inline auto get_path() const -> std::string_view { return reqline_.path_; }
-  inline auto get_query() const -> std::string_view { return reqline_.query_; }
+  inline auto get_path() const -> const std::string_view & {
+    return reqline_.path_;
+  }
+  inline auto get_query() const -> const std::string_view & {
+    return reqline_.query_;
+  }
   inline auto get_headers() const -> const map_headers & { return headers_; }
   inline auto get_session() const -> session * { return session_; }
   inline auto get_session_id() const -> const std::string & {
@@ -321,11 +325,11 @@ private:
     }
 
     // check if request is an upload
-    const std::string_view content_type = headers_["content-type"];
+    const std::string_view &content_type = headers_["content-type"];
     if (content_type.starts_with("file;")) {
       // extract millis since January 1, 1970 (Unix timestamp)
       const size_t ix = content_type.find(';');
-      const std::string_view last_mod = content_type.substr(ix + 1);
+      const std::string_view &last_mod = content_type.substr(ix + 1);
       // convert to seconds
       upload_last_mod_ = time_t(std::stoul(std::string{last_mod}) / 1000);
       // this is an upload, initiate content receive
@@ -338,7 +342,7 @@ private:
     reply x{fd_, reqline_.path_, reqline_.query_, headers_, nullptr};
 
     // remove leading '/' from path if exists
-    const std::string_view path =
+    const std::string_view &path =
         reqline_.path_.at(0) == '/' ? reqline_.path_.substr(1) : reqline_.path_;
     // check if it is root path, uri '/'
     if (path.empty()) {
@@ -378,7 +382,7 @@ private:
     }
 
     // check if request has content
-    const std::string_view content_length_str = headers_["content-length"];
+    const std::string_view &content_length_str = headers_["content-length"];
     if (content_length_str.empty()) {
       // no content from client, render widget
       widget_->to(x);
@@ -424,7 +428,7 @@ private:
 
   void retrieve_session_id_from_cookie() {
     // get session id from cookie or create new
-    const std::string_view cookie = headers_["cookie"];
+    const std::string_view &cookie = headers_["cookie"];
     if (cookie.starts_with("i=")) {
       // 2 to skip 'i='
       session_id_ = cookie.substr(2);
@@ -480,11 +484,11 @@ private:
     if (pth_len < 0 or size_t(pth_len) >= pth.size()) {
       throw client_exception{"sock:pathtrunc"};
     }
-    
+
     upload_path_ = {pth.data(), size_t(pth_len)};
     // open file for write
-    upload_fd_ =
-        open(upload_path_.data(), O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
+    upload_fd_ = open(upload_path_.data(),
+                      O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
       perror("sock:do_server_upload 1");
       throw client_exception{"sock:err7"};
@@ -583,7 +587,7 @@ private:
       throw client_exception{"sock:strftime"};
     }
     // check if file has been modified since then
-    const std::string_view lastmodstr = headers_["if-modified-since"];
+    const std::string_view &lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod.data()) {
       // not modified, reply 304
       io_send(fd_, "HTTP/1.1 304\r\n\r\n"sv);
@@ -600,7 +604,7 @@ private:
     // start sending file content
     stats.files++;
     // check if ranged request
-    const std::string_view range = headers_["range"];
+    const std::string_view &range = headers_["range"];
     // format header
     std::array<char, 512> header_buf{};
     int header_buf_len = 0;
@@ -763,7 +767,7 @@ private:
     inline void unsafe_skip(const size_t n) { pos_ += n; }
     [[nodiscard]] inline auto content_len() const -> size_t { return len_; }
 
-    inline void init_for_receive(const std::string_view content_length_str) {
+    inline void init_for_receive(const std::string_view &content_length_str) {
       pos_ = 0;
       len_ = size_t(atoll(content_length_str.data()));
       // todo: abuse len
@@ -877,7 +881,7 @@ private:
   session *session_{};
   bool send_session_id_in_reply_{};
 
-  inline static auto trim(std::string_view in) -> std::string_view {
+  inline static auto trim(const std::string_view &in) -> std::string_view {
     const auto *left = in.begin();
     while (true) {
       if (left == in.end()) {

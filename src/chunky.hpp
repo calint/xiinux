@@ -57,7 +57,7 @@ public:
 
   // xwriter implementation
 
-  inline auto p(const std::string_view sv) -> chunky & override {
+  inline auto p(const std::string_view &sv) -> chunky & override {
     const char *str = sv.data();
     const size_t str_len = sv.size();
     constexpr size_t buf_size = sizeof(buf_);

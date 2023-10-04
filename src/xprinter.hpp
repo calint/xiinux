@@ -8,7 +8,7 @@ class xprinter {
 public:
   virtual ~xprinter() = default;
 
-  virtual auto p(std::string_view sv) -> xprinter & = 0;
+  virtual auto p(const std::string_view &sv) -> xprinter & = 0;
   virtual auto p(char ch) -> xprinter & = 0;
   virtual auto p(int i) -> xprinter & = 0;
   virtual auto p(size_t sz) -> xprinter & = 0;
