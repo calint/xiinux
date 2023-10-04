@@ -35,7 +35,7 @@ public:
     if constexpr (conf::server_print_client_disconnect_event) {
       std::array<char, INET_ADDRSTRLEN> ip_str_buf{};
       std::array<char, 26> time_str_buf{};
-      printf("%s  %s  session=[%s]  disconnect fd=[%d]\n",
+      printf("%s  %s  session=[%s]  disconnect fd=%d\n",
              current_time_to_str(time_str_buf),
              ip_addr_to_str(ip_str_buf, &(sock_addr_.sin_addr.s_addr)),
              session_id_.empty() ? "n/a" : session_id_.data(), fd_);

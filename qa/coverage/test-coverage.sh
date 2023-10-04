@@ -23,7 +23,12 @@ diff -q cmp ipsum16k.txt &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 echo " * if-modified-since" &&
-HEADER=$(printf "If-modified-since:";curl -si $HTTP/qa/coverage/q01.txt|grep ^Last-Modified:|awk '{printf $1="";print $0}') &&
+HEADER=$(\
+    printf "If-modified-since:"; \
+    curl -si $HTTP/qa/coverage/q01.txt | \
+    grep ^Last-Modified: | \
+    awk '{printf $1="";print $0}'\
+) &&
 curl -siH"$HEADER" $HTTP/qa/coverage/q01.txt > cmp &&
 diff -q cmp t07.cmp &&
 rm cmp &&
