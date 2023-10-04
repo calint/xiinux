@@ -24,6 +24,9 @@
 [ ] websockets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] coverage metrics
+    => make.sh contains settings for that
+       works with "coverage gutters" plug-in for visual code 
 [x] upload.html send file modified time
 [x] sock: upload handle content-type: file; [millis since January 1, 1970 (Unix timestamp)]
 [x] /qa/: move coverage tests to own directory

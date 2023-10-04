@@ -20,10 +20,11 @@ WARNINGS="-Weverything \
 
 BIN=xiinux
 SRC=src/main.cpp
-#ETC="-static -Wfatal-errors"
 ETC=-Wfatal-errors
+#ETC="$ETC -static"
+ETC="$ETC -fprofile-instr-generate -fcoverage-mapping"
 #DBG=-g
-#OPT=-Wfatal-errors
+#OPT=-Og
 DBG=
 OPT=-O3
 #OPT=-Os
@@ -39,7 +40,10 @@ find src -type f -exec cat {} + | \
     grep -vE '^\s*//|^\s*$|^\s*}\s*$|^#.*$' >> all.src
 
 echo &&
-$CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS && 
+CMD="$CC -o $BIN $SRC $DBG $ETC $OPT $WARNINGS" &&
+echo $CMD &&
+$CMD &&
+echo && 
 echo    "            lines   words   chars" &&
 echo -n "   source:" &&
 cat all.src|wc &&
@@ -56,3 +60,6 @@ rm all.src &&
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
 echo
+# coverage
+llvm-profdata merge -sparse default.profraw -o default.profdata
+llvm-cov export --format=lcov --instr-profile default.profdata --object xiinux > lcov.info

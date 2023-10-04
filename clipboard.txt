@@ -15,6 +15,11 @@ ulimit -n 4000
 
 ./test-coverage.sh | tee test-coverage.log
 
+# coverage
+llvm-profdata merge -sparse default.profraw -o default.profdata
+llvm-cov export --format=lcov --instr-profile default.profdata --object xiinux > lcov.info
+llvm-cov show xiinux -instr-profile=default.profdata
+
 sudo tcpdump -A -i lo -n port 8088
 
 sudo sysctl net.ipv4.ip_local_port_range='1024 65000'
