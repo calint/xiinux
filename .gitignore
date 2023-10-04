@@ -4,3 +4,4 @@
 /upload/*
 /u/*
 /lcov.info
+/qa/coverage/report/*
