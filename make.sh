@@ -10,8 +10,8 @@
 
 CC="clang++ -std=c++20"
 WARNINGS="-Weverything \
-          -Wno-c++98-compat -Wno-unused-parameter -Wno-weak-vtables \
-          -Wno-padded -Wno-global-constructors -Wno-exit-time-destructors"
+          -Wno-c++98-compat -Wno-weak-vtables -Wno-padded \
+          -Wno-global-constructors -Wno-exit-time-destructors"
 
 #CC="g++ -std=c++23"
 #WARNINGS="-Wall -Wextra -Wpedantic \

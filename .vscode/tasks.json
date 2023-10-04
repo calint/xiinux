@@ -31,7 +31,6 @@
                 "-Wundef",
                 "-Wfloat-equal",
                 "-Wnoexcept",
-                "-Wno-unused-parameter",
                 "-Wno-stringop-truncation",
                 "-fdiagnostics-color=always",
                 "-g",
