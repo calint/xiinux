@@ -10,6 +10,7 @@
                 "-o",
                 "xiinux",
                 "-g",
+                "-fdiagnostics-color=always",
                 "-Wfatal-errors",
                 "-Wall",
                 "-Wextra",
@@ -36,7 +37,6 @@
                 "-Wfloat-equal",
                 "-Wnoexcept",
                 "-Wno-stringop-truncation",
-                "-fdiagnostics-color=always",
             ],
             "problemMatcher": [
                 "$gcc"
