@@ -1,11 +1,10 @@
-[ ] /qa/: move coverage tests to own directory
-[ ] sock: consolidate recv(...) in content and buf
-[ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
-[ ] load save and sessions at start and exit
 [ ] upload.html send file modified time
 [ ] sock: upload handle content-type: file; [millis since January 1, 1970 (Unix timestamp)]
 [ ] send_session_id_ at upload confirmation
 [ ] uploaded file to session directory
+[ ] sock: consolidate recv(...) in content and buf
+[ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
+[ ] load save and sessions at xiinux start and stop
 [ ] map doc widget to path '/'
 [ ] better handling of "accept: Too many open files"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
@@ -27,6 +26,7 @@
 [ ] websockets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] /qa/: move coverage tests to own directory
 [x] sock: do_serve_file: implicit file name for directory path
 [x] uploaded file names are urlencoded
 [x] sock: session id from cookie accessible in requests for file and upload
