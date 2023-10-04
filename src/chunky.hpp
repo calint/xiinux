@@ -144,6 +144,8 @@ public:
 
   inline auto nl() -> chunky & override { return p('\n'); }
 
+  // end of xprinter implementation
+
 private:
   inline void send_chunk(const char *buf, const size_t buf_len) const {
     // https://en.wikipedia.org/wiki/Chunked_transfer_encoding

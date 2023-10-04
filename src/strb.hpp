@@ -7,8 +7,8 @@
 #include <sys/types.h>
 
 namespace xiinux {
-template <unsigned N = 1024> class strb final : public xprinter {
-  std::array<char, N> buf_{};
+template <unsigned SIZE = 1024> class strb final : public xprinter {
+  std::array<char, SIZE> buf_{};
   size_t len_ = 0;
 
 public:
@@ -20,7 +20,7 @@ public:
     return *this;
   }
 
-  template <unsigned M> inline auto p(const strb<M> &sb) -> strb & {
+  template <unsigned N> inline auto p(const strb<N> &sb) -> strb & {
     p({sb.buf(), sb.len()});
     return *this;
   }
@@ -44,7 +44,7 @@ public:
   }
 
   inline auto p(const int i) -> strb & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int len = snprintf(str.data(), str.size(), "%d", i);
     if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:2"};
@@ -53,7 +53,7 @@ public:
   }
 
   inline auto p(const size_t sz) -> strb & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int len = snprintf(str.data(), str.size(), "%zu", sz);
     if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:3"};
@@ -62,7 +62,7 @@ public:
   }
 
   inline auto p_ptr(const void *ptr) -> strb & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int len = snprintf(str.data(), str.size(), "%p", ptr);
     if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:4"};
@@ -71,7 +71,7 @@ public:
   }
 
   inline auto p_hex(const int i) -> strb & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int len = snprintf(str.data(), str.size(), "%x", i);
     if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"strb:5"};
@@ -89,5 +89,10 @@ public:
   }
 
   inline auto nl() -> strb & override { return p('\n'); }
+
+  // end of xprinter implementation
+
+private:
+  static constexpr size_t array_size_nums = 32;
 };
 } // namespace xiinux
