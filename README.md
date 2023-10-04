@@ -7,12 +7,12 @@ intended use:
 * runs on one thread
 
 supports:
-* serve file
+* serve files
 * serve static content
 * serve dynamic content
-* post data using ajax
-* upload file
-* resumable download
+* post content using ajax
+* upload files
+* resumable downloads
 
 howto:
 * to build run 'make.sh'
