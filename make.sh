@@ -71,9 +71,10 @@ trap '' SIGINT
 #valgrind --leak-check=full ./$BIN
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 #valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
-echo
-echo generating coverage report to "qa/coverage/report/"
 llvm-profdata merge -sparse default.profraw -o xiinux.profdata
 llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux > lcov.info
-genhtml lcov.info --output-directory qa/coverage/report/
+genhtml --quiet lcov.info --output-directory qa/coverage/report/
 rm default.profraw xiinux.profdata
+echo
+echo coverage report generated in "qa/coverage/report/"
+echo
