@@ -1,8 +1,0 @@
-# linguist.yml
-inclusions:
-  - src
-
-exclude:
-  - "*"
-
-# tell github.com where what files to use when estimating 'language' gage
