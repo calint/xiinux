@@ -561,6 +561,7 @@ private:
       state_ = next_request;
       return;
     }
+    // will back the string_view if 'path' gets re-assigned
     strb<path_max_size> path_buf{};
     // check if path is directory
     if (S_ISDIR(fdstat.st_mode)) {
