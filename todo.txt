@@ -1,5 +1,3 @@
-[ ] upload.html send file modified time
-[ ] sock: upload handle content-type: file; [millis since January 1, 1970 (Unix timestamp)]
 [ ] send_session_id_ at upload confirmation
 [ ] uploaded file to session directory
 [ ] sock: consolidate recv(...) in content and buf
@@ -26,6 +24,8 @@
 [ ] websockets
 [ ] generate web/web.hpp
 --------------------------------------------------------------------------------..
+[x] upload.html send file modified time
+[x] sock: upload handle content-type: file; [millis since January 1, 1970 (Unix timestamp)]
 [x] /qa/: move coverage tests to own directory
 [x] sock: do_serve_file: implicit file name for directory path
 [x] uploaded file names are urlencoded

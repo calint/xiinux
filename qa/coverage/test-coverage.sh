@@ -75,26 +75,27 @@ diff -q cmp t11.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload small file 17B" &&
-curl -sq -XPUT --header "Content-Type:file" --data-binary @q01.txt $HTTP/upl > /dev/null &&
+curl -sq -XPUT --header "Content-Type:file;1693643520235" --data-binary @q01.txt $HTTP/upl > /dev/null &&
 curl -s $HTTP/upload/upl > cmp &&
 diff -q cmp q01.txt &&
-rm cmp &&
-rm $ROOT_DIR/upload/upl &&
+timestamp1=$(stat -c %Y "$ROOT_DIR/upload/upl") &&
+timestamp2=$(stat -c %Y "q01.txt") &&
+[[ "$timestamp1" == "$timestamp2" ]] &&
+rm cmp $ROOT_DIR/upload/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload bigger file 128K" &&
-curl -sq -XPUT --header "Content-Type:file" --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
+# the number is file mod time stamp according to /upload.html (see javascript console)
+curl -sq -XPUT --header "Content-Type:file;0" --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
 curl -s $HTTP/upload/upl>cmp &&
 diff -q cmp files/far_side_dog_ok.jpg &&
-rm cmp &&
-rm $ROOT_DIR/upload/upl &&
+rm cmp $ROOT_DIR/upload/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload file with utf-8 name" &&
-curl -sq -XPUT --header "Content-Type:file" --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
+curl -sq -XPUT --header "Content-Type:file;0" --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
 curl -s $HTTP/upload/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
 diff -q cmp "files/hello ᐖᐛツ.txt" &&
-rm cmp &&
 [[ -e "$ROOT_DIR/upload/hello ᐖᐛツ.txt" ]] &&
-rm "$ROOT_DIR/upload/hello ᐖᐛツ.txt" &&
+rm cmp "$ROOT_DIR/upload/hello ᐖᐛツ.txt" &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained upload"&&

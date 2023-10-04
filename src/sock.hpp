@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <utime.h>
 
 namespace xiinux {
 class sock final {
@@ -133,6 +134,14 @@ public:
         if (::close(upload_fd_)) {
           perror("sock:closing upload file");
         }
+        // set last modified
+        struct utimbuf tm {
+          upload_last_mod_, upload_last_mod_
+        };
+        if (utime(upload_path_.c_str(), &tm)) {
+          throw client_exception(
+              "sock:run:receiving_content could not set file modified time");
+        }
         io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
         state_ = next_request;
       }
@@ -145,6 +154,8 @@ public:
         content_.rst();
         file_.rst();
         upload_fd_ = 0;
+        upload_last_mod_ = 0;
+        upload_path_.clear();
         widget_ = nullptr;
         session_id_ = {};
         session_ = nullptr;
@@ -311,7 +322,12 @@ private:
 
     // check if request is an upload
     const std::string_view content_type = headers_["content-type"];
-    if (content_type == "file") {
+    if (content_type.starts_with("file;")) {
+      // extract millis since January 1, 1970 (Unix timestamp)
+      const size_t ix = content_type.find(';');
+      const std::string_view last_mod = content_type.substr(ix + 1);
+      // convert to seconds
+      upload_last_mod_ = time_t(std::stoul(std::string{last_mod}) / 1000);
       // this is an upload, initiate content receive
       content_.init_for_receive(headers_["content-length"]);
       do_serve_upload();
@@ -459,9 +475,9 @@ private:
     // file upload
     std::array<char, conf::upload_path_size> pth{};
     // +1 to skip the leading '/'
-    const int res = snprintf(pth.data(), pth.size(), "upload/%s",
-                             reqline_.path_.substr(1).data());
-    if (res < 0 or size_t(res) >= pth.size()) {
+    const int pth_len = snprintf(pth.data(), pth.size(), "upload/%s",
+                                 reqline_.path_.substr(1).data());
+    if (pth_len < 0 or size_t(pth_len) >= pth.size()) {
       throw client_exception{"sock:pathtrunc"};
     }
     // open file for write
@@ -471,6 +487,7 @@ private:
       perror("sock:do_server_upload 1");
       throw client_exception{"sock:err7"};
     }
+    upload_path_ = {pth.data(), size_t(pth_len)};
     // handle if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
@@ -497,6 +514,14 @@ private:
       // close file
       if (::close(upload_fd_)) {
         perror("sock:do_server_upload 4");
+      }
+      // set last modified
+      struct utimbuf tm {
+        upload_last_mod_, upload_last_mod_
+      };
+      if (utime(pth.data(), &tm) == -1) {
+        throw client_exception(
+            "sock:do_server_upload: could not set file modified time");
       }
       // acknowledge request complete
       io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
@@ -839,6 +864,8 @@ private:
   struct sockaddr_in sock_addr_ {};
   map_headers headers_{};
   int upload_fd_{};
+  time_t upload_last_mod_{};
+  std::string upload_path_{};
   std::string session_id_{};
   // note
   // 'widget' lifetime is same as 'session'

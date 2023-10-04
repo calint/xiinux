@@ -56,7 +56,7 @@ function upload(path,blobOrFile,progressbarId){
 	};
 	console.log("upload '"+path+"'");
 	xhr.open('PUT',path,true);
-	xhr.setRequestHeader("Content-Type","file");
+	xhr.setRequestHeader("Content-Type","file;"+blobOrFile.lastModified);
 	xhr.send(blobOrFile);
 }
 </script>
