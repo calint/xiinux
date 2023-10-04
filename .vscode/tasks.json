@@ -6,6 +6,10 @@
             "command": "/usr/bin/g++",
             "args": [
                 "-std=c++23",
+                "src/main.cpp",
+                "-o",
+                "xiinux",
+                "-g",
                 "-Wfatal-errors",
                 "-Wall",
                 "-Wextra",
@@ -33,10 +37,6 @@
                 "-Wnoexcept",
                 "-Wno-stringop-truncation",
                 "-fdiagnostics-color=always",
-                "-g",
-                "-o",
-                "xiinux",
-                "src/main.cpp",
             ],
             "problemMatcher": [
                 "$gcc"
