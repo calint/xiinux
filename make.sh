@@ -35,7 +35,7 @@ fi
 
 echo
 
-CMD="$CC -o $BIN $SRC $OPT $DBG $ETC $WARNINGS"
+CMD="$CC $SRC -o $BIN $OPT $DBG $ETC $WARNINGS"
 echo $CMD
 $CMD
 if [ $? != "0" ]; then exit $?; fi
