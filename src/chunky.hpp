@@ -1,4 +1,5 @@
 // reviewed: 2023-09-27
+//           2023-10-04
 #pragma once
 #include "xprinter.hpp"
 #include <array>
@@ -12,7 +13,7 @@ class chunky final : public xprinter {
   int fd_{};
 
 public:
-  inline explicit chunky(int sockfd) : fd_{sockfd} {}
+  inline explicit chunky(const int file_descriptor) : fd_{file_descriptor} {}
   chunky(const chunky &) = delete;
   auto operator=(const chunky &) -> chunky & = delete;
   chunky(chunky &&) = delete;
@@ -98,7 +99,7 @@ public:
   }
 
   inline auto p(const int i) -> chunky & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int n = snprintf(str.data(), str.size(), "%d", i);
     if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:2"};
@@ -107,7 +108,7 @@ public:
   }
 
   inline auto p(const size_t sz) -> chunky & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int n = snprintf(str.data(), str.size(), "%zu", sz);
     if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:3"};
@@ -116,7 +117,7 @@ public:
   }
 
   inline auto p_ptr(const void *ptr) -> chunky & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int n = snprintf(str.data(), str.size(), "%p", ptr);
     if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:4"};
@@ -125,7 +126,7 @@ public:
   }
 
   inline auto p_hex(const int i) -> chunky & override {
-    std::array<char, 32> str{};
+    std::array<char, array_size_nums> str{};
     const int n = snprintf(str.data(), str.size(), "%x", i);
     if (n < 0 or size_t(n) >= str.size()) {
       throw client_exception{"chunky:5"};
@@ -172,7 +173,9 @@ private:
       }
     }
     // terminate the chunk
-    io_send(fd_, "\r\n", 2, true); // 2 is string length
+    io_send(fd_, "\r\n"sv, true); // 2 is string length
   }
+
+  static constexpr size_t array_size_nums = 32;
 };
 } // namespace xiinux
