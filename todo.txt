@@ -7,8 +7,6 @@
 [ ] better handling of "accept: Too many open files"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
 [ ] server: print_client_exception thread safe "localtime(...)"
-[ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
-    https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] review throws messages
 [ ] review perror(...) messages
 [ ] consider using format -> "Type const &" rather than "const Type &"
@@ -22,7 +20,10 @@
     (for nginx performance on multiple worker threads configuration)
 [ ] xprinter for sockets with buffered sends
 [ ] websockets
+[ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
+    https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] generate web/web.hpp
+[ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
 --------------------------------------------------------------------------------..
 [x] coverage metrics
     => make.sh contains settings for that
