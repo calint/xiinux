@@ -7,6 +7,13 @@
 # llvm-profdata: 
 #      llvm-cov: 15.0.7
 #       genhtml: 1.16
+# 
+# builds 'xiinux' binary
+# if first argument is 'qa' then:
+#  * build with debug info and coverage support
+#  * run 'xiinux' with valgrind
+#  * ( '^C' to stop server )
+#  * generate coverage report to 'qa/coverage/report/'
 
 CC="clang++ -std=c++20"
 WARNINGS="-Weverything \
@@ -38,7 +45,7 @@ echo
 CMD="$CC $SRC -o $BIN $OPT $DBG $ETC $WARNINGS"
 echo $CMD
 $CMD
-if [ $? != "0" ]; then exit $?; fi
+[[ $? != "0" ]] && exit $?
 
 # stats on source code
 echo > all.src &&
@@ -60,21 +67,21 @@ ls -ho --color $BIN
 echo
 rm all.src
 
-if [ "$1" != "qa" ]; then exit; fi
+[[ "$1" != "qa" ]] && exit
 
 # run xiinux using valgrind and generate coverage reports
 
-# don't end script at "^C"
+# don't end this script at '^C'
 trap '' SIGINT
 
-#valgrind ./$BIN
-#valgrind --leak-check=full ./$BIN
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
-#valgrind --leak-check=full --show-leak-kinds=all ./$BIN -bm
+# process coverage data
 llvm-profdata merge -sparse default.profraw -o xiinux.profdata
 llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux > lcov.info
+# generate report
 genhtml --quiet lcov.info --output-directory qa/coverage/report/
-rm default.profraw xiinux.profdata
 echo
 echo coverage report generated in "qa/coverage/report/"
 echo
+# clean-up
+rm default.profraw xiinux.profdata
