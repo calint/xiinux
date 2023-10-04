@@ -562,6 +562,8 @@ private:
       return;
     }
     // will back the string_view if 'path' gets re-assigned
+    // note. ? placed inside the 'if' would be U.B.
+    //       not caught by compiler, clang-tidy or valgrind
     strb<path_max_size> path_buf{};
     // check if path is directory
     if (S_ISDIR(fdstat.st_mode)) {
