@@ -94,7 +94,7 @@ public:
     web::widget_init_path_to_factory_map();
 
     if (thdwatch_on) {
-      thdwatch = std::thread(thdwatch_run);
+      thdwatch = std::jthread(thdwatch_run);
     }
 
     std::array<struct epoll_event, conf::server_listen_backlog_size> events{};
@@ -213,13 +213,12 @@ public:
     }
 
     const size_t nsocks = socks.size();
-    printf("* disconnecting %lu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
+    printf(" * disconnecting %lu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
     socks.clear();
 
     if (thdwatch_on) {
-      printf("* stopping metrics watch\n");
-      thdwatch_on = false;
-      thdwatch.join();
+      printf(" * send stop to metrics thread\n");
+      thdwatch.request_stop();
     }
   }
 
@@ -278,17 +277,16 @@ private:
     return true;
   }
 
-  inline static std::thread thdwatch{};
+  inline static std::jthread thdwatch{};
   inline static bool thdwatch_on = false;
   inline static bool thdwatch_stats_to_file = false;
-  inline static void thdwatch_run() {
+  inline static void thdwatch_run(const std::stop_token &stoken) {
     stats::print_headers(stdout);
     constexpr int sleep_us = 100'000;
     constexpr int dt_ms = sleep_us / 1'000;
     constexpr bool metrics_print_new_line = true;
-    while (thdwatch_on) {
-      int n = 10;
-      while (thdwatch_on and n--) {
+    while (!stoken.stop_requested()) {
+      for (int i = 0; i < 10; i++) {
         usleep(sleep_us);
         stats.ms += dt_ms; //? not really
         stats.print_stats(stdout);

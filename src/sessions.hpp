@@ -17,7 +17,7 @@ public:
   auto operator=(sessions &&) -> sessions & = delete;
 
   inline ~sessions() {
-    printf("* deleting %lu session%s\n", sessions_.size(),
+    printf(" * deleting %lu session%s\n", sessions_.size(),
            sessions_.size() == 1 ? "" : "s");
   }
 
