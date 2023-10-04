@@ -531,12 +531,18 @@ private:
       state_ = next_request;
       return;
     }
+    strb<path_max_size> path_buf{};
     // check if path is directory
     if (S_ISDIR(fdstat.st_mode)) {
-      // directory not allowed
-      x.http(403, "path is directory\n"sv);
-      state_ = next_request;
-      return;
+      // check for default directory file
+      path_buf.p(path).p('/').p(directory_default_file).eos();
+      if (stat(path_buf.buf(), &fdstat)) {
+        // error or not found
+        x.http(404, "not found\n"sv);
+        state_ = next_request;
+        return;
+      }
+      path = path_buf.string_view();
     }
     // get modified time of file
     tm tm_info{};
@@ -904,5 +910,8 @@ private:
     *str = '\0';
     return str;
   }
+
+  static constexpr size_t path_max_size = 256;
+  static constexpr const char *directory_default_file = "index.html";
 };
 } // namespace xiinux

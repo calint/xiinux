@@ -29,6 +29,8 @@ public:
     return {buf_.data(), len_};
   }
 
+  inline auto eos() -> strb & { return p('\0'); }
+
   // xwrite implementation
 
   inline auto p(const std::string_view sv) -> strb & override {
