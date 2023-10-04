@@ -1,1 +1,2 @@
 /src/** linguist-detectable
+/qa/** -linguist-detectable
