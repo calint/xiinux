@@ -1,8 +1,8 @@
-# tell github.com where what files to use when estimating 'language' gage
 # linguist.yml
 inclusions:
   - src
 
-# Excludes the rest of the repository
 exclude:
   - "*"
+
+# tell github.com where what files to use when estimating 'language' gage
