@@ -135,7 +135,7 @@ public:
           perror("sock:closing upload file");
         }
         // set last modified
-        struct utimbuf tm {
+        const struct utimbuf tm {
           upload_last_mod_, upload_last_mod_
         };
         if (utime(upload_path_.c_str(), &tm)) {
@@ -480,14 +480,15 @@ private:
     if (pth_len < 0 or size_t(pth_len) >= pth.size()) {
       throw client_exception{"sock:pathtrunc"};
     }
+    
+    upload_path_ = {pth.data(), size_t(pth_len)};
     // open file for write
     upload_fd_ =
-        open(pth.data(), O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
+        open(upload_path_.data(), O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
       perror("sock:do_server_upload 1");
       throw client_exception{"sock:err7"};
     }
-    upload_path_ = {pth.data(), size_t(pth_len)};
     // handle if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
@@ -505,7 +506,7 @@ private:
     // bytes in request buffer
     const size_t content_len = content_.content_len();
     if (remaining >= content_len) {
-      // the whole file is in 'buf'
+      // the whole file is in 'reqbuf'
       const ssize_t n = write(upload_fd_, reqbuf_.ptr(), content_len);
       if (n == -1 or size_t(n) != content_len) {
         perror("sock:do_server_upload 2");
@@ -516,10 +517,10 @@ private:
         perror("sock:do_server_upload 4");
       }
       // set last modified
-      struct utimbuf tm {
+      const struct utimbuf tm {
         upload_last_mod_, upload_last_mod_
       };
-      if (utime(pth.data(), &tm) == -1) {
+      if (utime(upload_path_.data(), &tm)) {
         throw client_exception(
             "sock:do_server_upload: could not set file modified time");
       }
