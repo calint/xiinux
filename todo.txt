@@ -1,10 +1,5 @@
-[x] send_session_id_ at upload confirmation
 [ ] sock: do_serve_file : build header using strb
-[x] uploaded file to session directory
 [ ] consider using C++ std::filesystem for file operations
-[x] ? C++ alternative to snprintf
-    => using strb
-[x] consider using strb instead of snprintf
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] load save and sessions at xiinux start and stop
@@ -30,6 +25,12 @@
 [ ] generate web/web.hpp
 [ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
 --------------------------------------------------------------------------------..
+[x] send_session_id_ at upload confirmation
+[x] uploaded file to session directory
+[x] ? C++ alternative to snprintf
+    => using strb
+[x] consider using strb instead of snprintf
+    => strb and chunky uses snprintf to convert numbers to string
 [x] qa: test_coverage of sock: resume_send_file
 [x] qa: test_coverage of sock: io_request_write
 [x] sock:do_serve_file parameter std::string_view to cont & for consistency
