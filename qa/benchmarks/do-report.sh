@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-rm far_side_dog_ok-*
-rm homepage-*
-rm small-*
+rm -f far_side_dog_ok-*
+rm -f homepage-*
+rm -f small-*
 ./do-all-benchmarks.sh &&
 cd gnuplot &&
 ./make-graphs.sh &&
