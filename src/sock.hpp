@@ -498,7 +498,7 @@ private:
     upload_fd_ = open(upload_path_.data(),
                       O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
     if (upload_fd_ == -1) {
-      perror("sock:do_server_upload 1");
+      perror("sock:do_serve_upload 1");
       throw client_exception{"sock:err7"};
     }
     // handle if client expects 100-continue before sending content
