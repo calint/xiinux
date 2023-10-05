@@ -113,7 +113,8 @@ echo " * upload bigger file 128 KB" &&
 curl -s -XPUT \
     --header "Content-Type:file;1670165801062" \
     --header "Cookie: i=20230926--2020-abcdef" \
-    --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
+    --data-binary @files/far_side_dog_ok.jpg \
+    $HTTP/upl > /dev/null &&
 curl -s $HTTP/u/20230926--2020-abcdef/upl > cmp &&
 diff -q cmp files/far_side_dog_ok.jpg &&
 timestamp1=$(stat -c %Y "$ROOT_DIR/u/20230926--2020-abcdef/upl") &&
@@ -125,7 +126,8 @@ echo " * upload file with utf-8 name" &&
 curl -s -XPUT \
     --header "Content-Type:file;0" \
     --header "Cookie: i=20230926--2020-abcdef" \
-    --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
+    --data-binary @"files/hello ᐖᐛツ.txt" \
+    $HTTP/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
 curl -s $HTTP/u/20230926--2020-abcdef/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
 diff -q cmp "files/hello ᐖᐛツ.txt" &&
 [[ -e "$ROOT_DIR/u/20230926--2020-abcdef/utf8/hello ᐖᐛツ.txt" ]] &&
