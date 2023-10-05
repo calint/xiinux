@@ -19,9 +19,9 @@ public:
   inline ~session() { stats.sessions--; }
 
   inline auto get_id() const -> const std::string & { return id_; }
-  inline auto operator[](const std::string &key) const -> const std::string & {
-    return kvp_.at(key);
-  }
+  // inline auto operator[](const std::string &key) const -> const std::string & {
+  //   return kvp_.at(key);
+  // }
   inline auto get_widget(const std::string_view &key) const -> widget * {
     auto it = widgets_.find(std::string{key}); //? creates a string
     if (it != widgets_.end()) {
@@ -31,9 +31,9 @@ public:
   }
   inline auto get_lut() -> map_session & { return kvp_; }
 
-  inline void put(const std::string &key, std::string str) {
-    kvp_[key] = std::move(str);
-  }
+  // inline void put(const std::string &key, std::string str) {
+  //   kvp_[key] = std::move(str);
+  // }
 
   inline void put_widget(std::string path, std::unique_ptr<widget> wgt) {
     widgets_[std::move(path)] = std::move(wgt);
