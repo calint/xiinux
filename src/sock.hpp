@@ -142,7 +142,7 @@ public:
           throw client_exception(
               "sock:run:receiving_content could not set file modified time");
         }
-        io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
+        send_http_confirmation(204);
         state_ = next_request;
       }
       if (state_ == next_request) {
@@ -158,6 +158,7 @@ public:
         upload_path_.clear();
         widget_ = nullptr;
         session_id_ = {};
+        send_session_id_in_reply_ = false;
         session_ = nullptr;
         state_ = method;
       }
@@ -334,6 +335,7 @@ private:
       upload_last_mod_ = time_t(std::stoul(std::string{last_mod}) / 1000);
       // this is an upload, initiate content receive
       content_.init_for_receive(headers_["content-length"]);
+      retrieve_or_create_session();
       do_serve_upload();
       return;
     }
@@ -401,7 +403,7 @@ private:
     // if client expects 100 continue before sending post
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
-      io_send(fd_, "HTTP/1.1 100\r\n\r\n"sv);
+      send_http_confirmation(100);
       state_ = receiving_content;
       return;
     }
@@ -496,7 +498,7 @@ private:
     // handle if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
-      io_send(fd_, "HTTP/1.1 100\r\n\r\n"sv);
+      send_http_confirmation(100);
       state_ = receiving_upload;
       return;
     }
@@ -529,7 +531,7 @@ private:
             "sock:do_server_upload: could not set file modified time");
       }
       // acknowledge request complete
-      io_send(fd_, "HTTP/1.1 204\r\n\r\n"sv);
+      send_http_confirmation(204);
       state_ = next_request;
       return;
     }
@@ -597,7 +599,7 @@ private:
     const std::string_view &lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod.data()) {
       // not modified, reply 304
-      io_send(fd_, "HTTP/1.1 304\r\n\r\n"sv);
+      send_http_confirmation(304);
       state_ = next_request;
       return;
     }
@@ -688,6 +690,19 @@ private:
     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd_, &ev)) {
       throw client_exception{"sock:epollmodwrite"};
     }
+  }
+
+  inline void send_http_confirmation(const int http_code) {
+    strb<512> sb{};
+    sb.p("HTTP/1.1 "sv).p(http_code).p("\r\n"sv);
+    if (send_session_id_in_reply_) {
+      sb.p("Set-Cookie: i="sv)
+          .p(session_id_)
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n"sv);
+      send_session_id_in_reply_ = false;
+    }
+    sb.p("\r\n"sv).eos();
+    io_send(fd_, sb.string_view());
   }
 
   class file {

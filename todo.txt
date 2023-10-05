@@ -1,7 +1,7 @@
-[ ] ? C++ alternative to snprintf
-[x] sock:do_serve_file parameter std::string_view to cont & for consistency
-[ ] send_session_id_ at upload confirmation
+[x] send_session_id_ at upload confirmation
+[ ] sock: do_serve_file : build header using strb
 [ ] uploaded file to session directory
+[ ] ? C++ alternative to snprintf
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] load save and sessions at xiinux start and stop
@@ -27,6 +27,9 @@
 [ ] generate web/web.hpp
 [ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
 --------------------------------------------------------------------------------..
+[x] qa: test_coverage of sock: resume_send_file
+[x] qa: test_coverage of sock: io_request_write
+[x] sock:do_serve_file parameter std::string_view to cont & for consistency
 [x] coverage metrics
     => make.sh contains settings for that
        works with "coverage gutters" plug-in for visual code 

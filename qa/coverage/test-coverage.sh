@@ -22,11 +22,11 @@ curl -s $HTTP/qa/coverage/ipsum16k.txt > cmp &&
 diff -q cmp ipsum16k.txt &&
 rm cmp &&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
-echo " * even larger file 8 MB" &&
-yes "xiinux web server " | head -c 8M > 8M-file.txt &&
-curl -s $HTTP/qa/coverage/8M-file.txt > cmp &&
-diff -q cmp 8M-file.txt &&
-rm cmp 8M-file.txt &&
+echo " * even larger file 16 MB" &&
+yes "xiinux web server " | head -c 16M > big-file.txt &&
+curl -s $HTTP/qa/coverage/big-file.txt > cmp &&
+diff -q cmp big-file.txt &&
+rm cmp big-file.txt &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 echo " * if-modified-since" &&
 HEADER=$(\

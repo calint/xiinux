@@ -1,10 +1,10 @@
 
-tor  5 okt 2023 15:10:08 CEST
+tor  5 okt 2023 16:39:48 CEST
 coverage tests on http://localhost:8088
  * directory default file 
  * small file
  * larger file 16 KB
- * even larger file 8 MB
+ * even larger file 16 MB
  * if-modified-since
  * dynamic document
  * resumable download
@@ -22,5 +22,5 @@ coverage tests on http://localhost:8088
  * widget zero length content post
  * widget 'counter' 
  * abuse request >1 KB 
-tor  5 okt 2023 15:10:10 CEST
+tor  5 okt 2023 16:39:50 CEST
 
