@@ -1,6 +1,7 @@
 // reviewed: 2023-09-28
 #pragma once
 #include "chunky.hpp"
+#include "strb.hpp"
 
 namespace xiinux {
 
@@ -63,26 +64,25 @@ public:
        const std::string_view &content_type = "text/html;charset=utf-8"sv)
       -> reply & {
 
-    std::array<char, 256> header{};
-    int n = 0;
+    strb<conf::sock_request_header_buf_size> sb{};
+    sb.p("HTTP/1.1 "sv)
+        .p(code)
+        .p("\r\nContent-Length: "sv)
+        .p(buf_len)
+        .p("\r\nContent-Type: "sv)
+        .p(content_type)
+        .p("\r\n"sv);
+
     if (!set_session_id_.empty()) {
-      n = snprintf(header.data(), header.size(),
-                   "HTTP/1.1 %d\r\nContent-Length: %zu\r\nSet-Cookie: "
-                   "i=%s;path=/;expires=Thu, 31-Dec-2099 00:00:00 "
-                   "GMT;SameSite=Lax\r\nContent-Type: %s\r\n\r\n",
-                   code, buf_len, set_session_id_.data(), content_type.data());
+      sb.p("Set-Cookie: i="sv)
+          .p(set_session_id_)
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n"sv);
       set_session_id_ = {};
-    } else {
-      n = snprintf(
-          header.data(), header.size(),
-          "HTTP/1.1 %d\r\nContent-Length: %zu\r\nContent-Type: %s\r\n\r\n",
-          code, buf_len, content_type.data());
-    }
-    if (n < 0 or size_t(n) >= sizeof(header)) {
-      throw client_exception{"reply:http:1"};
     }
 
-    io_send(fd_, header.data(), size_t(n), buf != nullptr);
+    sb.p("\r\n"sv); // note. no .eos() because sb.string_view() will include it
+
+    io_send(fd_, sb.string_view(), buf != nullptr);
     if (buf != nullptr) {
       io_send(fd_, buf, buf_len);
     }
