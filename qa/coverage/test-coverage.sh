@@ -35,7 +35,10 @@ HEADER=$(\
     grep ^Last-Modified: | \
     awk '{printf $1="";print $0}'\
 ) &&
-curl -siH"$HEADER" $HTTP/qa/coverage/q01.txt > cmp &&
+curl -s \
+    --include \
+    --header "$HEADER" \
+    $HTTP/qa/coverage/q01.txt > cmp &&
 diff -q cmp t07.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
@@ -76,21 +79,28 @@ rm cmp &&
 #rm cmp&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * post" &&
-curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ" $HTTP/qa/typealine > cmp &&
+curl -s \
+    --header "Content-Type:text/plain;charset=utf-8" \
+    --data "hello ᐖᐛツ" \
+    $HTTP/qa/typealine > cmp &&
 diff -q cmp t10.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * bigger post >4 KB" &&
-curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt $HTTP/qa/typealine > cmp &&
+curl -s \
+    --header "Content-Type:text/plain;charset=utf-8" \
+    --data-binary @q02.txt \
+    $HTTP/qa/typealine > cmp &&
 diff -q cmp t11.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload small file 17 B" &&
 # note. 1693643520235 is file mod time stamp according to /upload.html (see javascript console)
-curl -sq -XPUT \
+curl -s -XPUT \
     --header "Content-Type:file;1693643520235" \
     --header "Cookie: i=20230926--2020-abcdef" \
-    --data-binary @q01.txt $HTTP/upl > /dev/null &&
+    --data-binary @q01.txt \
+    $HTTP/upl > /dev/null &&
 curl -s $HTTP/u/20230926--2020-abcdef/upl > cmp &&
 diff -q cmp q01.txt &&
 timestamp1=$(stat -c %Y "$ROOT_DIR/u/20230926--2020-abcdef/upl") &&
@@ -100,7 +110,7 @@ rm cmp $ROOT_DIR/u/20230926--2020-abcdef/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload bigger file 128 KB" &&
 # note. 1670165801062 is file mod time stamp according to /upload.html (see javascript console)
-curl -sq -XPUT \
+curl -s -XPUT \
     --header "Content-Type:file;1670165801062" \
     --header "Cookie: i=20230926--2020-abcdef" \
     --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
@@ -112,7 +122,7 @@ timestamp2=$(stat -c %Y "files/far_side_dog_ok.jpg") &&
 rm cmp $ROOT_DIR/u/20230926--2020-abcdef/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload file with utf-8 name" &&
-curl -sq -XPUT \
+curl -s -XPUT \
     --header "Content-Type:file;0" \
     --header "Cookie: i=20230926--2020-abcdef" \
     --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
@@ -122,7 +132,7 @@ diff -q cmp "files/hello ᐖᐛツ.txt" &&
 rm cmp "$ROOT_DIR/u/20230926--2020-abcdef/utf8/hello ᐖᐛツ.txt" &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload abuse long file name >256 B" &&
-(curl -sq -XPUT \
+(curl -s -XPUT \
     --fail \
     --include \
     --header "Content-Type:file;0" \
@@ -171,13 +181,18 @@ echo " * widget zero length content post" &&
 curl -s \
     --header "Content-Type:text/plain;charset=utf-8" \
     --header "Cookie: i=20230926--2020-abcdef" \
-    --data-binary "" $HTTP/qa/page > cmp &&
+    --data-binary "" \
+    $HTTP/qa/page > cmp &&
 diff -q cmp t20.cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * widget 'counter' " &&
-curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter?a=1+2 > cmp &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    $HTTP/qa/counter?a=1+2 > cmp &&
 diff -q cmp t19_1.cmp &&
-curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter?a=3+4 > cmp &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    $HTTP/qa/counter?a=3+4 > cmp &&
 diff -q cmp t19_2.cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * abuse request >1 KB " &&
