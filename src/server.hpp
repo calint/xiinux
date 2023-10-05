@@ -33,6 +33,8 @@ public:
     }
 
     if constexpr (conf::server_tcp_fast_open) {
+      // note. on linux it seems to be enabled by default
+      //       yet the getsockopt says it is off
       int option = 1;
       if (setsockopt(server_fd, IPPROTO_TCP, TCP_FASTOPEN, &option,
                      sizeof(option))) {
