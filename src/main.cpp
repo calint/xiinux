@@ -19,5 +19,10 @@ auto main(const int argc, const char **argv) -> int {
   (void)signal(SIGTERM, sigint);  // 'killall' and 'kill' commands
   (void)signal(SIGPIPE, SIG_IGN); // 'sendfile' raises signal when 'Broken pipe'
   (void)signal(28, SIG_IGN);      // 'Window changed'
-  return xiinux::server::start(argc, argv);
+  try {
+    return xiinux::server::start(argc, argv);
+  } catch (const std::exception &e) {
+    printf("!!! exception in main: %s\n", e.what());
+    return 1;
+  }
 }

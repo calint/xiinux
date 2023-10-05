@@ -597,8 +597,9 @@ private:
     // format for check with 'if-modified-since' header value
     std::array<char, 64> lastmod{};
     // e.g.: 'Fri, 31 Dec 1999 23:59:59 GMT'
-    if (!strftime(lastmod.data(), lastmod.size(), "%a, %d %b %y %H:%M:%S %Z",
-                  &tm_info)) {
+    const size_t lastmod_len = strftime(lastmod.data(), lastmod.size(),
+                                        "%a, %d %b %y %H:%M:%S %Z", &tm_info);
+    if (lastmod_len == 0) {
       throw client_exception{"sock:strftime"};
     }
     // check if file has been modified since then
@@ -621,8 +622,15 @@ private:
     // check if ranged request
     const std::string_view &range = headers_["range"];
     // format header
-    std::array<char, 512> header_buf{};
-    int header_buf_len = 0;
+    strb<conf::sock_response_header_buf_size> sb{};
+    sb.p("HTTP/1.1 "sv)
+        .p(range.empty() ? "200"sv : "206"sv)
+        .p("\r\nAccept-Ranges: bytes\r\nLast-Modified: "sv)
+        .p({lastmod.data(), lastmod_len})
+        .p("\r\nContent-Length: "sv);
+
+    const auto file_len = size_t(fdstat.st_size);
+
     if (!range.empty()) {
       // ranged request
       off_t offset = 0;
@@ -631,34 +639,29 @@ private:
         perror("sock:do_serve_file");
         throw client_exception{"sock:do_serve_file scanf error"};
       }
-      // initialize for send file starting at requested 'offset'
-      file_.init_for_send(size_t(fdstat.st_size), offset);
-      const size_t len = file_.length();
       // create header for ranged reply
       // todo: content-type depending on file suffix
-      header_buf_len =
-          snprintf(header_buf.data(), header_buf.size(),
-                   "HTTP/1.1 206\r\nAccept-Ranges: "
-                   "bytes\r\nLast-Modified: %s\r\nContent-Length: "
-                   "%zu\r\nContent-Range: %zu-%zu/%zu\r\n\r\n",
-                   lastmod.data(), len - size_t(offset), offset, len, len);
+      sb.p(file_len - size_t(offset))
+          .p("\r\nContent-Range: "sv)
+          .p(size_t(offset))
+          .p('-')
+          .p(file_len)
+          .p('/')
+          .p(file_len);
+      // initialize for send file starting at requested 'offset'
+      file_.init_for_send(file_len, offset);
     } else {
       // not ranged request
-      // initialize for send full file
-      file_.init_for_send(size_t(fdstat.st_size));
       // create header for full reply
       // todo: content-type depending on file suffix
-      header_buf_len =
-          snprintf(header_buf.data(), header_buf.size(),
-                   "HTTP/1.1 200\r\nAccept-Ranges: bytes\r\nLast-Modified: "
-                   "%s\r\nContent-Length: %zu\r\n\r\n",
-                   lastmod.data(), file_.length());
+      sb.p(file_len);
+      // initialize for send full file
+      file_.init_for_send(file_len, 0);
     }
-    if (header_buf_len < 0 or size_t(header_buf_len) >= header_buf.size()) {
-      throw client_exception{"sock:err1"};
-    }
+    sb.p("\r\n\r\n"sv); // note. no eos() because it would be included in the
+                        // send
     // send reply with buffering of packets
-    io_send(fd_, header_buf.data(), size_t(header_buf_len), true);
+    io_send(fd_, sb.string_view(), true);
     // resume/start sending file
     const ssize_t n = file_.resume_send_to(fd_);
     if (n == -1) {
@@ -740,7 +743,7 @@ private:
       return n;
     }
     inline void init_for_send(const size_t size_in_bytes,
-                              const off_t seek_pos = 0) {
+                              const off_t seek_pos) {
       offset_ = seek_pos;
       count_ = size_in_bytes;
     }

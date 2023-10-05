@@ -2,8 +2,9 @@
 [ ] sock: do_serve_file : build header using strb
 [x] uploaded file to session directory
 [ ] consider using C++ std::filesystem for file operations
-[ ] ? C++ alternative to snprintf
-[ ] consider using strb instead of snprintf
+[x] ? C++ alternative to snprintf
+    => using strb
+[x] consider using strb instead of snprintf
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] load save and sessions at xiinux start and stop

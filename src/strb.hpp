@@ -29,6 +29,8 @@ public:
     return {buf_.data(), len_};
   }
 
+  [[nodiscard]] inline auto string() const -> std::string { return {buf_.data(), len_}; }
+
   inline auto eos() -> strb & { return p('\0'); }
 
   // xwrite implementation

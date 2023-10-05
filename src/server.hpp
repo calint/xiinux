@@ -261,19 +261,18 @@ private:
   }
 
   [[nodiscard]] inline static auto init_homepage() -> bool {
-    std::array<char, 4 * K> buf{};
     // +1 because of '\n' after 'application_name'
-    const int n =
-        snprintf(buf.data(), buf.size(),
-                 "HTTP/1.1 200\r\nContent-Length: %zu\r\nContent-Type: "
-                 "text/plain\r\n\r\n%s\n",
-                 strnlen(conf::application_name, conf::str_len_max) + 1,
-                 conf::application_name);
-    if (n < 0 or size_t(n) >= sizeof(buf)) {
-      puts("homepage does not fit in buffer");
-      return false;
-    }
-    homepage = std::make_unique<doc>(std::string{buf.data(), size_t(n)});
+    const size_t content_len =
+        strnlen(conf::application_name, conf::str_len_max) + 1;
+
+    strb<4 * K> sb{};
+    sb.p("HTTP/1.1 200\r\nContent-Length: "sv)
+        .p(content_len)
+        .p("\r\nContent-Type: text/plain\r\n\r\n")
+        .p(conf::application_name)
+        .p('\n');
+
+    homepage = std::make_unique<doc>(sb.string());
     return true;
   }
 
