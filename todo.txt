@@ -1,3 +1,4 @@
+[ ] sock:do_serve_file parameter std::string_view to cont & for consistency
 [ ] send_session_id_ at upload confirmation
 [ ] uploaded file to session directory
 [ ] sock: consolidate recv(...) in content and buf
