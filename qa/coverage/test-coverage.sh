@@ -115,22 +115,23 @@ echo " * upload file with utf-8 name" &&
 curl -sq -XPUT \
     --header "Content-Type:file;0" \
     --header "Cookie: i=20230926--2020-abcdef" \
-    --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
-curl -s $HTTP/u/20230926--2020-abcdef/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
+    --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
+curl -s $HTTP/u/20230926--2020-abcdef/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
 diff -q cmp "files/hello ᐖᐛツ.txt" &&
-[[ -e "$ROOT_DIR/u/20230926--2020-abcdef/hello ᐖᐛツ.txt" ]] &&
-rm cmp "$ROOT_DIR/u/20230926--2020-abcdef/hello ᐖᐛツ.txt" &&
+[[ -e "$ROOT_DIR/u/20230926--2020-abcdef/utf8/hello ᐖᐛツ.txt" ]] &&
+rm cmp "$ROOT_DIR/u/20230926--2020-abcdef/utf8/hello ᐖᐛツ.txt" &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-#echo " * upload abuse long file name >256 B" &&
-#curl -sq -XPUT \
-#    --include \
-#    --header "Content-Type:file;0" \
-#    --header "Cookie: i=20230926--2020-abcdef" \
-#    --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/\
-#123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.txt\
-#     > cmp &&
-#diff -q cmp t22.cmp &&
-#rm cmp &&
+echo " * upload abuse long file name >256 B" &&
+(curl -sq -XPUT \
+    --fail \
+    --include \
+    --header "Content-Type:file;0" \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/\
+123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.txt\
+     > cmp || true) &&
+diff -q cmp t22.cmp &&
+rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained upload"&&
