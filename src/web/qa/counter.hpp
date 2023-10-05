@@ -21,8 +21,9 @@ public:
     sb.p("cookie: "sv).p(hdrs.at("cookie"sv)).nl();
 
     map_session *ses = r.get_session();
-    auto it{ses->find("x"s)};
-    sb.p("session value: "sv).p(it != ses->end() ? it->second : ""sv).nl();
+    auto it = ses->find("x"s);
+    const bool found = it != ses->end();
+    sb.p("session value: "sv).p(found ? it->second : ""sv).nl();
     ses->insert({"x"s, "abc"s});
 
     sb.p("counter in this instance: "sv).p(counter_).nl();

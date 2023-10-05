@@ -145,7 +145,7 @@ public:
           throw client_exception(
               "sock:run:receiving_content could not set file modified time");
         }
-        send_http_confirmation(204);
+        send_http_response(204);
         state_ = next_request;
       }
       if (state_ == next_request) {
@@ -315,7 +315,7 @@ private:
       printf("%s  %s  session=[%s]  path=[%s]  query=[%s]\n",
              time_str_buf.data(), ip_addr_to_str(ip_addr_str, &addr),
              session_id_.empty() ? "n/a" : session_id_.c_str(),
-             get_path().data(), get_query().data());
+             reqline_.path_.data(), reqline_.query_.data());
     }
 
     // check if there is a widget factory bound to path
@@ -406,7 +406,7 @@ private:
     // if client expects 100 continue before sending post
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
-      send_http_confirmation(100);
+      send_http_response(100);
       state_ = receiving_content;
       return;
     }
@@ -504,7 +504,7 @@ private:
     // handle if client expects 100-continue before sending content
     auto expect = headers_["expect"];
     if (expect == "100-continue") {
-      send_http_confirmation(100);
+      send_http_response(100);
       state_ = receiving_upload;
       return;
     }
@@ -537,7 +537,7 @@ private:
             "sock:do_server_upload: could not set file modified time");
       }
       // acknowledge request complete
-      send_http_confirmation(204);
+      send_http_response(204);
       state_ = next_request;
       return;
     }
@@ -606,7 +606,7 @@ private:
     const std::string_view &lastmodstr = headers_["if-modified-since"];
     if (lastmodstr == lastmod.data()) {
       // not modified, reply 304
-      send_http_confirmation(304);
+      send_http_response(304);
       state_ = next_request;
       return;
     }
@@ -622,7 +622,7 @@ private:
     // check if ranged request
     const std::string_view &range = headers_["range"];
     // format header
-    strb<conf::sock_response_header_buf_size> sb{};
+    strb<conf::sock_response_header_buffer_size> sb{};
     sb.p("HTTP/1.1 "sv)
         .p(range.empty() ? "200"sv : "206"sv)
         .p("\r\nAccept-Ranges: bytes\r\nLast-Modified: "sv)
@@ -701,8 +701,8 @@ private:
     }
   }
 
-  inline void send_http_confirmation(const int http_code) {
-    strb<conf::sock_response_header_buf_size> sb{};
+  inline void send_http_response(const int http_code) {
+    strb<conf::sock_response_header_buffer_size> sb{};
     sb.p("HTTP/1.1 "sv).p(http_code).p("\r\n"sv);
     if (send_session_id_in_reply_) {
       sb.p("Set-Cookie: i="sv)

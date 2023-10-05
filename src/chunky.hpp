@@ -1,6 +1,7 @@
 // reviewed: 2023-09-27
 //           2023-10-04
 #pragma once
+#include "strb.hpp"
 #include "xprinter.hpp"
 #include <array>
 #include <cstring>
@@ -100,38 +101,38 @@ public:
 
   inline auto p(const int i) -> chunky & override {
     std::array<char, array_size_nums> str{};
-    const int n = snprintf(str.data(), str.size(), "%d", i);
-    if (n < 0 or size_t(n) >= str.size()) {
+    const int len = snprintf(str.data(), str.size(), "%d", i);
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"chunky:2"};
     }
-    return p({str.data(), size_t(n)});
+    return p({str.data(), size_t(len)});
   }
 
   inline auto p(const size_t sz) -> chunky & override {
     std::array<char, array_size_nums> str{};
-    const int n = snprintf(str.data(), str.size(), "%zu", sz);
-    if (n < 0 or size_t(n) >= str.size()) {
+    const int len = snprintf(str.data(), str.size(), "%zu", sz);
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"chunky:3"};
     }
-    return p({str.data(), size_t(n)});
+    return p({str.data(), size_t(len)});
   }
 
   inline auto p_ptr(const void *ptr) -> chunky & override {
     std::array<char, array_size_nums> str{};
-    const int n = snprintf(str.data(), str.size(), "%p", ptr);
-    if (n < 0 or size_t(n) >= str.size()) {
+    const int len = snprintf(str.data(), str.size(), "%p", ptr);
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"chunky:4"};
     }
-    return p({str.data(), size_t(n)});
+    return p({str.data(), size_t(len)});
   }
 
   inline auto p_hex(const int i) -> chunky & override {
     std::array<char, array_size_nums> str{};
-    const int n = snprintf(str.data(), str.size(), "%x", i);
-    if (n < 0 or size_t(n) >= str.size()) {
+    const int len = snprintf(str.data(), str.size(), "%x", i);
+    if (len < 0 or size_t(len) >= str.size()) {
       throw client_exception{"chunky:5"};
     }
-    return p({str.data(), size_t(n)});
+    return p({str.data(), size_t(len)});
   }
 
   inline auto p(const char ch) -> chunky & override {
@@ -150,13 +151,10 @@ private:
   inline void send_chunk(const char *buf, const size_t buf_len) const {
     // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
     // chunk header
-    std::array<char, 32> hdr{};
-    const int hdr_len = snprintf(hdr.data(), hdr.size(), "%lx\r\n", buf_len);
-    if (hdr_len < 0 or size_t(hdr_len) >= hdr.size()) {
-      throw client_exception{"chunky:1"};
-    }
+    strb<array_size_nums> hdr{};
+    hdr.p_hex(int(buf_len)).p("\r\n"sv);
     // send chunk header
-    io_send(fd_, hdr.data(), size_t(hdr_len), true);
+    io_send(fd_, hdr.string_view(), true);
     // send chunk
     size_t sent_total = 0;
     while (true) {

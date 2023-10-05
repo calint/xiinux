@@ -255,9 +255,11 @@ private:
     current_time_to_str(time_str_buf);
 
     // output
-    printf("!!! exception %s  %s  session=[%s]  msg=[%s]\n",
-           time_str_buf.data(), ip_addr_to_str(ip_addr_str, &addr),
-           ses_id.empty() ? "n/a" : ses_id.c_str(), msg);
+    printf(
+        "!!! exception %s  %s  session=[%s]  path=[%s]  query=[%s]  msg=[%s]\n",
+        time_str_buf.data(), ip_addr_to_str(ip_addr_str, &addr),
+        ses_id.empty() ? "n/a" : ses_id.c_str(), client->get_path().data(),
+        client->get_query().data(), msg);
   }
 
   [[nodiscard]] inline static auto init_homepage() -> bool {
