@@ -84,4 +84,4 @@ echo
 echo coverage report generated in "qa/coverage/report/"
 echo
 # clean-up
-rm default.profraw xiinux.profdata
+rm default.profraw xiinux.profdata lcov.info
