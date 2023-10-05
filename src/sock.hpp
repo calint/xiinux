@@ -134,7 +134,7 @@ public:
         if (content_.remaining()) {
           continue;
         }
-        if (::close(upload_fd_)) {
+        if (close(upload_fd_)) {
           perror("sock:closing upload file");
         }
         // set last modified
@@ -291,8 +291,8 @@ public:
   inline auto get_query() const -> const std::string_view & {
     return reqline_.query_;
   }
-  inline auto get_headers() const -> const map_headers & { return headers_; }
-  inline auto get_session() const -> session * { return session_; }
+  // inline auto get_headers() const -> const map_headers & { return headers_; }
+  // inline auto get_session() const -> session * { return session_; }
   inline auto get_session_id() const -> const std::string & {
     return session_id_;
   }
@@ -489,8 +489,15 @@ private:
     const fs::path fs_pth = fs::path(sb.string_view());
     const fs::path fs_pth_dir = fs_pth.parent_path();
     if (!fs::exists(fs_pth_dir)) {
-      fs::create_directories(fs_pth_dir);
+      if (!fs::create_directories(fs_pth_dir)) {
+        throw client_exception("sock:do_server_upload:1");
+      }
     }
+    //  else { //? this check might be un-necessary since 'open' will fail
+    //   if (!fs::is_directory(fs_pth_dir)) {
+    //     throw client_exception("sock:do_server_upload:2");
+    //   }
+    // }
 
     upload_path_ = fs_pth.string();
 
@@ -502,20 +509,16 @@ private:
       throw client_exception{"sock:err7"};
     }
     // handle if client expects 100-continue before sending content
-    auto expect = headers_["expect"];
+    const std::string_view &expect = headers_["expect"];
     if (expect == "100-continue") {
       send_http_response(100);
-      state_ = receiving_upload;
-      return;
-    }
-    const size_t remaining = reqbuf_.remaining();
-    if (remaining == 0) {
       state_ = receiving_upload;
       return;
     }
     // check if the whole file is in buffer by comparing
     // expected upload size with remaining unhandled
     // bytes in request buffer
+    const size_t remaining = reqbuf_.remaining();
     const size_t content_len = content_.content_len();
     if (remaining >= content_len) {
       // the whole file is in 'reqbuf'
@@ -525,16 +528,16 @@ private:
         throw client_exception{"sock:err4"};
       }
       // close file
-      if (::close(upload_fd_)) {
-        perror("sock:do_server_upload 4");
+      if (close(upload_fd_)) {
+        perror("sock:do_server_upload 3");
+        throw client_exception("sock:do_server_upload: 3");
       }
       // set last modified
       const struct utimbuf tm {
         upload_last_mod_, upload_last_mod_
       };
       if (utime(upload_path_.data(), &tm)) {
-        throw client_exception(
-            "sock:do_server_upload: could not set file modified time");
+        throw client_exception("sock:do_server_upload: 4");
       }
       // acknowledge request complete
       send_http_response(204);
@@ -750,7 +753,7 @@ private:
     [[nodiscard]] inline auto is_done() const -> bool {
       return size_t(offset_) == count_;
     }
-    [[nodiscard]] inline auto length() const -> size_t { return count_; }
+    // [[nodiscard]] inline auto length() const -> size_t { return count_; }
     inline auto open(const std::string_view &path) -> int {
       fd_ = ::open(path.data(), O_RDONLY | O_CLOEXEC);
       return fd_;
@@ -821,7 +824,7 @@ private:
       }
       // data was received
       stats.input += size_t(n);
-      if (conf::print_traffic) {
+      if constexpr (conf::print_traffic) {
         const ssize_t m = write(conf::print_traffic_fd, buf_.get(), size_t(n));
         if (m == -1 or m != n) {
           perror("reply:io_send");
@@ -846,7 +849,7 @@ private:
     [[nodiscard]] inline auto remaining() const -> size_t {
       return size_t(e_ - p_);
     }
-    inline void unsafe_skip(const size_t n) { p_ += n; }
+    // inline void unsafe_skip(const size_t n) { p_ += n; }
     inline auto unsafe_next_char() -> char { return *p_++; }
     inline void set_eos() { *(p_ - 1) = '\0'; }
     inline auto string_view_from_mark() -> std::string_view {

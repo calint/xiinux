@@ -67,6 +67,11 @@ curl -si $HTTP/asdf.html > cmp &&
 diff -q cmp t03.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * default directory file not found" &&
+curl -si $HTTP/qa/coverage/files > cmp &&
+diff -q cmp t03.cmp &&
+rm cmp &&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
 #echo " * widget not found"&&
 #curl -s $HTTP/?asdf>cmp&&
 #diff -q cmp t04.cmp&&
@@ -127,7 +132,7 @@ curl -s -XPUT \
     --header "Content-Type:file;0" \
     --header "Cookie: i=20230926--2020-abcdef" \
     --data-binary @"files/hello ᐖᐛツ.txt" \
-    $HTTP/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
+    $HTTP/utf8/hello+%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
 curl -s $HTTP/u/20230926--2020-abcdef/utf8/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
 diff -q cmp "files/hello ᐖᐛツ.txt" &&
 [[ -e "$ROOT_DIR/u/20230926--2020-abcdef/utf8/hello ᐖᐛツ.txt" ]] &&
@@ -144,6 +149,16 @@ echo " * upload abuse long file name >256 B" &&
      > cmp || true) &&
 diff -q cmp t22.cmp &&
 rm cmp &&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * upload empty file 0 B" &&
+curl -s -XPUT \
+    --header "Content-Type:file;1670165801062" \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --data-binary "" \
+    $HTTP/upl > /dev/null &&
+curl -s $HTTP/u/20230926--2020-abcdef/upl > cmp &&
+diff -q cmp t22.cmp &&
+rm cmp $ROOT_DIR/u/20230926--2020-abcdef/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained upload"&&

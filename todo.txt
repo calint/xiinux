@@ -1,4 +1,3 @@
-[ ] sock: do_serve_file : build header using strb
 [ ] consider using C++ std::filesystem for file operations
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
@@ -25,6 +24,10 @@
 [ ] generate web/web.hpp
 [ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
 --------------------------------------------------------------------------------..
+[x] qa: upload file with space in name
+[x] qa: upload empty file
+[x] qa: request directory that does not contain default file
+[x] sock: do_serve_file : build header using strb
 [x] send_session_id_ at upload confirmation
 [x] uploaded file to session directory
 [x] ? C++ alternative to snprintf

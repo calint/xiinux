@@ -1,5 +1,5 @@
 
-tor  5 okt 2023 21:02:35 CEST
+tor  5 okt 2023 21:50:14 CEST
 coverage tests on http://localhost:8088
  * directory default file 
  * small file
@@ -11,17 +11,19 @@ coverage tests on http://localhost:8088
  * cached document
  * illegal path
  * page not found
+ * default directory file not found
  * post
  * bigger post >4 KB
  * upload small file 17 B
  * upload bigger file 128 KB
  * upload file with utf-8 name
  * upload abuse long file name >256 B
+ * upload empty file 0 B
  * chunked small 12 B
  * chunked many small to larger than chunk size >4 KB 
  * chunked reply data larger than chunk buffer >256 KB 
  * widget zero length content post
  * widget 'counter' 
  * abuse request >1 KB 
-tor  5 okt 2023 21:02:37 CEST
+tor  5 okt 2023 21:50:16 CEST
 
