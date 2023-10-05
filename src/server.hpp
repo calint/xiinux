@@ -32,6 +32,15 @@ public:
       return 1;
     }
 
+    if constexpr (conf::server_tcp_fast_open) {
+      int option = 1;
+      if (setsockopt(server_fd, IPPROTO_TCP, TCP_FASTOPEN, &option,
+                     sizeof(option))) {
+        perror("setsockopt TCP_FASTOPEN");
+        return 2;
+      }
+    }
+
     if constexpr (conf::server_reuse_addr_and_port) {
       int option = 1;
       if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option,
@@ -47,10 +56,11 @@ public:
     }
 
     if constexpr (conf::server_print_listen_socket_conf) {
-      printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
+      printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\nTCP_FASTOPEN: %d\n",
              get_sock_option(server_fd, SO_SNDBUF, SOL_SOCKET),
-             get_sock_option(server_fd, TCP_NODELAY),
-             get_sock_option(server_fd, TCP_CORK));
+             get_sock_option(server_fd, TCP_NODELAY, IPPROTO_TCP),
+             get_sock_option(server_fd, TCP_CORK, IPPROTO_TCP),
+             get_sock_option(server_fd, TCP_FASTOPEN, IPPROTO_TCP));
     }
 
     struct sockaddr_in server_addr {};
@@ -171,10 +181,11 @@ public:
           }
 
           if constexpr (conf::server_print_client_socket_conf) {
-            printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: %d\n",
+            printf("SO_SNDBUF: %d\nTCP_NODELAY: %d\nTCP_CORK: "
+                   "%d\n",
                    get_sock_option(client_fd, SO_SNDBUF, SOL_SOCKET),
-                   get_sock_option(client_fd, TCP_NODELAY),
-                   get_sock_option(client_fd, TCP_CORK));
+                   get_sock_option(client_fd, TCP_NODELAY, IPPROTO_TCP),
+                   get_sock_option(client_fd, TCP_CORK, IPPROTO_TCP));
           }
 
           // run client right away without waiting for EPOLLIN
@@ -301,7 +312,7 @@ private:
   }
 
   inline static auto get_sock_option(const int fd, const int opt,
-                                     const int protocol = IPPROTO_TCP) -> int {
+                                     const int protocol) -> int {
     int option = -1;
     socklen_t option_size = sizeof(option);
     if (getsockopt(fd, protocol, opt, &option, &option_size) == -1) {

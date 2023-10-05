@@ -11,14 +11,14 @@
 [ ] consider using format -> "Type const &" rather than "const Type &"
 [ ] review/refactor args
 [ ] decode query string on demand
-[ ] server: sockopt TCP_FASTOPEN
+[x] server: sockopt TCP_FASTOPEN
+[ ] websockets
+[ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
+    https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] multi-threading clients, chunky pause and resume when write would block
 [ ] multi-threading file downloads
     (for nginx performance on multiple worker threads configuration)
 [ ] xprinter for sockets with buffered sends
-[ ] websockets
-[ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges
-    https://www.cssscript.com/canvas-based-html5-gauge-library-gauge-js/
 [ ] generate web/web.hpp
 [ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
 --------------------------------------------------------------------------------..
