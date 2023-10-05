@@ -19,7 +19,6 @@
 #include <utime.h>
 
 namespace xiinux {
-namespace fs = std::filesystem;
 
 class sock final {
 public:
@@ -486,6 +485,7 @@ private:
     sb.p("u/"sv).p(session_id_).p('/').p(reqline_.path_.substr(1)).eos();
 
     // create directory if it does not exist
+    namespace fs = std::filesystem;
     const fs::path fs_pth = fs::path(sb.string_view());
     const fs::path fs_pth_dir = fs_pth.parent_path();
     if (!fs::exists(fs_pth_dir)) {
@@ -629,8 +629,19 @@ private:
     sb.p("HTTP/1.1 "sv)
         .p(range.empty() ? "200"sv : "206"sv)
         .p("\r\nAccept-Ranges: bytes\r\nLast-Modified: "sv)
-        .p({lastmod.data(), lastmod_len})
-        .p("\r\nContent-Length: "sv);
+        .p({lastmod.data(), lastmod_len});
+
+    // content-type
+    const size_t suffix_ix = path_resolved.find_last_of('.');
+    if (suffix_ix != std::string_view::npos) {
+      const std::string_view &suffix = path_resolved.substr(suffix_ix + 1);
+      if (suffix == "js") {
+        // fixes warning in firefox for javascript files
+        sb.p("\r\nContent-Type: application/javascript"sv);
+      }
+    }
+
+    sb.p("\r\nContent-Length: "sv);
 
     const auto file_len = size_t(fdstat.st_size);
 
