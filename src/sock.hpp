@@ -482,23 +482,18 @@ private:
 
   void do_serve_upload() {
     // file upload
-    std::array<char, conf::upload_path_size> pth{};
-    // +1 to skip the leading '/'
-    const int pth_len =
-        snprintf(pth.data(), pth.size(), "u/%s/%s", session_id_.data(),
-                 reqline_.path_.substr(1).data());
-    if (pth_len < 0 or size_t(pth_len) >= pth.size()) {
-      throw client_exception{"sock:pathtrunc"};
-    }
+    strb<conf::upload_path_size> sb{};
+    sb.p("u/"sv).p(session_id_).p('/').p(reqline_.path_.substr(1)).eos();
 
     // create directory if it does not exist
-    const fs::path fs_pth = fs::path(pth.data());
+    const fs::path fs_pth = fs::path(sb.string_view());
     const fs::path fs_pth_dir = fs_pth.parent_path();
     if (!fs::exists(fs_pth_dir)) {
       fs::create_directories(fs_pth_dir);
     }
 
-    upload_path_ = {pth.data(), size_t(pth_len)};
+    upload_path_ = fs_pth.string();
+
     // open file for write
     upload_fd_ = open(upload_path_.data(),
                       O_CREAT | O_WRONLY | O_TRUNC | O_CLOEXEC, 0664);
