@@ -17,7 +17,7 @@ curl -s $HTTP/qa/coverage/q01.txt > cmp &&
 diff -q cmp t01.cmp &&
 rm cmp &&
 #-- - - -- -- - ------- - - - - -- - - - --- -- 
-echo " * larger file 16K" &&
+echo " * larger file 16 KB" &&
 curl -s $HTTP/qa/coverage/ipsum16k.txt > cmp &&
 diff -q cmp ipsum16k.txt &&
 rm cmp &&
@@ -80,12 +80,12 @@ curl -s --header "Content-Type:text/plain;charset=utf-8" --data "hello ᐖᐛツ
 diff -q cmp t10.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * bigger post >4K" &&
+echo " * bigger post >4 KB" &&
 curl -s --header "Content-Type:text/plain;charset=utf-8" --data-binary @q02.txt $HTTP/qa/typealine > cmp &&
 diff -q cmp t11.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * upload small file 17B" &&
+echo " * upload small file 17 B" &&
 # note. 1693643520235 is file mod time stamp according to /upload.html (see javascript console)
 curl -sq -XPUT --header "Content-Type:file;1693643520235" --data-binary @q01.txt $HTTP/upl > /dev/null &&
 curl -s $HTTP/upload/upl > cmp &&
@@ -95,7 +95,7 @@ timestamp2=$(stat -c %Y "q01.txt") &&
 [[ "$timestamp1" == "$timestamp2" ]] &&
 rm cmp $ROOT_DIR/upload/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * upload bigger file 128K" &&
+echo " * upload bigger file 128 KB" &&
 # note. 1670165801062 is file mod time stamp according to /upload.html (see javascript console)
 curl -sq -XPUT --header "Content-Type:file;1670165801062" --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
 curl -s $HTTP/upload/upl > cmp &&
@@ -124,17 +124,17 @@ rm cmp "$ROOT_DIR/upload/hello ᐖᐛツ.txt" &&
 #rm $ROOT_DIR/upload/upl&&
 #rm $ROOT_DIR/upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked small 12B" &&
+echo " * chunked small 12 B" &&
 curl -s $HTTP/qa/chunked > cmp &&
 diff -q cmp t15.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked many small to larger than chunk size >4K " &&
+echo " * chunked many small to larger than chunk size >4 KB " &&
 curl -s $HTTP/qa/chunkedbig > cmp &&
 diff -q cmp t16.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked reply data larger than chunk buffer >256K " &&
+echo " * chunked reply data larger than chunk buffer >256 KB " &&
 curl -s $HTTP/qa/chunkedbigger > cmp &&
 gunzip -fk t17.cmp.gz &&
 diff -q cmp t17.cmp &&
@@ -159,7 +159,7 @@ diff -q cmp t19_1.cmp &&
 curl -sH"Cookie: i=20230926--2020-abcdef" $HTTP/qa/counter?a=3+4 > cmp &&
 diff -q cmp t19_2.cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * abuse request >1K " &&
+echo " * abuse request >1 KB " &&
 nc -w1 $HOST $PORT < t18.in > cmp &&
 diff -q cmp t18.cmp &&
 rm cmp &&
