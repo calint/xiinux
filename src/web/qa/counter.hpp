@@ -27,13 +27,16 @@ public:
     // sb.p("session value: "sv).p(found ? it->second : ""sv).nl();
     // ses->insert({"x"s, "abc"s});
 
-    // note. inserts empty string if not found
-    const std::string &ses_val = (*ses)["x"];
     // note. throws exception if not found
     // const std::string &ses_val = ses->at("x");
+    
+    // note. inserts empty string if not found
+    const std::string &ses_val = (*ses)["x"];
     sb.p("session value: "sv).p(ses_val).nl();
-    // (*ses)["x"] = "abc";
-    ses->insert_or_assign("x"s, "abc"s);
+    (*ses)["x"] = "abc";
+    
+    // note.
+    // ses->insert_or_assign("x"s, "abc"s);
 
     sb.p("counter in this instance: "sv).p(counter_).nl();
     sb.p("counter in this class: "sv).p(counter::atomic_counter).nl();
