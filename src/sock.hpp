@@ -546,7 +546,7 @@ private:
     state_ = receiving_upload;
   }
 
-  void do_serve_file(reply &x, std::string_view path) {
+  void do_serve_file(reply &x, const std::string_view &path) {
     // check for illegal path containing break-out of root directory
     if (path.find("..") != std::string_view::npos) {
       x.http(403, "path contains ..\n"sv);
@@ -561,10 +561,12 @@ private:
       state_ = next_request;
       return;
     }
-    // will back the string_view if 'path' gets re-assigned
-    // note. ? placed inside the 'if' would be U.B.
+    // will back the string_view of 'path_resolved' incase it is the default
+    // directory file
+    // note. ? placed inside the 'if' would be U.B.?
     //       not caught by compiler, clang-tidy or valgrind
     strb<path_max_size> path_buf{};
+    std::string_view path_resolved{};
     // check if path is directory
     if (S_ISDIR(fdstat.st_mode)) {
       // check for default directory file
@@ -575,7 +577,9 @@ private:
         state_ = next_request;
         return;
       }
-      path = path_buf.string_view();
+      path_resolved = path_buf.string_view();
+    } else {
+      path_resolved = path;
     }
     // get modified time of file
     tm tm_info{};
@@ -598,7 +602,7 @@ private:
       return;
     }
     // open file
-    if (file_.open(path.data()) == -1) {
+    if (file_.open(path_resolved) == -1) {
       // error
       x.http(404, "cannot open file\n"sv);
       state_ = next_request;
@@ -723,8 +727,8 @@ private:
       return size_t(offset_) == count_;
     }
     [[nodiscard]] inline auto length() const -> size_t { return count_; }
-    inline auto open(const char *path) -> int {
-      fd_ = ::open(path, O_RDONLY | O_CLOEXEC);
+    inline auto open(const std::string_view &path) -> int {
+      fd_ = ::open(path.data(), O_RDONLY | O_CLOEXEC);
       return fd_;
     }
     inline void rst() {

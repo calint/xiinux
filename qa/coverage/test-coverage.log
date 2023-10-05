@@ -1,9 +1,9 @@
 
-ons  4 okt 2023 23:12:38 CEST
+tor  5 okt 2023 15:10:08 CEST
 coverage tests on http://localhost:8088
  * directory default file 
  * small file
- * larger file 16K
+ * larger file 16 KB
  * even larger file 8 MB
  * if-modified-since
  * dynamic document
@@ -12,15 +12,15 @@ coverage tests on http://localhost:8088
  * illegal path
  * page not found
  * post
- * bigger post >4K
- * upload small file 17B
- * upload bigger file 128K
+ * bigger post >4 KB
+ * upload small file 17 B
+ * upload bigger file 128 KB
  * upload file with utf-8 name
- * chunked small 12B
- * chunked many small to larger than chunk size >4K 
- * chunked reply data larger than chunk buffer >256K 
+ * chunked small 12 B
+ * chunked many small to larger than chunk size >4 KB 
+ * chunked reply data larger than chunk buffer >256 KB 
  * widget zero length content post
  * widget 'counter' 
- * abuse request >1K 
-ons  4 okt 2023 23:12:40 CEST
+ * abuse request >1 KB 
+tor  5 okt 2023 15:10:10 CEST
 
