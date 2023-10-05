@@ -29,6 +29,9 @@ public:
     sb.p("counter in this instance: "sv).p(counter_).nl();
     sb.p("counter in this class: "sv).p(counter::atomic_counter).nl();
 
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast) coverage test
+    sb.p("pointer: "sv).p_ptr(reinterpret_cast<void *>(0x1234abcd)).nl();
+
     r.http(200, sb.string_view(), "text/plain"sv);
   }
 };

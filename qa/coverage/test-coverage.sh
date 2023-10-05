@@ -172,7 +172,7 @@ rm cmp $ROOT_DIR/u/20230926--2020-abcdef/upl &&
 #rm $ROOT_DIR/upload/upl&&
 #rm $ROOT_DIR/upload/upl2&&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * chunked small 12 B" &&
+echo " * chunked small 45 B" &&
 curl -s $HTTP/qa/chunked > cmp &&
 diff -q cmp t15.cmp &&
 rm cmp &&

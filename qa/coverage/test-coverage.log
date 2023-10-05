@@ -1,5 +1,5 @@
 
-tor  5 okt 2023 21:50:14 CEST
+tor  5 okt 2023 22:15:24 CEST
 coverage tests on http://localhost:8088
  * directory default file 
  * small file
@@ -19,11 +19,11 @@ coverage tests on http://localhost:8088
  * upload file with utf-8 name
  * upload abuse long file name >256 B
  * upload empty file 0 B
- * chunked small 12 B
+ * chunked small 45 B
  * chunked many small to larger than chunk size >4 KB 
  * chunked reply data larger than chunk buffer >256 KB 
  * widget zero length content post
  * widget 'counter' 
  * abuse request >1 KB 
-tor  5 okt 2023 21:50:16 CEST
+tor  5 okt 2023 22:15:26 CEST
 

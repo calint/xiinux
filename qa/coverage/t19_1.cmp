@@ -4,3 +4,4 @@ cookie: i=20230926--2020-abcdef
 session value: 
 counter in this instance: 1
 counter in this class: 1
+pointer: 0x1234abcd
