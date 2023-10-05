@@ -7,6 +7,7 @@
 #include "sessions.hpp"
 #include "web/web.hpp"
 #include <fcntl.h>
+#include <filesystem>
 #include <memory>
 #include <netinet/in.h>
 #include <string_view>
@@ -18,6 +19,8 @@
 #include <utime.h>
 
 namespace xiinux {
+namespace fs = std::filesystem;
+
 class sock final {
 public:
   inline sock(const int fd, struct sockaddr_in sock_addr)
@@ -481,10 +484,18 @@ private:
     // file upload
     std::array<char, conf::upload_path_size> pth{};
     // +1 to skip the leading '/'
-    const int pth_len = snprintf(pth.data(), pth.size(), "upload/%s",
-                                 reqline_.path_.substr(1).data());
+    const int pth_len =
+        snprintf(pth.data(), pth.size(), "u/%s/%s", session_id_.data(),
+                 reqline_.path_.substr(1).data());
     if (pth_len < 0 or size_t(pth_len) >= pth.size()) {
       throw client_exception{"sock:pathtrunc"};
+    }
+
+    // create directory if it does not exist
+    const fs::path fs_pth = fs::path(pth.data());
+    const fs::path fs_pth_dir = fs_pth.parent_path();
+    if (!fs::exists(fs_pth_dir)) {
+      fs::create_directories(fs_pth_dir);
     }
 
     upload_path_ = {pth.data(), size_t(pth_len)};
@@ -693,7 +704,7 @@ private:
   }
 
   inline void send_http_confirmation(const int http_code) {
-    strb<512> sb{};
+    strb<conf::sock_response_header_buf_size> sb{};
     sb.p("HTTP/1.1 "sv).p(http_code).p("\r\n"sv);
     if (send_session_id_in_reply_) {
       sb.p("Set-Cookie: i="sv)
@@ -864,7 +875,7 @@ private:
       }
       stats.input += size_t(n);
       e_ = p_ + n;
-      if (conf::print_traffic) {
+      if constexpr (conf::print_traffic) {
         const ssize_t m = write(conf::print_traffic_fd, p_, size_t(n));
         if (m == -1 or m != n) {
           perror("incomplete or failed write");

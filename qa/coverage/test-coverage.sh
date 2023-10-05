@@ -87,30 +87,39 @@ rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload small file 17 B" &&
 # note. 1693643520235 is file mod time stamp according to /upload.html (see javascript console)
-curl -sq -XPUT --header "Content-Type:file;1693643520235" --data-binary @q01.txt $HTTP/upl > /dev/null &&
-curl -s $HTTP/upload/upl > cmp &&
+curl -sq -XPUT \
+    --header "Content-Type:file;1693643520235" \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --data-binary @q01.txt $HTTP/upl > /dev/null &&
+curl -s $HTTP/u/20230926--2020-abcdef/upl > cmp &&
 diff -q cmp q01.txt &&
-timestamp1=$(stat -c %Y "$ROOT_DIR/upload/upl") &&
+timestamp1=$(stat -c %Y "$ROOT_DIR/u/20230926--2020-abcdef/upl") &&
 timestamp2=$(stat -c %Y "q01.txt") &&
 [[ "$timestamp1" == "$timestamp2" ]] &&
-rm cmp $ROOT_DIR/upload/upl &&
+rm cmp $ROOT_DIR/u/20230926--2020-abcdef/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload bigger file 128 KB" &&
 # note. 1670165801062 is file mod time stamp according to /upload.html (see javascript console)
-curl -sq -XPUT --header "Content-Type:file;1670165801062" --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
-curl -s $HTTP/upload/upl > cmp &&
+curl -sq -XPUT \
+    --header "Content-Type:file;1670165801062" \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --data-binary @files/far_side_dog_ok.jpg $HTTP/upl > /dev/null &&
+curl -s $HTTP/u/20230926--2020-abcdef/upl > cmp &&
 diff -q cmp files/far_side_dog_ok.jpg &&
-timestamp1=$(stat -c %Y "$ROOT_DIR/upload/upl") &&
+timestamp1=$(stat -c %Y "$ROOT_DIR/u/20230926--2020-abcdef/upl") &&
 timestamp2=$(stat -c %Y "files/far_side_dog_ok.jpg") &&
 [[ "$timestamp1" == "$timestamp2" ]] &&
-rm cmp $ROOT_DIR/upload/upl &&
+rm cmp $ROOT_DIR/u/20230926--2020-abcdef/upl &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 echo " * upload file with utf-8 name" &&
-curl -sq -XPUT --header "Content-Type:file;0" --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
-curl -s $HTTP/upload/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
+curl -sq -XPUT \
+    --header "Content-Type:file;0" \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --data-binary @"files/hello ᐖᐛツ.txt" $HTTP/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > /dev/null &&
+curl -s $HTTP/u/20230926--2020-abcdef/hello%20%E1%90%96%E1%90%9B%E3%83%84.txt > cmp &&
 diff -q cmp "files/hello ᐖᐛツ.txt" &&
-[[ -e "$ROOT_DIR/upload/hello ᐖᐛツ.txt" ]] &&
-rm cmp "$ROOT_DIR/upload/hello ᐖᐛツ.txt" &&
+[[ -e "$ROOT_DIR/u/20230926--2020-abcdef/hello ᐖᐛツ.txt" ]] &&
+rm cmp "$ROOT_DIR/u/20230926--2020-abcdef/hello ᐖᐛツ.txt" &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
 # !!! not fully supported. breaks when request bigger than buffer
 #echo " * chained upload"&&
