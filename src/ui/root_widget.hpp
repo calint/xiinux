@@ -19,15 +19,9 @@ public:
 
   inline void to(reply &r) override { elem_->render(*r.reply_chunky()); }
 
-  // called when client is sending content
-  // first call is with buf=nullptr, buf_len=0, received_len=0 and content_len
-  // subsequent calls are the portions of the content as read from the client
-  // received_len keeps track of received content this far
-  inline void on_content([[maybe_unused]] reply &x,
-                         /*scan*/ [[maybe_unused]] const char *buf,
-                         [[maybe_unused]] const size_t buf_len,
-                         [[maybe_unused]] const size_t received_len,
-                         [[maybe_unused]] const size_t content_len) override {
+  inline void on_content(reply &x, const char *buf, const size_t buf_len,
+                         const size_t received_len,
+                         const size_t content_len) override {
     if (buf == nullptr) {
       content_.clear();
       return;
@@ -38,11 +32,11 @@ public:
       return;
     }
 
-    // printf("\n\ncontent received, process:\n");
+    // first line is callback info
+    // extract callback info
     std::string callback_id{};
     std::string callback_func{};
     std::string callback_arg{};
-    // first line is callback info
     std::string line;
     std::istringstream iss_content{content_};
     std::getline(iss_content, line, '\r');
@@ -62,7 +56,7 @@ public:
       }
     }
 
-    // set values
+    // set values posted by ui
     while (std::getline(iss_content, line, '\r')) {
       const std::size_t ix = line.find('=');
       if (ix == std::string::npos) {
@@ -86,7 +80,7 @@ private:
     // for (const auto &eid : id_split_vec | std::views::drop(2)) {
     int ix = 0;
     for (const auto &eid : id_split_vec) {
-      if (ix++ < 2) { // skip the last 2 elements to start from root
+      if (ix++ < 2) { // skip the first 2 elements to start from root
         continue;
       }
       el = el->get_child(eid);
