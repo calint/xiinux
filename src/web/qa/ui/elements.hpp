@@ -32,32 +32,12 @@ public:
 
   void on_callback(uiprinter &x, const std::string &name,
                    const std::string &param) override {
-    x.p("alert('").p(name).p("(").p(param).p(")');\n");
-    x.p("alert('[")
-        .p(a.get_value())
-        .p("] [")
-        .p(js_str(b.get_value()))
-        .p("]');\n");
-  }
-
-  // note. temporary hack
-  static auto js_str(const std::string &s0) -> std::string {
-    const std::string s1 = replace_char_with_string(s0, '\n', "\\n");
-    const std::string s2 = replace_char_with_string(s1, '\r', "\\r");
-    const std::string s3 = replace_char_with_string(s2, '\0', "\\0");
-    return replace_char_with_string(s3, '\'', "\\'");
-  }
-
-  static auto replace_char_with_string(const std::string &str, char ch,
-                                       const std::string &replacement)
-      -> std::string {
-    std::string res = str;
-    size_t pos = res.find(ch);
-    while (pos != std::string::npos) {
-      res.replace(pos, 1, replacement);
-      pos = res.find(ch, pos + replacement.length());
-    }
-    return res;
+    x.p("alert('"sv).p(name).p("("sv).p(param).p(")');\n"sv);
+    x.p("alert('["sv)
+        .p_js_str(a.get_value())
+        .p("] ["sv)
+        .p_js_str(b.get_value())
+        .p("]');\n"sv);
   }
 };
 } // namespace xiinux::web::qa::ui

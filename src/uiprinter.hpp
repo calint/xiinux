@@ -42,6 +42,10 @@ public:
     return p("')\">").p(txt).p("</button>");
   }
 
+  inline auto p_js_str(const std::string &str) -> uiprinter & {
+    return p(js_str(str));
+  }
+
   // xprinter implementation
   inline auto p(const std::string_view &sv) -> uiprinter & override {
     out_.p(sv);
@@ -76,5 +80,26 @@ public:
     return *this;
   }
   // end of xprinter implementation
+
+private:
+  // note. temporary hack
+  static auto js_str(const std::string &s0) -> std::string {
+    const std::string s1 = replace_char_with_string(s0, '\n', "\\n");
+    const std::string s2 = replace_char_with_string(s1, '\r', "\\r");
+    const std::string s3 = replace_char_with_string(s2, '\0', "\\0");
+    return replace_char_with_string(s3, '\'', "\\'");
+  }
+
+  static auto replace_char_with_string(const std::string &str, char ch,
+                                       const std::string &replacement)
+      -> std::string {
+    std::string res = str;
+    size_t pos = res.find(ch);
+    while (pos != std::string::npos) {
+      res.replace(pos, 1, replacement);
+      pos = res.find(ch, pos + replacement.length());
+    }
+    return res;
+  }
 };
 } // namespace xiinux
