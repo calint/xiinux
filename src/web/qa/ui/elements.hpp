@@ -30,9 +30,9 @@ public:
     x.button(id, "foo", "arg1 arg2", "submit");
   }
 
-  void on_callback(uiprinter &x, const std::string &name,
-                   const std::string &param) override {
-    x.p("alert('"sv).p(name).p("("sv).p(param).p(")');\n"sv);
+  void on_callback(uiprinter &x, const std::string &func,
+                   const std::string &arg) override {
+    x.p("alert('"sv).p(func).p("("sv).p(arg).p(")');\n"sv);
     x.p("alert('["sv)
         .p_js_str(a.get_value())
         .p("] ["sv)
