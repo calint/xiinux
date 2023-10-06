@@ -21,6 +21,8 @@ public:
   inline void to(reply &r) override {
     std::unique_ptr<chunky> chk = r.reply_chunky();
     uiprinter out{*chk};
+    out.p(
+        R"(<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8><link rel=stylesheet href=/ui/x.css><script src=/ui/x.js></script>)");
     elem_->render(out);
   }
 
