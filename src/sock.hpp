@@ -297,7 +297,7 @@ public:
   }
 
 private:
-  void do_after_headers() {
+  inline void do_after_headers() {
 
     retrieve_session_id_from_cookie();
 
@@ -430,7 +430,7 @@ private:
     state_ = receiving_content;
   }
 
-  void retrieve_session_id_from_cookie() {
+  inline void retrieve_session_id_from_cookie() {
     // get session id from cookie or create new
     const std::string_view &cookie = headers_["cookie"];
     if (cookie.starts_with("i=")) {
@@ -439,32 +439,33 @@ private:
     }
   }
 
-  void retrieve_or_create_session() {
+  inline void retrieve_or_create_session() {
     // check if session id is in cookie
     if (session_id_.empty()) {
       // no session id, create session id with format e.g.
-      // '20150411-225519-ieu44dn'
+      // '20150411-225519-ieu44dna'
       const time_t timer = time(nullptr);
       tm tm_info{};
       if (gmtime_r(&timer, &tm_info) == nullptr) {
         throw client_exception{"sock:retrieve_or_create_session:gmtime_r"};
       }
       std::array<char, 24> sid{};
-      if (!strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info)) {
+      const size_t sid_len =
+          strftime(sid.data(), sid.size(), "%Y%m%d-%H%M%S-", &tm_info);
+      if (sid_len == 0) {
         throw client_exception{"sock:do_serve_widget:1"};
       }
-      // 16 is len of "20150411-225519-"
-      char *sid_ptr = sid.data() + 16;
-      // generate 7 random characters between 'a' and 'z'
-      for (unsigned i = 0; i < 7; i++) {
-        *sid_ptr++ = 'a' + char(random() % 26); // NOLINT
+      // e.g. sid="20231006-145203-"
+      // remaining part of 'sid' is random characters
+      for (size_t i = sid_len; i < sid.size(); i++) {
+        sid[i] = 'a' + char(random() % 26); // NOLINT
       }
-      *sid_ptr = '\0';
-      session_id_ = sid.data();
+      session_id_ = {sid.data(), sid.size()};
       // make unique pointer of 'session' with lifetime of 'sessions'
-      auto up = std::make_unique<session>(sid.data());
-      session_ = up.get();
-      sessions.put(std::move(up));
+      auto up_ses = std::make_unique<session>(session_id_);
+      // lifetime of raw pointer ok. see member declaration comment
+      session_ = up_ses.get();
+      sessions.put(std::move(up_ses));
       send_session_id_in_reply_ = true;
       return;
     }
@@ -479,7 +480,7 @@ private:
     sessions.put(std::move(up));
   }
 
-  void do_serve_upload() {
+  inline void do_serve_upload() {
     // file upload
     strb<conf::upload_path_size> sb{};
     sb.p("u/"sv).p(session_id_).p('/').p(reqline_.path_.substr(1)).eos();
@@ -557,7 +558,7 @@ private:
     state_ = receiving_upload;
   }
 
-  void do_serve_file(reply &x, const std::string_view &path) {
+  inline void do_serve_file(reply &x, const std::string_view &path) {
     // check for illegal path containing break-out of root directory
     if (path.find("..") != std::string_view::npos) {
       x.http(403, "path contains ..\n"sv);
