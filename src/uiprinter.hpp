@@ -8,38 +8,46 @@ public:
   inline explicit uiprinter(xprinter &out) : out_{out} {}
 
   inline auto input_text(const std::string &id, const std::string &value,
-                         const std::string &on_ret_cb_id) -> uiprinter & {
-    return p("<input type=text id=")
-        .p(id)
-        .p(" name=")
-        .p(id)
-        .p(" value=\"")
-        .p(value)
-        .p("\" ")
-        .p("onkeypress=\"return $r(event,this,'")
-        .p(on_ret_cb_id)
-        .p("')\" oninput=\"$b(this)\">");
+                         const std::string &cls,
+                         const std::string &on_ret_cb_id,
+                         const std::string &cb_func) -> uiprinter & {
+    p("<input id=").p(id).p(" name=").p(id).p(" value=\"").p(value).p("\"");
+    if (!cls.empty()) {
+      p(" class=\"").p(cls).p("\"");
+    }
+    if (!on_ret_cb_id.empty()) {
+      p(" type=text onkeypress=\"return $r(event,this,'").p(on_ret_cb_id);
+      if (!cb_func.empty()) {
+        p(' ').p(cb_func);
+      }
+      p("')\"");
+    }
+    p(" oninput=\"$b(this)\">");
+    return *this;
   }
 
-  inline auto textarea(const std::string &id, const std::string &value)
-      -> uiprinter & {
-    return p("<textarea id=")
-        .p(id)
-        .p(" name=")
-        .p(id)
-        .p(" oninput=\"$b(this)\">")
-        .p(value)
-        .p("</textarea>");
+  inline auto textarea(const std::string &id, const std::string &value,
+                       const std::string &cls) -> uiprinter & {
+    p("<textarea id=").p(id).p(" name=").p(id);
+    if (!cls.empty()) {
+      p(" class=\"").p(cls).p('"');
+    }
+    p(" oninput=\"$b(this)\">").p(value).p("</textarea>");
+    return *this;
   }
 
   inline auto button(const std::string &cb_id, const std::string &func,
-                     const std::string &arg, const std::string &txt)
-      -> uiprinter & {
+                     const std::string &arg, const std::string &cls,
+                     const std::string &txt) -> uiprinter & {
     p("<button onclick=\"$x('").p(cb_id).p(' ').p(func);
     if (!arg.empty()) {
       p(' ').p(arg);
     }
-    return p("')\">").p(txt).p("</button>");
+    p("')\"");
+    if (!cls.empty()) {
+      p(" class=\"").p(cls).p("\"");
+    }
+    return p(">").p(txt).p("</button>");
   }
 
   inline auto p_js_str(const std::string &str) -> uiprinter & {

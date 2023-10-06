@@ -49,7 +49,7 @@ public:
     const std::size_t ix_first_space = line.find(' ');
     if (ix_first_space == std::string::npos) {
       callback_id = line;
-      callback_func = "_";
+      callback_func = "";
     } else {
       callback_id = line.substr(0, ix_first_space);
       line = line.substr(ix_first_space + 1);

@@ -57,6 +57,8 @@
         "chrono": "cpp",
         "codecvt": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp"
     }
 }
