@@ -1,6 +1,7 @@
 // reviewed: 2023-09-27
 // todo: generate this file from index
 #pragma once
+#include "../ui/root_widget.hpp"
 #include "../widget.hpp"
 #include "error404.hpp"
 #include "qa/bigresp.hpp"
@@ -11,6 +12,7 @@
 #include "qa/hello.hpp"
 #include "qa/page.hpp"
 #include "qa/typealine.hpp"
+#include "qa/ui/elements.hpp"
 
 namespace xiinux::web {
 
@@ -48,6 +50,9 @@ static inline auto widget_create_page() -> widget * { return new qa::page(); }
 static inline auto widget_create_typealine() -> widget * {
   return new qa::typealine();
 }
+static inline auto widget_create_ui() -> widget * {
+  return new xiinux::ui::root_widget(std::make_unique<qa::ui::elements>());
+}
 
 static inline void widget_init_path_to_factory_map() {
   path_to_widget_map["/qa/typealine"] = widget_create_typealine;
@@ -58,6 +63,7 @@ static inline void widget_init_path_to_factory_map() {
   path_to_widget_map["/qa/chunkedbig"] = widget_create_chunkedbig;
   path_to_widget_map["/qa/chunkedbigger"] = widget_create_chunkedbigger;
   path_to_widget_map["/qa/page"] = widget_create_page;
+  path_to_widget_map["/qa/ui"] = widget_create_ui;
 }
 
 } // namespace xiinux::web

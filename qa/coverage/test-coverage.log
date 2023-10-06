@@ -1,5 +1,5 @@
 
-fre  6 okt 2023 15:10:14 CEST
+fre  6 okt 2023 17:15:38 CEST
 coverage tests on http://localhost:8088
  * directory default file 
  * small file
@@ -25,5 +25,6 @@ coverage tests on http://localhost:8088
  * widget zero length content post
  * widget 'counter' 
  * abuse request >1 KB 
-fre  6 okt 2023 15:10:16 CEST
+ * ui elements 
+fre  6 okt 2023 17:15:40 CEST
 
