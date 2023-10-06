@@ -55,6 +55,8 @@
         "sstream": "cpp",
         "iostream": "cpp",
         "chrono": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
     }
 }

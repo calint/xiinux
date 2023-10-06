@@ -32,12 +32,13 @@ public:
       content_.clear();
       return;
     }
+
     content_.append(buf, buf_len);
     if (received_len != content_len) {
       return;
     }
 
-    printf("\n\ncontent received, process:\n");
+    // printf("\n\ncontent received, process:\n");
     std::string callback_id{};
     std::string callback_func{};
     std::string callback_arg{};
@@ -56,48 +57,46 @@ public:
       if (ix_second_space == std::string::npos) {
         callback_func = line;
       } else {
-        callback_id = line.substr(0, ix_second_space);
+        callback_func = line.substr(0, ix_second_space);
         callback_arg = line.substr(ix_second_space + 1);
       }
     }
-    // extract the elem id of callback target and callback parameter
-    std::cout << "callback id=[" << callback_id << "] arg=[" << callback_arg
-              << "]\n";
 
+    // set values
     while (std::getline(iss_content, line, '\r')) {
-      // std::cout << "line=[" << line << "]" << std::endl;
       const std::size_t ix = line.find('=');
       if (ix == std::string::npos) {
         throw client_exception("root_widget:on_content: postback malformed 2");
       }
       const std::string id = line.substr(0, ix);
       const std::string value = line.substr(ix + 1);
-      std::cout << "set elem value id=[" << id << "] value=[" << value << "]\n";
-
-      const std::vector<std::string> id_split_vec = split_string(id, '-');
-      elem *el = elem_.get();
-      for (auto it = id_split_vec.begin() + 1; it != id_split_vec.end(); ++it) {
-        el = el->get_child(*it);
-        if (!el) {
-          throw client_exception("root_widget:on_content");
-        }
-      }
-      el->set_value(value);
+      get_elem_by_id(id)->set_value(value);
     }
 
-    const std::vector<std::string> id_split_vec = split_string(callback_id, '-');
+    // do callback
+    auto out = x.reply_chunky();
+    get_elem_by_id(callback_id)->on_callback(*out, callback_func, callback_arg);
+  }
+
+private:
+  inline auto get_elem_by_id(const std::string &id) -> elem * {
+    const std::vector<std::string> id_split_vec = split_string(id, '-');
     elem *el = elem_.get();
-    for (auto it = id_split_vec.begin() + 1; it != id_split_vec.end(); ++it) {
-      el = el->get_child(*it);
+
+    // for (const auto &eid : id_split_vec | std::views::drop(2)) {
+    int ix = 0;
+    for (const auto &eid : id_split_vec) {
+      if (ix++ < 2) { // skip the last 2 elements to start from root
+        continue;
+      }
+      el = el->get_child(eid);
       if (!el) {
         throw client_exception("root_widget:on_content");
       }
     }
-    auto out = x.reply_chunky();
-    el->on_callback(*out, callback_func, callback_arg);
+    return el;
   }
 
-private:
   static auto split_string(const std::string &input, char delimiter)
       -> std::vector<std::string> {
     std::vector<std::string> result;
