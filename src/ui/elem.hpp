@@ -1,3 +1,5 @@
+#pragma once
+#include "uiprinter.hpp"
 #include <vector>
 
 namespace xiinux::ui {
@@ -18,11 +20,11 @@ public:
   [[nodiscard]] inline auto get_name() const -> const std::string & {
     return name_;
   }
-  
+
   [[nodiscard]] inline auto get_value() const -> const std::string & {
     return value_;
   }
-  
+
   inline void set_value(const std::string &value) { value_ = value; }
 
   [[nodiscard]] inline auto get_id() const -> std::string {
@@ -41,15 +43,16 @@ public:
     return id;
   }
 
-  virtual void render(xprinter &x) { x.p(value_); }
+  virtual void render(uiprinter &x) { x.p(value_); }
 
   virtual auto get_child([[maybe_unused]] const std::string &name) -> elem * {
     throw client_exception("elem:get_child");
   }
 
-  virtual void on_callback(xprinter &x, const std::string &name,
-                           const std::string &param) {
-    x.p("callback id=[").p(name).p("] param=[").p(param).p("]\n");
+  virtual void on_callback([[maybe_unused]] uiprinter &x,
+                           [[maybe_unused]] const std::string &name,
+                           [[maybe_unused]] const std::string &param) {
+    throw client_exception("elem:on_callback: no implementation");
   }
 };
 } // namespace xiinux::ui

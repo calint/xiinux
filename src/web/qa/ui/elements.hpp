@@ -1,3 +1,6 @@
+#pragma once
+#include "../../../ui/uiprinter.hpp"
+
 namespace xiinux::web::qa::ui {
 class elements final : public xiinux::ui::elem {
   elem a{this, "a"};
@@ -5,7 +8,7 @@ class elements final : public xiinux::ui::elem {
 
 public:
   inline explicit elements(const std::string &name) : elem{nullptr, name} {}
-  void render(xprinter &x) override {
+  void render(xiinux::ui::uiprinter &x) override {
     x.p(R"(<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8><link rel=stylesheet href=/ui/x.css><script src=/ui/x.js></script>)");
     x.p("<pre>hello world from elements\n"sv);
     const std::string id = get_id();
@@ -26,14 +29,14 @@ public:
     return nullptr;
   }
 
-  void on_callback(xprinter &x, const std::string &name,
+  void on_callback(xiinux::ui::uiprinter &x, const std::string &name,
                    const std::string &param) override {
     x.p("alert('").p(name).p(" ").p(param).p("');\n");
     x.p("alert('").p(a.get_value()).p(" ").p(b.get_value()).p("');\n");
   }
 
 private:
-  static void render_input_text(xprinter &x, const elem &el,
+  static void render_input_text(xiinux::ui::uiprinter &x, const elem &el,
                                 const std::string &tgt_id) {
     const std::string &eid = el.get_id();
     x.p("<input type=text id=")
@@ -48,7 +51,7 @@ private:
         .p("')\" oninput=\"$b(this)\">");
   }
 
-  static void render_textarea(xprinter &x, const elem &el) {
+  static void render_textarea(xiinux::ui::uiprinter &x, const elem &el) {
     const std::string &eid = el.get_id();
     x.p("<textarea id=")
         .p(eid)
@@ -61,7 +64,7 @@ private:
         .p("</textarea>");
   }
 
-  static void render_button(xprinter &x, const std::string &tgt_id,
+  static void render_button(xiinux::ui::uiprinter &x, const std::string &tgt_id,
                             const std::string &func, const std::string &arg,
                             const std::string &txt) {
     x.p("<button onclick=\"$x('").p(tgt_id).p(' ').p(func);

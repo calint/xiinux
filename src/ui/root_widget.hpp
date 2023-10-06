@@ -1,3 +1,4 @@
+#pragma once
 #include "../widget.hpp"
 #include "elem.hpp"
 #include <iostream>
@@ -17,7 +18,11 @@ public:
   auto operator=(root_widget &&) -> root_widget & = default;
   ~root_widget() override = default;
 
-  inline void to(reply &r) override { elem_->render(*r.reply_chunky()); }
+  inline void to(reply &r) override {
+    std::unique_ptr<chunky> chk = r.reply_chunky();
+    uiprinter out{*chk};
+    elem_->render(out);
+  }
 
   inline void on_content(reply &x, const char *buf, const size_t buf_len,
                          const size_t received_len,
@@ -68,8 +73,9 @@ public:
     }
 
     // do callback
-    auto out = x.reply_chunky();
-    get_elem_by_id(callback_id)->on_callback(*out, callback_func, callback_arg);
+    std::unique_ptr<chunky> chk = x.reply_chunky();
+    uiprinter out{*chk};
+    get_elem_by_id(callback_id)->on_callback(out, callback_func, callback_arg);
   }
 
 private:
