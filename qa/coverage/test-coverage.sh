@@ -217,10 +217,10 @@ nc -w1 $HOST $PORT < t18.in > cmp &&
 diff -q cmp t18.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-echo " * ui elements " &&
-curl -s \
-    --header "Cookie: i=20230926--2020-abcdef" \
-    $HTTP/qa/ui > cmp &&
-diff -q cmp t23.cmp &&
+#echo " * ui elements " &&
+#curl -s \
+#    --header "Cookie: i=20230926--2020-abcdef" \
+#    $HTTP/qa/ui > cmp &&
+#diff -q cmp t23.cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date && echo

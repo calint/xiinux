@@ -1,20 +1,34 @@
 namespace xiinux::ui {
 class elem {
+  elem *parent_{};
+  std::string name_{};
   std::string value_{};
 
 public:
-  elem() = default;
+  elem(elem *parent, std::string name) : parent_{parent}, name_{std::move(name)} {}
   elem(const elem &) = default;
   auto operator=(const elem &) -> elem & = default;
   elem(elem &&) = default;
   auto operator=(elem &&) -> elem & = default;
   virtual ~elem() = default;
 
-  void set_value(const std::string &value) { value_ = value; }
+  [[nodiscard]] inline auto get_name() const -> const std::string & { return name_; }
+  [[nodiscard]] inline auto get_value() const -> const std::string & { return value_; }
+  inline void set_value(const std::string &value) { value_ = value; }
+  [[nodiscard]] inline auto get_id() const -> std::string {
+    std::string id = (parent_ ? parent_->get_id() : "_"s);
+    if (name_.empty()) {
+      return id;
+    }
+    id.append("-").append(name_);
+    return id;
+  }
 
-  auto get_value() -> const std::string & { return value_; }
+  virtual void render(xprinter &x) { x.p(value_); }
 
-  virtual void to(xprinter &x) = 0;
+  virtual auto get_child([[maybe_unused]] const std::string &name) -> elem * {
+    throw client_exception("elem:get_child");
+  }
 
   virtual void on_callback(xprinter &x, const std::string &name,
                            const std::string &param) {

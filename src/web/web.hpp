@@ -51,7 +51,7 @@ static inline auto widget_create_typealine() -> widget * {
   return new qa::typealine();
 }
 static inline auto widget_create_ui() -> widget * {
-  return new xiinux::ui::root_widget(std::make_unique<qa::ui::elements>());
+  return new xiinux::ui::root_widget(std::make_unique<qa::ui::elements>(""));
 }
 
 static inline void widget_init_path_to_factory_map() {
