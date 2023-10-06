@@ -29,7 +29,9 @@ public:
     return {buf_.data(), len_};
   }
 
-  [[nodiscard]] inline auto string() const -> std::string { return {buf_.data(), len_}; }
+  [[nodiscard]] inline auto string() const -> std::string {
+    return {buf_.data(), len_};
+  }
 
   inline auto eos() -> strb & { return p('\0'); }
 
@@ -93,6 +95,8 @@ public:
   }
 
   inline auto nl() -> strb & override { return p('\n'); }
+
+  inline auto flush() -> strb & override { return *this; }
 
   // end of xprinter implementation
 

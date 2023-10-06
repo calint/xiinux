@@ -15,6 +15,7 @@ public:
   virtual auto p_ptr(const void *ptr) -> xprinter & = 0;
   virtual auto p_hex(int i) -> xprinter & = 0;
   virtual auto nl() -> xprinter & = 0;
+  virtual auto flush() -> xprinter & = 0;
 };
 
 } // namespace xiinux

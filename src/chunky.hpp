@@ -30,15 +30,6 @@ public:
     }
   }
 
-  inline auto flush() -> chunky & {
-    if (len_ == 0) {
-      return *this;
-    }
-    send_chunk(buf_.data(), len_);
-    len_ = 0;
-    return *this;
-  }
-
   inline auto finish() -> chunky & {
     if (finished_) {
       throw client_exception{"chunky:already finished"};
@@ -144,6 +135,15 @@ public:
   }
 
   inline auto nl() -> chunky & override { return p('\n'); }
+
+  inline auto flush() -> chunky & override {
+    if (len_ == 0) {
+      return *this;
+    }
+    send_chunk(buf_.data(), len_);
+    len_ = 0;
+    return *this;
+  }
 
   // end of xprinter implementation
 
