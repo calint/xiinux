@@ -1,22 +1,21 @@
 #pragma once
-#include "../widget.hpp"
-#include "elem.hpp"
+#include "uielem.hpp"
+#include "widget.hpp"
 #include <iostream>
 #include <vector>
 
-namespace xiinux::ui {
-class root_widget final : public widget {
-  std::unique_ptr<elem> elem_;
+namespace xiinux {
+class uiroot final : public widget {
+  std::unique_ptr<uielem> elem_;
   std::string content_{};
 
 public:
-  inline explicit root_widget(std::unique_ptr<elem> el)
-      : elem_{std::move(el)} {}
-  root_widget(const root_widget &) = delete;
-  auto operator=(const root_widget &) -> root_widget & = delete;
-  root_widget(root_widget &&) = default;
-  auto operator=(root_widget &&) -> root_widget & = default;
-  ~root_widget() override = default;
+  inline explicit uiroot(std::unique_ptr<uielem> el) : elem_{std::move(el)} {}
+  uiroot(const uiroot &) = delete;
+  auto operator=(const uiroot &) -> uiroot & = delete;
+  uiroot(uiroot &&) = default;
+  auto operator=(uiroot &&) -> uiroot & = default;
+  ~uiroot() override = default;
 
   inline void to(reply &r) override {
     std::unique_ptr<chunky> chk = r.reply_chunky();
@@ -67,7 +66,7 @@ public:
     while (std::getline(iss_content, line, '\r')) {
       const std::size_t ix = line.find('=');
       if (ix == std::string::npos) {
-        throw client_exception("root_widget:on_content: postback malformed 2");
+        throw client_exception("uiroot:on_content: postback malformed 2");
       }
       const std::string id = line.substr(0, ix);
       const std::string value = line.substr(ix + 1);
@@ -81,9 +80,9 @@ public:
   }
 
 private:
-  inline auto get_elem_by_id(const std::string &id) -> elem * {
+  inline auto get_elem_by_id(const std::string &id) -> uielem * {
     const std::vector<std::string> id_split_vec = split_string(id, '-');
-    elem *el = elem_.get();
+    uielem *el = elem_.get();
 
     // for (const auto &eid : id_split_vec | std::views::drop(2)) {
     int ix = 0;
@@ -93,7 +92,7 @@ private:
       }
       el = el->get_child(eid);
       if (!el) {
-        throw client_exception("root_widget:on_content");
+        throw client_exception("uiroot:on_content");
       }
     }
     return el;
@@ -118,4 +117,4 @@ private:
     return result;
   }
 };
-} // namespace xiinux::ui
+} // namespace xiinux

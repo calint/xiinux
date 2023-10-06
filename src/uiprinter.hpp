@@ -1,6 +1,6 @@
 #pragma once
 
-namespace xiinux::ui {
+namespace xiinux {
 class uiprinter : public xprinter {
   xprinter &out_;
 
@@ -77,4 +77,4 @@ public:
   }
   // end of xprinter implementation
 };
-} // namespace xiinux::ui
+} // namespace xiinux

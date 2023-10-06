@@ -1,7 +1,7 @@
 // reviewed: 2023-09-27
 // todo: generate this file from index
 #pragma once
-#include "../ui/root_widget.hpp"
+#include "../uiroot.hpp"
 #include "../widget.hpp"
 #include "error404.hpp"
 #include "qa/bigresp.hpp"
@@ -51,7 +51,7 @@ static inline auto widget_create_typealine() -> widget * {
   return new qa::typealine();
 }
 static inline auto widget_create_ui() -> widget * {
-  return new xiinux::ui::root_widget(std::make_unique<qa::ui::elements>(""));
+  return new xiinux::uiroot(std::make_unique<qa::ui::elements>(""));
 }
 
 static inline void widget_init_path_to_factory_map() {

@@ -1,17 +1,16 @@
 #pragma once
-#include "../../../ui/uiprinter.hpp"
-#include <regex>
+#include "../../../uiprinter.hpp"
 
 namespace xiinux::web::qa::ui {
-class elements final : public xiinux::ui::elem {
-  elem a{this, "a"};
-  elem b{this, "b"};
+class elements final : public uielem {
+  uielem a{this, "a"};
+  uielem b{this, "b"};
 
 public:
-  inline explicit elements(const std::string &name) : elem{nullptr, name} {}
+  inline explicit elements(const std::string &name) : uielem{nullptr, name} {}
 
   // note. should be auto-generated
-  auto get_child(const std::string &name) -> elem * override {
+  auto get_child(const std::string &name) -> uielem * override {
     if (name == "a") {
       return &a;
     }
@@ -21,7 +20,7 @@ public:
     return nullptr;
   }
 
-  void render(xiinux::ui::uiprinter &x) override {
+  void render(uiprinter &x) override {
     x.p("<pre>hello world from elements\n"sv);
     const std::string &id = get_id();
     x.input_text(a.get_id(), a.get_value(), id);
@@ -31,7 +30,7 @@ public:
     x.button(id, "foo", "arg1 arg2", "submit");
   }
 
-  void on_callback(xiinux::ui::uiprinter &x, const std::string &name,
+  void on_callback(uiprinter &x, const std::string &name,
                    const std::string &param) override {
     x.p("alert('").p(name).p("(").p(param).p(")');\n");
     x.p("alert('[")

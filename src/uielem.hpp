@@ -2,20 +2,20 @@
 #include "uiprinter.hpp"
 #include <vector>
 
-namespace xiinux::ui {
-class elem {
-  elem *parent_{};
+namespace xiinux {
+class uielem {
+  uielem *parent_{};
   std::string name_{};
   std::string value_{};
 
 public:
-  elem(elem *parent, std::string name)
+  uielem(uielem *parent, std::string name)
       : parent_{parent}, name_{std::move(name)} {}
-  elem(const elem &) = default;
-  auto operator=(const elem &) -> elem & = default;
-  elem(elem &&) = default;
-  auto operator=(elem &&) -> elem & = default;
-  virtual ~elem() = default;
+  uielem(const uielem &) = default;
+  auto operator=(const uielem &) -> uielem & = default;
+  uielem(uielem &&) = default;
+  auto operator=(uielem &&) -> uielem & = default;
+  virtual ~uielem() = default;
 
   [[nodiscard]] inline auto get_name() const -> const std::string & {
     return name_;
@@ -28,8 +28,8 @@ public:
   inline void set_value(const std::string &value) { value_ = value; }
 
   [[nodiscard]] inline auto get_id() const -> std::string {
-    std::vector<const elem *> elems{};
-    const elem *el = this;
+    std::vector<const uielem *> elems{};
+    const uielem *el = this;
     while (el != nullptr) {
       elems.push_back(el);
       el = el->parent_;
@@ -45,7 +45,7 @@ public:
 
   virtual void render(uiprinter &x) { x.p(value_); }
 
-  virtual auto get_child([[maybe_unused]] const std::string &name) -> elem * {
+  virtual auto get_child([[maybe_unused]] const std::string &name) -> uielem * {
     throw client_exception("elem:get_child");
   }
 
@@ -55,4 +55,4 @@ public:
     throw client_exception("elem:on_callback: no implementation");
   }
 };
-} // namespace xiinux::ui
+} // namespace xiinux
