@@ -14,12 +14,10 @@ public:
   void render(uiprinter &x) override {
     x.p("<pre>hello world from elements\n"sv);
     const std::string &eid = id();
-    x.input_text(a.id(), a.value(), "S", eid, "");
-    x.nl();
-    x.textarea(b.id(), b.value(), "L");
-    x.nl();
-    x.input_text(c.id(), c.value(), "S", eid, "foo x y");
-    x.nl();
+    x.input_text(a.id(), a.value(), "S", eid, "").nl();
+    x.textarea(b.id(), b.value(), "L").nl();
+    x.input_text(c.id(), c.value(), "S", eid, "foo x y").nl();
+    x.output(d.id(), "").nl();
     x.button(eid, "", "arg1 arg2", "attention", "submit");
   }
 
@@ -53,17 +51,13 @@ public:
   }
 
   void x_default(uiprinter &x, const std::string &arg) {
-    x.p("alert('"sv).p_js_str(arg).p("');\n"sv);
-    x.p("alert('["sv)
-        .p_js_str(a.value())
-        .p("] ["sv)
-        .p_js_str(b.value())
-        .p("]');\n"sv);
+    x.xalert(arg);
+    x.xalert("["s + a.value() + "] ["s + b.value() + "]"s);
   }
 
   void x_foo(uiprinter &x, [[maybe_unused]] const std::string &arg) {
-    d.set_value(a.value());
-    x.p("alert('foo ").p_js_str(arg).p("')"sv);
+    x.xset(d.id(), a.value() + " " + b.value());
+    x.xalert("foo "s + arg);
   }
 };
 } // namespace xiinux::web::qa::ui

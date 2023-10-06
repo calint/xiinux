@@ -11,7 +11,7 @@ public:
                          const std::string &cls,
                          const std::string &on_ret_cb_id,
                          const std::string &cb_func) -> uiprinter & {
-    p("<input id=").p(id).p(" name=").p(id).p(" value=\"").p(value).p("\"");
+    p("<input id=").p(id).p(" value=\"").p(value).p("\"");
     if (!cls.empty()) {
       p(" class=\"").p(cls).p("\"");
     }
@@ -22,17 +22,17 @@ public:
       }
       p("')\"");
     }
-    p(" oninput=\"$b(this)\">");
+    p(" oninput=\"$b(this)\" ").p(" name=").p(id).p('>');
     return *this;
   }
 
   inline auto textarea(const std::string &id, const std::string &value,
                        const std::string &cls) -> uiprinter & {
-    p("<textarea id=").p(id).p(" name=").p(id);
+    p("<textarea id=").p(id);
     if (!cls.empty()) {
       p(" class=\"").p(cls).p('"');
     }
-    p(" oninput=\"$b(this)\">").p(value).p("</textarea>");
+    p(" oninput=\"$b(this)\" name=").p(id).p('>').p(value).p("</textarea>");
     return *this;
   }
 
@@ -48,6 +48,26 @@ public:
       p(" class=\"").p(cls).p("\"");
     }
     return p(">").p(txt).p("</button>");
+  }
+
+  inline auto output(const std::string &id, const std::string &html)
+      -> uiprinter & {
+    return p("<output id=")
+        .p(id)
+        .p(" name=")
+        .p(id)
+        .p(">")
+        .p(html)
+        .p("</output>");
+  }
+
+  inline auto xalert(const std::string &msg) -> uiprinter & {
+    return p("ui.alert('").p_js_str(msg).p("');").nl();
+  }
+
+  inline auto xset(const std::string &id, const std::string &value)
+      -> uiprinter & {
+    return p("$sv('").p(id).p("','").p_js_str(value).p("');").nl();
   }
 
   inline auto p_js_str(const std::string &str) -> uiprinter & {
