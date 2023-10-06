@@ -32,10 +32,15 @@ public:
       return 1;
     }
 
-    if constexpr (conf::server_tcp_fast_open) {
-      // note. on linux it seems to be enabled by default
-      //       yet the getsockopt says it is off
-      int option = 1;
+    if constexpr (conf::server_tcp_fast_open_size) {
+      // https://man7.org/linux/man-pages/man7/tcp.7.html
+      // TCP_FASTOPEN (since Linux 3.6)
+      // This option enables Fast Open (RFC 7413) on the listener
+      // socket.  The value specifies the maximum length of pending
+      // SYNs (similar to the backlog argument in listen(2)).  Once
+      // enabled, the listener socket grants the TCP Fast Open
+      // cookie on incoming SYN with TCP Fast Open option.
+      int option = conf::server_tcp_fast_open_size;
       if (setsockopt(server_fd, IPPROTO_TCP, TCP_FASTOPEN, &option,
                      sizeof(option))) {
         perror("setsockopt TCP_FASTOPEN");
