@@ -13,14 +13,14 @@ public:
 
   void render(uiprinter &x) override {
     x.p("<pre>hello world from elements\n"sv);
-    const std::string &id = get_id();
-    x.input_text(a.get_id(), a.get_value(), "S", id, "");
+    const std::string &eid = id();
+    x.input_text(a.id(), a.value(), "S", eid, "");
     x.nl();
-    x.textarea(b.get_id(), b.get_value(), "L");
+    x.textarea(b.id(), b.value(), "L");
     x.nl();
-    x.input_text(c.get_id(), c.get_value(), "S", id, "foo x y");
+    x.input_text(c.id(), c.value(), "S", eid, "foo x y");
     x.nl();
-    x.button(id, "", "arg1 arg2", "attention", "submit");
+    x.button(eid, "", "arg1 arg2", "attention", "submit");
   }
 
   // note. should be auto-generated
@@ -55,14 +55,14 @@ public:
   void x_default(uiprinter &x, const std::string &arg) {
     x.p("alert('"sv).p_js_str(arg).p("');\n"sv);
     x.p("alert('["sv)
-        .p_js_str(a.get_value())
+        .p_js_str(a.value())
         .p("] ["sv)
-        .p_js_str(b.get_value())
+        .p_js_str(b.value())
         .p("]');\n"sv);
   }
 
   void x_foo(uiprinter &x, [[maybe_unused]] const std::string &arg) {
-    d.set_value(a.get_value());
+    d.set_value(a.value());
     x.p("alert('foo ").p_js_str(arg).p("')"sv);
   }
 };

@@ -21,13 +21,13 @@ public:
     return name_;
   }
 
-  [[nodiscard]] inline auto get_value() const -> const std::string & {
+  [[nodiscard]] inline auto value() const -> const std::string & {
     return value_;
   }
 
   inline void set_value(const std::string &value) { value_ = value; }
 
-  [[nodiscard]] inline auto get_id() const -> std::string {
+  [[nodiscard]] inline auto id() const -> std::string {
     std::vector<const uielem *> elems{};
     const uielem *el = this;
     while (el != nullptr) {
