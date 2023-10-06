@@ -1,24 +1,3 @@
-[x] server: sockopt TCP_FASTOPEN
-    => how to confirm that it is working
-    from https://www.keycdn.com/support/tcp-fast-open
-    to check if it is enabled:
-        cat /proc/sys/net/ipv4/tcp_fastopen
-        1: outgoing connections enabled
-        2: incoming connections enabled
-        3: both incoming and outgoing connections enabled
-    to enable for client and server socket:
-        echo "3" | sudo tee /proc/sys/net/ipv4/tcp_fastopen
-    reboot will reset to default. to change that:
-        echo "net.ipv4.tcp_fastopen=3" > /etc/sysctl.d/30-tcp_fastopen.conf
-    
-    to check:
-        curl -v --tcp-fastopen http://localhost:8088
-            then
-        netstat -s | grep TCPF
-            and look for:
-        TCPFastOpenActive: x
-        TCPFastOpenActiveFail: x
-
 [ ] map doc widget to path '/'
 [ ] hierarchial widgets ui framework
 [ ] sock: consolidate recv(...) in content and buf
@@ -42,6 +21,26 @@
 [ ] generate web/web.hpp
 [ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
 --------------------------------------------------------------------------------..
+[x] server: sockopt TCP_FASTOPEN
+    => how to confirm that it is working
+    from https://www.keycdn.com/support/tcp-fast-open
+    to check if it is enabled on the system:
+        cat /proc/sys/net/ipv4/tcp_fastopen
+        1: outgoing connections enabled
+        2: incoming connections enabled
+        3: both incoming and outgoing connections enabled
+    to enable for client and server socket:
+        echo "3" | sudo tee /proc/sys/net/ipv4/tcp_fastopen
+    reboot will reset to default. to change that:
+        echo "net.ipv4.tcp_fastopen=3" > /etc/sysctl.d/30-tcp_fastopen.conf
+    
+    to check:
+        curl -v --tcp-fastopen http://localhost:8088
+            then
+        netstat -s | grep TCPF
+            and look for:
+        TCPFastOpenActive: x
+        TCPFastOpenActiveFail: x
 [x] consider using C++ std::filesystem
     => path and create_directories
 [x] MIME type for ".js" files (warning in Firefox when absent)
