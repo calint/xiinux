@@ -3,22 +3,31 @@
 
 namespace xiinux {
 class uijstr final : public uiprinter {
+  const std::string &eid_;
   bool closed_{};
 
 public:
   explicit uijstr(uiprinter &out, const std::string &elem_id)
-      : uiprinter{out.get_xprinter()} {
-    uiprinter::p("$s('");
+      : uiprinter{out.get_xprinter()}, eid_{elem_id} {
+    uiprinter::p("$sv('");
+    uiprinter::p(elem_id);
+    uiprinter::p("','');\n");
+    uiprinter::p("$p('");
     uiprinter::p(elem_id);
     uiprinter::p("','");
   }
 
-//   inline ~uijstr() override {
-//     if (closed_) {
-//       return;
-//     }
-//     close();
-//   }
+  inline void close() {
+    uiprinter::p("');\n");
+    closed_ = true;
+  }
+
+  //   inline ~uijstr() override {
+  //     if (closed_) {
+  //       return;
+  //     }
+  //     close();
+  //   }
 
   // xprinter implementation
 
@@ -79,9 +88,9 @@ public:
     return *this;
   }
 
-  inline void close() {
-    uiprinter::p("');\n");
-    closed_ = true;
+  inline auto flush() -> uijstr & override {
+    uiprinter::p("');\n$p('").p(eid_).p("','");
+    return *this;
   }
 };
 } // namespace xiinux

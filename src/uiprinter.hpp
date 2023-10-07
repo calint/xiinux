@@ -112,7 +112,7 @@ public:
   }
 
   inline auto xtitle(const std::string &txt) -> uiprinter & {
-    p("$t('").p(txt).p("');\n");
+    p("$t('").p_js_str(txt).p("');\n");
     return *this;
   }
 

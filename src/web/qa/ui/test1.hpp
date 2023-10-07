@@ -86,6 +86,9 @@ public:
     uijstr x{z, e.id()};
     for (size_t i = 0; i < 100; i++) {
       x.p('\'').p(i).p('\'').p(" public domain server '#2'\r\n\0");
+      if (i == 50) {
+        x.flush();
+      }
     }
     x.close();
   }
