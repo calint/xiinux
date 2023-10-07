@@ -750,7 +750,7 @@ private:
       // if (size_t(n) != count) {
       //   printf("sock:file:resume_send_to sent %zd of %zu\n", n, count_);
       // }
-      if (n == 0) { // file truncated
+      if (n == 0 and count != 0) { // file truncated
         stats.errors++;
         throw client_exception{"sock:file:resume_send_to sendfile 0"};
       }
