@@ -2,6 +2,9 @@ ui={}
 ui.is_dbg=true;
 ui.is_dbg_set=true;
 ui.is_dbg_pb=true;
+ui.is_dbg_verbose=false;
+ui.is_dbg_js=true;
+
 $=function(eid){return document.getElementById(eid);}
 $d=function(v){console.log(v);}
 $s=function(eid,txt){
@@ -69,9 +72,8 @@ $p=function(eid,txt){
 			$b(e);
 	}
 }
-//$l=function(){if(ui.keys)document.onkeyup=ui.onkey;}
 $a=function(eid,a,v){$(eid).setAttribute(a,v);}
-$r=function(ev,ths,axpb){if(event.keyCode!=13)return true;$x(axpb);return false;}
+$r=function(ev,ths,axpb){if(ev.keyCode!=13)return true;$x(axpb);return false;}
 $f=function(eid){
 	if(ui.focusDone)return;
 	const e=$(eid);
@@ -84,8 +86,8 @@ $f=function(eid){
 $t=function(s){document.title=s;}
 ui.alert=function(msg){alert(msg);}
 ui._clnfldvl=function(s){return s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');}
-ui._hashKey=function(event){
-	const kc=(event.shiftKey?'s':'')+(event.ctrlKey?'c':'')+(event.altKey?'a':'')+(event.metaKey?'m':'')+String.fromCharCode(event.keyCode);
+ui._hash_key=function(ev){
+	const kc=(ev.shiftKey?'s':'')+(ev.ctrlKey?'c':'')+(ev.altKey?'a':'')+(ev.metaKey?'m':'')+String.fromCharCode(ev.keyCode);
 	$d(kc);
 	return kc;
 }
@@ -97,13 +99,13 @@ ui.debounce=function(callback,interval){
 }
 ui.keys=[];
 ui.onkey=function(ev){
-	const cmd=ui.keys[ui._hashKey(ev)];
+	const cmd=ui.keys[ui._hash_key(ev)];
 	if(cmd)eval(cmd);
 }
-ui.fmtsize=function(num){
+ui.fmt_size=function(num){
 	return num.toString().replace(/\B(?=(\d{3})+\b)/g,',');
 }
-ui.fmt_data_per_second=function(nbytes,ms){
+ui.fmt_data_per_sec=function(nbytes,ms){
 	let b_per_s=Math.floor(nbytes*1024/ms);
 	if(b_per_s<1024){
 		return b_per_s+' B/s';
@@ -125,19 +127,16 @@ ui.fmt_data_per_second=function(nbytes,ms){
 		return b_per_s+' TB/s';
 	}
 }
-ui._pbls=[];
-ui.qpb=function(e){
+ui._pb=[];
+ui.pbhas=function(id){return id in ui._pb;}
+$b=function(e){
 	if(ui.is_dbg_pb)$d('qpb '+e.id);
-	if(ui.qpbhas(e.id))return;
-	ui._pbls[e.id]=e.id;
+	if(ui.pbhas(e.id))return;
+	ui._pb[e.id]=e.id;
 }
-$b=ui.qpb;
-ui.qpbhas=function(id){return id in ui._pbls;}
-ui._axc=0;
 
-ui.is_dbg_verbose=false;
-ui.is_dbg_js=true;
-ui.axconwait=false;
+ui._axc=0;
+ui._axconwait=false;
 ui._onreadystatechange=function(){
 //	$d(" * stage "+this.readyState);
 	const elsts=$('-ajaxsts');
@@ -172,7 +171,7 @@ ui._onreadystatechange=function(){
 //		$d(new Date().getTime()-this._t0+" * reply code "+this.status);
 		const s=this.responseText.charAt(this.responseText.length-1);
 		const ms=new Date().getTime()-this._t0;
-		$s('-ajaxsts','received '+ui.fmtsize(this.responseText.length)+' text '+ui.fmt_data_per_second(this.responseText.length,ms));
+		$s('-ajaxsts','received '+ui.fmt_size(this.responseText.length)+' text '+ui.fmt_data_per_sec(this.responseText.length,ms));
 //		console.log('receiving '+this.responseText.length+' text');
 		if(s!='\n'){
 //			$d(new Date().getTime()-this._t0+" * not eol "+(this.responseText.length-this._jscodeoffset));
@@ -188,7 +187,7 @@ ui._onreadystatechange=function(){
 	case 4:{// Loaded
 		$d('req loaded');
 		this._pd=null;
-		ui._pbls=[];
+		ui._pb=[];
 
 		let jscode=this.responseText.substring(this._jscodeoffset);
 		if(jscode.length>0){
@@ -198,7 +197,7 @@ ui._onreadystatechange=function(){
 			eval(jscode);
 		}
 		this._dt=new Date().getTime()-this._t0;//? var _dt
-		$s('-ajaxsts',this._dt+' ms '+ui.fmtsize(this.responseText.length)+' chars '+ui.fmt_data_per_second(this.responseText.length,this._dt));
+		$s('-ajaxsts',this._dt+' ms '+ui.fmt_size(this.responseText.length)+' chars '+ui.fmt_data_per_sec(this.responseText.length,this._dt));
 		$d("~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ")
 //		$d("done in "+this._dt+" ms");
 		ui.focusDone=false;
@@ -211,7 +210,7 @@ $x=function(pb){
 	ui._axc++;
 	$d("\n\nrequest #"+ui._axc);
 	let post=pb+'\r';
-	for(const id in ui._pbls){
+	for(const id in ui._pb){
 		//$d('field '+id);
 		const e=$(id)
 		post+=e.id+'=';			
@@ -238,7 +237,7 @@ $x=function(pb){
 		$s('-ajaxsts'," * reusing connection");
 		let count=0;
 		while(ui.req.readyState==1||ui.req.readyState==2||ui.req.readyState==3){
-			if(ui.axconwait){
+			if(ui._axconwait){
 				$d("  * busy, waiting");
 				alert("connection busy. waiting.");
 				count++;

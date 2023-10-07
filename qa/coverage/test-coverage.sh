@@ -217,10 +217,22 @@ nc -w1 $HOST $PORT < t18.in > cmp &&
 diff -q cmp t18.cmp &&
 rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- - 
-#echo " * ui elements " &&
-#curl -s \
-#    --header "Cookie: i=20230926--2020-abcdef" \
-#    $HTTP/qa/ui > cmp &&
-#diff -q cmp t23.cmp &&
+echo " * ui test1 " &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    $HTTP/qa/ui/test1 > cmp &&
+diff -q cmp t23.cmp &&
+rm cmp &&
+# build the postback
+echo -ne '- foo x y\r' > pb &&
+echo -ne '--a=1\r' >> pb &&
+echo -ne '--b=2\r' >> pb &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --header "Content-Type:text/plain;charset=utf-8" \
+    --data-binary @pb \
+    $HTTP/qa/ui/test1 > cmp &&
+diff -q cmp t23_1.cmp &&
+rm cmp pb &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date && echo

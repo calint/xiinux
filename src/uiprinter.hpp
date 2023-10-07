@@ -65,18 +65,34 @@ public:
     return p(js_str(str));
   }
 
+  inline auto script_open() -> uiprinter & { return p("<script>"); }
+
+  inline auto script_close() -> uiprinter & { return p("</script>"); }
+
   inline auto xalert(const std::string &msg) -> uiprinter & {
-    p("ui.alert('");
-    p_js_str(msg);
-    p("');").nl();
+    p("ui.alert('").p_js_str(msg).p("');").nl();
     return *this;
   }
 
   inline auto xset(const std::string &id, const std::string &value)
       -> uiprinter & {
-    p("$sv('").p(id).p("','");
-    p_js_str(value);
-    p("');").nl();
+    p("$sv('").p(id).p("','").p_js_str(value).p("');").nl();
+    return *this;
+  }
+
+  inline auto xp(const std::string &id, const std::string &value)
+      -> uiprinter & {
+    p("$p('").p(id).p("','").p_js_str(value).p("');").nl();
+    return *this;
+  }
+
+  inline auto xfocus(const std::string &id) -> uiprinter & {
+    p("$f('").p(id).p("');\n");
+    return *this;
+  }
+
+  inline auto xtitle(const std::string &txt) -> uiprinter & {
+    p("$t('").p(txt).p("');\n");
     return *this;
   }
 
@@ -91,6 +107,11 @@ public:
 
   inline auto p(char ch) -> uiprinter & override {
     out_.p(ch);
+    return *this;
+  }
+
+  inline auto flush() -> uiprinter & override {
+    out_.flush();
     return *this;
   }
 

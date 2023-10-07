@@ -12,7 +12,7 @@
 #include "qa/hello.hpp"
 #include "qa/page.hpp"
 #include "qa/typealine.hpp"
-#include "qa/ui/elements.hpp"
+#include "qa/ui/test1.hpp"
 
 namespace xiinux::web {
 
@@ -51,7 +51,7 @@ static inline auto widget_create_typealine() -> widget * {
   return new qa::typealine();
 }
 static inline auto widget_create_ui() -> widget * {
-  return new xiinux::uiroot(std::make_unique<qa::ui::elements>(""));
+  return new xiinux::uiroot(std::make_unique<qa::ui::test1>(""));
 }
 
 static inline void widget_init_path_to_factory_map() {
@@ -63,7 +63,7 @@ static inline void widget_init_path_to_factory_map() {
   path_to_widget_map["/qa/chunkedbig"] = widget_create_chunkedbig;
   path_to_widget_map["/qa/chunkedbigger"] = widget_create_chunkedbigger;
   path_to_widget_map["/qa/page"] = widget_create_page;
-  path_to_widget_map["/qa/ui"] = widget_create_ui;
+  path_to_widget_map["/qa/ui/test1"] = widget_create_ui;
 }
 
 } // namespace xiinux::web
