@@ -481,14 +481,14 @@ private:
   }
 
   inline void do_serve_upload() {
-    // file upload
+    // file upload path
+    // note. not '\0'
     strb<conf::upload_path_size> sb{};
-    sb.p("u/"sv).p(session_id_).p('/').p(reqline_.path_.substr(1)).eos();
-
-    // create directory if it does not exist
+    sb.p("u/"sv).p(session_id_).p('/').p(reqline_.path_.substr(1));
     namespace fs = std::filesystem;
     const fs::path fs_pth = fs::path(sb.string_view());
     const fs::path fs_pth_dir = fs_pth.parent_path();
+    // create directory if it does not exist
     if (!fs::exists(fs_pth_dir)) {
       if (!fs::create_directories(fs_pth_dir)) {
         throw client_exception("sock:do_server_upload:1");
