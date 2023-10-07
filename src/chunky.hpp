@@ -15,6 +15,7 @@ class chunky final : public xprinter {
 
 public:
   inline explicit chunky(const int file_descriptor) : fd_{file_descriptor} {}
+
   chunky(const chunky &) = delete;
   auto operator=(const chunky &) -> chunky & = delete;
   chunky(chunky &&) = delete;
