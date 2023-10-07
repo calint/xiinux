@@ -7,7 +7,6 @@ class bigresp final : public widget {
   void to(reply &x) override {
     constexpr size_t buf_len = K * K * K;
     strb<buf_len> sb{};
-    int i = 0;
     while (sb.len()< buf_len) {
       sb.p(' ');
     }

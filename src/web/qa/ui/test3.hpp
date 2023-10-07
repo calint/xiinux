@@ -19,11 +19,18 @@ public:
     return nullptr;
   }
 
-  inline test3() : uielem{nullptr, ""} {}
+  inline test3() : uielem{nullptr, ""} {
+    mn.items.emplace_back("item 1");
+    mn.items.emplace_back("item 2");
+    mn.items.emplace_back("item 3");
+    mn.items.emplace_back("item 4");
+  }
 
   inline void render(uiprinter &x) override {
     x.p("<pre>").nl();
+    x.elem_open("div", mn.id(), "");
     mn.render(x);
+    x.elem_close("div");
     x.nl();
     x.elem_open("div", txt.id(), "");
     txt.render(x);
@@ -35,6 +42,9 @@ public:
     if (&from == &mn) {
       txt.set_value(std::to_string(num));
       x.xset(txt.id(), txt.value());
+      uijstr js{x, mn.id()};
+      mn.render(js);
+      js.close();
       return;
     }
     uielem::on_event(x, from, msg, num, data);

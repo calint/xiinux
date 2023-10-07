@@ -8,10 +8,6 @@ public:
 
   inline menu3(uielem *parent, std::string name)
       : uielem{parent, std::move(name)} {
-    items.emplace_back("item 1");
-    items.emplace_back("item 2");
-    items.emplace_back("item 3");
-    items.emplace_back("item 4");
   }
 
   inline void render(uiprinter &x) override {
@@ -32,7 +28,9 @@ public:
     if (func == "sel") {
       selected_ix = std::atoi(arg.c_str());
       uielem::on_event(x, *this, "sel", selected_ix, nullptr);
+      return;
     }
+    throw client_exception("unhandled callback");
   }
 };
 } // namespace xiinux::web::qa::ui

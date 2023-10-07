@@ -6,7 +6,7 @@
 
 namespace xiinux {
 class uiroot final : public widget {
-  std::unique_ptr<uielem> elem_;
+  std::unique_ptr<uielem> elem_{};
   std::string content_{};
 
 public:
