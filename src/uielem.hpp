@@ -17,7 +17,7 @@ public:
   auto operator=(uielem &&) -> uielem & = default;
   virtual ~uielem() = default;
 
-  [[nodiscard]] inline auto get_name() const -> const std::string & {
+  [[nodiscard]] inline auto name() const -> const std::string & {
     return name_;
   }
 
@@ -38,7 +38,7 @@ public:
     // clang++ does not support std::views::reverse(elems)
     // NOLINTNEXTLINE(modernize-loop-convert)
     for (auto it = elems.rbegin(); it != elems.rend(); ++it) {
-      id.append("-").append((*it)->get_name());
+      id.append("-").append((*it)->name());
     }
     return id;
   }
