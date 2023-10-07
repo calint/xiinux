@@ -270,5 +270,26 @@ curl -s \
     $HTTP/qa/ui/test2 > cmp &&
 diff -q cmp t24_2.cmp &&
 rm cmp &&
+#--- - - - - ---  - - - - -- - -- - -- - - -- - 
+echo " * ui test3 " &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    $HTTP/qa/ui/test3 > cmp &&
+diff -q cmp t25_1.cmp &&
+rm cmp &&
+# build postback
+echo -ne '--mn sel 1\r' > pb &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --header "Content-Type:text/plain;charset=utf-8" \
+    --data-binary @pb \
+    $HTTP/qa/ui/test3 > /dev/null &&
+rm pb &&
+# get page
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    $HTTP/qa/ui/test3 > cmp &&
+diff -q cmp t25_2.cmp &&
+rm cmp &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date && echo

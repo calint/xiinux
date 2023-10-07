@@ -1,5 +1,5 @@
 
-lör  7 okt 2023 11:02:19 CEST
+lör  7 okt 2023 12:11:42 CEST
 coverage tests on http://localhost:8088
  * directory default file 
  * small file
@@ -27,5 +27,6 @@ coverage tests on http://localhost:8088
  * abuse request >1 KB 
  * ui test1 
  * ui test2 
-lör  7 okt 2023 11:02:26 CEST
+ * ui test3 
+lör  7 okt 2023 12:11:48 CEST
 

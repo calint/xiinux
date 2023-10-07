@@ -17,6 +17,8 @@ public:
   auto operator=(uielem &&) -> uielem & = default;
   virtual ~uielem() = default;
 
+  [[nodiscard]] inline auto parent() const -> uielem * { return parent_; }
+
   [[nodiscard]] inline auto name() const -> const std::string & {
     return name_;
   }
@@ -43,6 +45,8 @@ public:
     return id;
   }
 
+  // virtuals
+
   virtual void render(uiprinter &x) { x.p(value_); }
 
   virtual auto get_child([[maybe_unused]] const std::string &name) -> uielem * {
@@ -53,6 +57,16 @@ public:
                            [[maybe_unused]] const std::string &func,
                            [[maybe_unused]] const std::string &arg) {
     throw client_exception("elem:on_callback: no implementation");
+  }
+
+  virtual void on_event(uiprinter &x, uielem &from, const std::string &msg,
+                        const int num, void *data) {
+    if (parent_) {
+      parent_->on_event(x, from, msg, num, data);
+      return;
+    }
+    printf("!!! unhandled event: from=[%s] msg=[%s] num=[%d]\n",
+           from.id().c_str(), msg.c_str(), num);
   }
 };
 } // namespace xiinux

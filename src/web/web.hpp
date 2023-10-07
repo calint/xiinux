@@ -14,6 +14,7 @@
 #include "qa/typealine.hpp"
 #include "qa/ui/test1.hpp"
 #include "qa/ui/test2.hpp"
+#include "qa/ui/test3.hpp"
 
 namespace xiinux::web {
 
@@ -57,6 +58,9 @@ static inline auto widget_create_ui_test1() -> widget * {
 static inline auto widget_create_ui_test2() -> widget * {
   return new xiinux::uiroot(std::make_unique<qa::ui::test2>());
 }
+static inline auto widget_create_ui_test3() -> widget * {
+  return new xiinux::uiroot(std::make_unique<qa::ui::test3>());
+}
 static inline void widget_init_path_to_factory_map() {
   path_to_widget_map["/qa/typealine"] = widget_create_typealine;
   path_to_widget_map["/qa/bigresp"] = widget_create_bigresp;
@@ -68,6 +72,7 @@ static inline void widget_init_path_to_factory_map() {
   path_to_widget_map["/qa/page"] = widget_create_page;
   path_to_widget_map["/qa/ui/test1"] = widget_create_ui_test1;
   path_to_widget_map["/qa/ui/test2"] = widget_create_ui_test2;
+  path_to_widget_map["/qa/ui/test3"] = widget_create_ui_test3;
 }
 
 } // namespace xiinux::web
