@@ -22,7 +22,7 @@ public:
       }
       p("')\"");
     }
-    p(" oninput=\"$b(this)\" ").p(" name=").p(id).p('>');
+    p(" oninput=\"$b(this)\"").p(" name=").p(id).p('>');
     return *this;
   }
 
