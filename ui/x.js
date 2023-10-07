@@ -131,7 +131,7 @@ ui._pb=[];
 ui.pbhas=function(id){return id in ui._pb;}
 $b=function(e){
 	if(ui.is_dbg_pb)$d('qpb '+e.id);
-	if(ui.pbhas(e.id))return;
+	if(e.id in ui._pb)return;
 	ui._pb[e.id]=e.id;
 }
 
