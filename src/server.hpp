@@ -251,10 +251,12 @@ private:
     } catch (const client_exception &e) {
       stats.errors++;
       print_client_exception(client, e.what());
+      puts("----------------------------------------------");
       socks.erase(client->get_fd());
     } catch (...) {
       stats.errors++;
       print_client_exception(client, "n/a due to catch(...)");
+      puts("----------------------------------------------");
       socks.erase(client->get_fd());
     }
   }

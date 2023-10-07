@@ -94,6 +94,7 @@ inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN> &dst,
   }
   return dst.data();
 }
+
 } // namespace xiinux
 
 namespace xiinux::web {
