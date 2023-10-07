@@ -3,7 +3,7 @@
 experimental high performance web application server for linux in c++
 
 intended use:
-* compact web application for IoT
+* compact web application
 * runs on one thread
 
 supports:
@@ -31,9 +31,9 @@ see [bob](https://github.com/calint/bob) for a mature java web application serve
 ```
 
             lines   words   chars
-   source:   1510    6037   58605
-  gzipped:     40     240   12504
+   source:   2057    7935   78149
+  gzipped:     69     347   16913
 
--rwxrwxr-x 1 c 108K okt  4 19:32 xiinux
+-rwxrwxr-x 1 c 325K okt  7 12:28 xiinux
 
 ```
