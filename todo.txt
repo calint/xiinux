@@ -1,4 +1,5 @@
-[ ] 2023-10-07: binary size increase from 51K to 325K in this cycle
+[ ] clang++ -fsanitize=memory -fsanitize-memory-track-origins=2
+[x] 2023-10-07: binary size increase from 51K to 325K in this cycle
     why so much?
     =>             |   with symbols   | strip -s xiinux  |
     => ------------|--O3----Os----Oz--|--O3----Os----Oz--|

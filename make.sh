@@ -34,9 +34,10 @@ SRC=src/main.cpp
 ETC="-Wfatal-errors -Werror"
 #ETC="$ETC -static"
 SAN=
-#SAN="-fsanitize=memory -fsanitize-blacklist=memory_sanitizer.txt -fsanitize-memory-track-origins=2"
+#SAN="-fsanitize=memory -fsanitize-memory-track-origins=2"
+#SANE="$SAN -fsanitize-blacklist=memory_sanitizer.txt"
 #SAN="-fsanitize=undefined,address,leak"
-DBG=-g
+DBG=
 OPT=-O3
 if [ "$1" = "qa" ]; then
     ETC="-fprofile-instr-generate $ETC"
