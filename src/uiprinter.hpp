@@ -67,20 +67,10 @@ public:
   inline auto elem(const std::string &tag, const std::string &id,
                    const std::string &innerHTML, const std::string &cls)
       -> uiprinter & {
-    p('<').p(tag).p(" id=").p(id);
-    if (!cls.empty()) {
-      p(" class=\"").p(cls).p('"');
-    }
-    p(" name=")
-        .p(id)
-        .p(">")
-        .p(innerHTML) // todo. escape
-        .p("</")
-        .p(tag)
-        .p('>');
+    elem_open(tag, id, cls).p(innerHTML).elem_close(tag);
     return *this;
   }
-  
+
   inline auto elem_open(const std::string &tag, const std::string &id,
                         const std::string &cls) -> uiprinter & {
     p('<').p(tag).p(" id=").p(id);
@@ -103,6 +93,8 @@ public:
   inline auto script_open() -> uiprinter & { return p("<script>"); }
 
   inline auto script_close() -> uiprinter & { return p("</script>"); }
+
+  // javascript generating functions
 
   inline auto xalert(const std::string &msg) -> uiprinter & {
     p("ui.alert('").p_js_str(msg).p("');").nl();
@@ -133,7 +125,7 @@ public:
 
   // xprinter implementation
 
-  using xprinter::p;
+  using xprinter::p; // necessary to resolve p(int) -> p(char) conversion
 
   inline auto p(const std::string_view &sv) -> uiprinter & override {
     out_.p(sv);

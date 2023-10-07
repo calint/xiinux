@@ -8,9 +8,15 @@ class xprinter {
 public:
   virtual ~xprinter() = default;
 
+  // virtuals
+
   virtual auto p(const std::string_view &sv) -> xprinter & = 0;
 
   virtual auto p(char ch) -> xprinter & = 0;
+
+  inline virtual auto flush() -> xprinter & { return *this; }
+
+  // functions using p(string_view) and p(char)
 
   inline auto p(const int i) -> xprinter & {
     std::array<char, array_size_nums> str{};
@@ -49,8 +55,6 @@ public:
   }
 
   inline auto nl() -> xprinter & { return p('\n'); }
-
-  inline virtual auto flush() -> xprinter & { return *this; }
 
 private:
   static constexpr size_t array_size_nums = 32;

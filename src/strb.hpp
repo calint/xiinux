@@ -13,6 +13,7 @@ template <unsigned SIZE = 1024> class strb final : public xprinter {
 
 public:
   [[nodiscard]] inline auto buf() const -> const char * { return buf_.data(); }
+
   [[nodiscard]] inline auto len() const -> size_t { return len_; }
 
   inline auto rst() -> strb & {
@@ -36,7 +37,7 @@ public:
   inline auto eos() -> strb & { return p('\0'); }
 
   // xwrite implementation
-  using xprinter::p;
+  using xprinter::p; // solve p(int) -> p(char) conversion
 
   inline auto p(const std::string_view &sv) -> strb & override {
     const char *str = sv.data();

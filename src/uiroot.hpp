@@ -11,15 +11,17 @@ class uiroot final : public widget {
 
 public:
   inline explicit uiroot(std::unique_ptr<uielem> el) : elem_{std::move(el)} {}
+
   uiroot(const uiroot &) = delete;
   auto operator=(const uiroot &) -> uiroot & = delete;
-  uiroot(uiroot &&) = default;
-  auto operator=(uiroot &&) -> uiroot & = default;
+  uiroot(uiroot &&) = delete;
+  auto operator=(uiroot &&) -> uiroot & = delete;
+
   ~uiroot() override = default;
 
   inline void to(reply &r) override {
-    std::unique_ptr<chunky> chk = r.reply_chunky();
-    uiprinter out{*chk};
+    std::unique_ptr<chunky> z = r.reply_chunky();
+    uiprinter out{*z};
     out.p(
         R"(<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8><link rel=stylesheet href=/ui/x.css><script src=/ui/x.js></script>)");
     elem_->render(out);
@@ -38,8 +40,7 @@ public:
       return;
     }
 
-    // first line is callback info
-    // extract callback info
+    // first line is callback info e.g. "--a func arg1 arg2\r"
     std::string callback_id{};
     std::string callback_func{};
     std::string callback_arg{};
@@ -49,7 +50,6 @@ public:
     const std::size_t ix_first_space = line.find(' ');
     if (ix_first_space == std::string::npos) {
       callback_id = line;
-      callback_func = "";
     } else {
       callback_id = line.substr(0, ix_first_space);
       line = line.substr(ix_first_space + 1);
@@ -62,7 +62,7 @@ public:
       }
     }
 
-    // set values posted by ui
+    // set values posted by ui. e.g "--a hello world\r"
     while (std::getline(iss_content, line, '\r')) {
       const std::size_t ix = line.find('=');
       if (ix == std::string::npos) {
@@ -74,8 +74,8 @@ public:
     }
 
     // do callback
-    std::unique_ptr<chunky> chk = x.reply_chunky();
-    uiprinter out{*chk};
+    std::unique_ptr<chunky> z = x.reply_chunky();
+    uiprinter out{*z};
     get_elem_by_id(callback_id)->on_callback(out, callback_func, callback_arg);
   }
 
@@ -98,6 +98,7 @@ private:
     return el;
   }
 
+  // todo: move to a util
   static auto split_string(const std::string &input, char delimiter)
       -> std::vector<std::string> {
     std::vector<std::string> result;

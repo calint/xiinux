@@ -9,6 +9,7 @@ class uijstr final : public uiprinter {
 public:
   explicit uijstr(uiprinter &out, const std::string &elem_id)
       : uiprinter{out.get_xprinter()}, eid_{elem_id} {
+
     uiprinter::p("$sv('");
     uiprinter::p(elem_id);
     uiprinter::p("','');\n");
@@ -22,16 +23,9 @@ public:
     closed_ = true;
   }
 
-  //   inline ~uijstr() override {
-  //     if (closed_) {
-  //       return;
-  //     }
-  //     close();
-  //   }
-
   // xprinter implementation
 
-  using uiprinter::p;
+  using uiprinter::p; // necessary to resolve p(int) -> p(char) issue
 
   inline auto p(const std::string_view &str) -> uijstr & override {
     size_t mark = 0;

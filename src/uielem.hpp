@@ -9,13 +9,15 @@ class uielem {
   std::string value_{};
 
 public:
-  uielem(uielem *parent, std::string name)
+  inline uielem(uielem *parent, std::string name)
       : parent_{parent}, name_{std::move(name)} {}
-  uielem(const uielem &) = default;
-  auto operator=(const uielem &) -> uielem & = default;
-  uielem(uielem &&) = default;
-  auto operator=(uielem &&) -> uielem & = default;
-  virtual ~uielem() = default;
+
+  uielem(const uielem &) = delete;
+  auto operator=(const uielem &) -> uielem & = delete;
+  uielem(uielem &&) = delete;
+  auto operator=(uielem &&) -> uielem & = delete;
+
+  inline virtual ~uielem() = default;
 
   [[nodiscard]] inline auto parent() const -> uielem * { return parent_; }
 

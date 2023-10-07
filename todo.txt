@@ -1,3 +1,10 @@
+[ ] 2023-10-07: binary size increase from 51K to 325K in this cycle
+    why so much?
+    =>             |   with symbols   | strip -s xiinux  |
+    => ------------|--O3----Os----Oz--|--O3----Os----Oz--|
+    =>  no inlines | 329K  312K  377K | 254K  201K  209K |
+    => all inlines | 325K  318K  377K | 250K  209K  209K |
+    =>
 [x] exception stack trace 
     => using command 'addr2line' and execinfo.h. compile with -g
 [ ] hierarchial widgets ui framework
@@ -10,6 +17,7 @@
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] load save and sessions at xiinux start and stop
+[ ] consider saving sessions in a separate store and running multiple xiinux on same port
 [ ] better handling of "accept: Too many open files"
 [ ] server: socket time-out (man timerfd_create and clipboard.txt)
 [ ] server: print_client_exception thread safe "localtime(...)"
