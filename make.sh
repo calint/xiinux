@@ -33,6 +33,8 @@ BIN=xiinux
 SRC=src/main.cpp
 ETC="-Wfatal-errors -Werror"
 #ETC="$ETC -static"
+SAN=
+#SAN="-fsanitize=memory"
 DBG=
 OPT=-O3
 if [ "$1" = "qa" ]; then
@@ -42,7 +44,7 @@ fi
 
 echo
 
-CMD="$CC $SRC -o $BIN $OPT $DBG $ETC $WARNINGS"
+CMD="$CC $SRC -o $BIN $OPT $DBG $SAN $ETC $WARNINGS"
 echo $CMD
 $CMD
 [[ $? != "0" ]] && exit $?
