@@ -13,6 +13,11 @@ supports:
 * post content using ajax
 * upload files
 * resumable downloads
+* ui framework (in progress)
+  - focused on back-end development
+  - hierarchial structure
+  - simple event model for decoupling parent from child elements
+  - ajax updates
 
 howto:
 * to build run 'make.sh'
