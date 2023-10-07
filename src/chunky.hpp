@@ -49,6 +49,8 @@ public:
 
   // xwriter implementation
 
+  using xprinter::p;
+
   inline auto p(const std::string_view &sv) -> chunky & override {
     const char *str = sv.data();
     const size_t str_len = sv.size();
@@ -90,42 +92,6 @@ public:
     return *this;
   }
 
-  inline auto p(const int i) -> chunky & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%d", i);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"chunky:2"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
-  inline auto p(const size_t sz) -> chunky & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%zu", sz);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"chunky:3"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
-  inline auto p_ptr(const void *ptr) -> chunky & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%p", ptr);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"chunky:4"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
-  inline auto p_hex(const int i) -> chunky & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%x", i);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"chunky:5"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
   inline auto p(const char ch) -> chunky & override {
     if (sizeof(buf_) - len_ == 0) {
       flush();
@@ -133,8 +99,6 @@ public:
     *(buf_.data() + len_++) = ch;
     return *this;
   }
-
-  inline auto nl() -> chunky & override { return p('\n'); }
 
   inline auto flush() -> chunky & override {
     if (len_ == 0) {

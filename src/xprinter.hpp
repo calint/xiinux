@@ -9,13 +9,51 @@ public:
   virtual ~xprinter() = default;
 
   virtual auto p(const std::string_view &sv) -> xprinter & = 0;
+
   virtual auto p(char ch) -> xprinter & = 0;
-  virtual auto p(int i) -> xprinter & = 0;
-  virtual auto p(size_t sz) -> xprinter & = 0;
-  virtual auto p_ptr(const void *ptr) -> xprinter & = 0;
-  virtual auto p_hex(int i) -> xprinter & = 0;
-  virtual auto nl() -> xprinter & = 0;
-  virtual auto flush() -> xprinter & = 0;
+
+  inline auto p(const int i) -> xprinter & {
+    std::array<char, array_size_nums> str{};
+    const int len = snprintf(str.data(), str.size(), "%d", i);
+    if (len < 0 or size_t(len) >= str.size()) {
+      throw client_exception{"xprinter:2"};
+    }
+    return p({str.data(), size_t(len)});
+  }
+
+  inline auto p(const size_t sz) -> xprinter & {
+    std::array<char, array_size_nums> str{};
+    const int len = snprintf(str.data(), str.size(), "%zu", sz);
+    if (len < 0 or size_t(len) >= str.size()) {
+      throw client_exception{"xprinter:3"};
+    }
+    return p({str.data(), size_t(len)});
+  }
+
+  inline auto p_ptr(const void *ptr) -> xprinter & {
+    std::array<char, array_size_nums> str{};
+    const int len = snprintf(str.data(), str.size(), "%p", ptr);
+    if (len < 0 or size_t(len) >= str.size()) {
+      throw client_exception{"xprinter:4"};
+    }
+    return p({str.data(), size_t(len)});
+  }
+
+  inline auto p_hex(const int i) -> xprinter & {
+    std::array<char, array_size_nums> str{};
+    const int len = snprintf(str.data(), str.size(), "%x", i);
+    if (len < 0 or size_t(len) >= str.size()) {
+      throw client_exception{"xprinter:5"};
+    }
+    return p({str.data(), size_t(len)});
+  }
+
+  inline auto nl() -> xprinter & { return p('\n'); }
+
+  inline virtual auto flush() -> xprinter & { return *this; }
+
+private:
+  static constexpr size_t array_size_nums = 32;
 };
 
 } // namespace xiinux

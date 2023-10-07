@@ -31,7 +31,7 @@ WARNINGS="-Weverything \
 
 BIN=xiinux
 SRC=src/main.cpp
-ETC=-Wfatal-errors
+ETC="-Wfatal-errors -Werror"
 #ETC="$ETC -static"
 DBG=
 OPT=-O3

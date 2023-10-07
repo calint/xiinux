@@ -12,6 +12,7 @@
                 "-g",
                 "-fdiagnostics-color=always",
                 "-Wfatal-errors",
+                "-Werror",
                 "-Wall",
                 "-Wextra",
                 "-Wpedantic",

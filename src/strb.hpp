@@ -36,6 +36,7 @@ public:
   inline auto eos() -> strb & { return p('\0'); }
 
   // xwrite implementation
+  using xprinter::p;
 
   inline auto p(const std::string_view &sv) -> strb & override {
     const char *str = sv.data();
@@ -49,42 +50,6 @@ public:
     return *this;
   }
 
-  inline auto p(const int i) -> strb & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%d", i);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"strb:2"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
-  inline auto p(const size_t sz) -> strb & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%zu", sz);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"strb:3"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
-  inline auto p_ptr(const void *ptr) -> strb & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%p", ptr);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"strb:4"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
-  inline auto p_hex(const int i) -> strb & override {
-    std::array<char, array_size_nums> str{};
-    const int len = snprintf(str.data(), str.size(), "%x", i);
-    if (len < 0 or size_t(len) >= str.size()) {
-      throw client_exception{"strb:5"};
-    }
-    return p({str.data(), size_t(len)});
-  }
-
   inline auto p(const char ch) -> strb & override {
     if (sizeof(buf_) - len_ == 0) {
       throw client_exception{"strb:6"};
@@ -94,13 +59,6 @@ public:
     return *this;
   }
 
-  inline auto nl() -> strb & override { return p('\n'); }
-
-  inline auto flush() -> strb & override { return *this; }
-
   // end of xprinter implementation
-
-private:
-  static constexpr size_t array_size_nums = 32;
 };
 } // namespace xiinux

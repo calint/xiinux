@@ -61,52 +61,39 @@ public:
         .p("</output>");
   }
 
-  inline auto xalert(const std::string &msg) -> uiprinter & {
-    return p("ui.alert('").p_js_str(msg).p("');").nl();
-  }
-
-  inline auto xset(const std::string &id, const std::string &value)
-      -> uiprinter & {
-    return p("$sv('").p(id).p("','").p_js_str(value).p("');").nl();
-  }
-
   inline auto p_js_str(const std::string &str) -> uiprinter & {
     return p(js_str(str));
   }
 
+  inline auto xalert(const std::string &msg) -> uiprinter & {
+    p("ui.alert('");
+    p_js_str(msg);
+    p("');").nl();
+    return *this;
+  }
+
+  inline auto xset(const std::string &id, const std::string &value)
+      -> uiprinter & {
+    p("$sv('").p(id).p("','");
+    p_js_str(value);
+    p("');").nl();
+    return *this;
+  }
+
   // xprinter implementation
+
+  using xprinter::p;
+
   inline auto p(const std::string_view &sv) -> uiprinter & override {
     out_.p(sv);
     return *this;
   }
+
   inline auto p(char ch) -> uiprinter & override {
     out_.p(ch);
     return *this;
   }
-  inline auto p(int i) -> uiprinter & override {
-    out_.p(i);
-    return *this;
-  }
-  inline auto p(size_t sz) -> uiprinter & override {
-    out_.p(sz);
-    return *this;
-  }
-  inline auto p_ptr(const void *ptr) -> uiprinter & override {
-    out_.p_ptr(ptr);
-    return *this;
-  }
-  inline auto p_hex(int i) -> uiprinter & override {
-    out_.p_hex(i);
-    return *this;
-  }
-  inline auto nl() -> uiprinter & override {
-    out_.nl();
-    return *this;
-  }
-  inline auto flush() -> uiprinter & override {
-    out_.flush();
-    return *this;
-  }
+
   // end of xprinter implementation
 
 private:
