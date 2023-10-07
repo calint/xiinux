@@ -1,0 +1,7 @@
+<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8><link rel=stylesheet href=/ui/x.css><script src=/ui/x.js></script><pre>
+<button onclick="$x('- sel 0')">select 1</button><button onclick="$x('- sel 1')">select 2</button><button onclick="$x('- sel 2')">select 3</button><button onclick="$x('- sel 3')">select 4</button>
+<div id=--mn name=--mn>&raquo; item 1
+item 2
+item 3
+item 4
+</div>

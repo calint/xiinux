@@ -1,6 +1,6 @@
 ui={}
 ui.is_dbg=true;
-ui.is_dbg_set=true;
+ui.is_dbg_set=false;
 ui.is_dbg_pb=true;
 ui.is_dbg_verbose=false;
 ui.is_dbg_js=true;
@@ -153,9 +153,11 @@ ui._onreadystatechange=function(){
 		if(ui.is_dbg_verbose)$d(new Date().getTime()-this._t0+" * sending");
 		$s('-ajaxsts','sending '+this._pd.length+' text');
 		this.setRequestHeader('Content-Type','text/plain; charset=utf-8');
-		$d(this._pd.replace('\r','\n'));
 		ui.req._jscodeoffset=0;
 		ui.focusDone=false;
+		$d('. . . . . . . . . . . . . . . .');
+		$d(this._pd.replace('\r','\n'));
+		$d('. . . . . . . . . . . . . . . .');
 		this.send(this._pd);
 		break;
 	}
@@ -198,7 +200,7 @@ ui._onreadystatechange=function(){
 		}
 		this._dt=new Date().getTime()-this._t0;//? var _dt
 		$s('-ajaxsts',this._dt+' ms '+ui.fmt_size(this.responseText.length)+' chars '+ui.fmt_data_per_sec(this.responseText.length,this._dt));
-		$d("~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ")
+		$d("~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~")
 //		$d("done in "+this._dt+" ms");
 		ui.focusDone=false;
 		break;
@@ -221,7 +223,7 @@ $x=function(pb){
 		}
 		post+='\r';
 	}
-	$d("~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~ ")
+	$d("~~~~~~~ ~~~~~~~ ~~~~~~~ ~~~~~~~")
 	if(!ui.req){
 		ui.req=new XMLHttpRequest();
 		ui.req.onreadystatechange=ui._onreadystatechange;

@@ -80,6 +80,21 @@ public:
         .p('>');
     return *this;
   }
+  
+  inline auto elem_open(const std::string &tag, const std::string &id,
+                        const std::string &cls) -> uiprinter & {
+    p('<').p(tag).p(" id=").p(id);
+    if (!cls.empty()) {
+      p(" class=\"").p(cls).p('"');
+    }
+    p(" name=").p(id).p(">");
+    return *this;
+  }
+
+  inline auto elem_close(const std::string &tag) -> uiprinter & {
+    p("</").p(tag).p('>');
+    return *this;
+  }
 
   inline auto p_js_str(const std::string &str) -> uiprinter & {
     return p(js_str(str));

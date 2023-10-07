@@ -13,7 +13,7 @@ class test1 final : public uielem {
   uielem e{this, "e"};
 
 public:
-  inline explicit test1(const std::string &name) : uielem{nullptr, name} {}
+  inline explicit test1() : uielem{nullptr, ""} {}
 
   void render(uiprinter &x) override {
     x.p("<pre>hello world from elements\n"sv);
