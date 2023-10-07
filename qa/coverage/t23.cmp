@@ -3,5 +3,8 @@
 <input id=--b value="" class="S" type=text onkeypress="return $r(event,this,'- foo x y')" oninput="$b(this)" name=--b>
 <textarea id=--c class="L" oninput="$b(this)" name=--c></textarea>
 <output id=--d name=--d></output>
-<button onclick="$x('-  arg1 arg2')" class="attention">submit</button><script>$f('--a');
+<button onclick="$x('-  arg1 arg2')" class="attention">submit</button>
+<button onclick="$x('- fow')" class="attention">big set</button>
+<span id=--e name=--e></span>
+<script>$f('--a');
 </script>

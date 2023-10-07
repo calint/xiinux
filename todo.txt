@@ -1,5 +1,7 @@
+[x] exception stack trace 
+    => using command 'addr2line' and execinfo.h. compile with -g
 [ ] hierarchial widgets ui framework
-[ ]     js_stream: javascript stream escapes ' \n \r \0 (see bob class b.osjsstr)
+[x]     js_stream: javascript stream escapes ' \n \r \0 (see bob class b.osjsstr)
 [ ]     ltgt_stream: escapes < and > (see bob class b.osltgt)
 [x]     ui::elem: non-recursive get_id()
 [ ]     ui::root_widget: on_content: don't allocate string for full content

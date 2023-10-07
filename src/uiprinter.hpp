@@ -1,11 +1,14 @@
 #pragma once
 
 namespace xiinux {
+
 class uiprinter : public xprinter {
   xprinter &out_;
 
 public:
   inline explicit uiprinter(xprinter &out) : out_{out} {}
+
+  [[nodiscard]] inline auto get_xprinter() const -> xprinter & { return out_; }
 
   inline auto input_text(const std::string &id, const std::string &value,
                          const std::string &cls,
@@ -59,6 +62,23 @@ public:
         .p(">")
         .p(html)
         .p("</output>");
+  }
+
+  inline auto elem(const std::string &tag, const std::string &id,
+                   const std::string &innerHTML, const std::string &cls)
+      -> uiprinter & {
+    p('<').p(tag).p(" id=").p(id);
+    if (!cls.empty()) {
+      p(" class=\"").p(cls).p('"');
+    }
+    p(" name=")
+        .p(id)
+        .p(">")
+        .p(innerHTML) // todo. escape
+        .p("</")
+        .p(tag)
+        .p('>');
+    return *this;
   }
 
   inline auto p_js_str(const std::string &str) -> uiprinter & {

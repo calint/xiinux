@@ -14,3 +14,5 @@ textarea.L{width:60em;height:30em}
 input[type="text"].XS{width:5em}
 input[type="text"].S{width:10em}
 .attention{font-weight:bold;color:red}
+output{border:1px dotted green;display:block}
+body{padding:1em}

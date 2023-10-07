@@ -1,9 +1,12 @@
 <!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8><link rel=stylesheet href=/ui/x.css><script src=/ui/x.js></script><pre>hello world from elements
 <input id=--a value="1" class="S" type=text onkeypress="return $r(event,this,'-')" oninput="$b(this)" name=--a>
-<input id=--b value="a
+<input id=--b value="2" class="S" type=text onkeypress="return $r(event,this,'- foo x y')" oninput="$b(this)" name=--b>
+<textarea id=--c class="L" oninput="$b(this)" name=--c>a
 b
-c" class="S" type=text onkeypress="return $r(event,this,'- foo x y')" oninput="$b(this)" name=--b>
-<textarea id=--c class="L" oninput="$b(this)" name=--c>2</textarea>
+c</textarea>
 <output id=--d name=--d></output>
-<button onclick="$x('-  arg1 arg2')" class="attention">submit</button><script>$f('--a');
+<button onclick="$x('-  arg1 arg2')" class="attention">submit</button>
+<button onclick="$x('- fow')" class="attention">big set</button>
+<span id=--e name=--e></span>
+<script>$f('--a');
 </script>
