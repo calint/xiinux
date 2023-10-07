@@ -14,7 +14,7 @@ class client_exception final : public std::exception {
 
 public:
   inline explicit client_exception(const char *msg) : msg_{msg} {
-    //NOLINTBEGIN
+    // NOLINTBEGIN
     const int max_frames = 20;
     void *frames[max_frames];
     int num_frames = backtrace(frames, max_frames);
@@ -23,30 +23,30 @@ public:
     printf("exception: %s\n", msg);
     std::regex pattern(R"(xiinux\(\+(0x[0-9a-fA-F]+)\))");
     // 1 to skip the line that invoked backtrace(...)
+    std::string command = "addr2line -C -f -i -p -s -e xiinux ";
     for (int i = 1; i < num_frames; ++i) {
       std::smatch matches;
       auto line = std::string(symbols[i]);
       if (std::regex_search(line, matches, pattern)) {
         if (matches.size() > 1) {
           std::string address = matches[1].str();
-          std::string command = "addr2line -C -f -i -p -s -e xiinux " + address;
-          FILE *pipe = popen(command.c_str(), "r");
-          if (!pipe) {
-            printf("*** Error opening pipe to addr2line.\n");
-            break;
-          }
-          char buffer[256];
-          while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-            printf("    %s", buffer);
-          }
-          pclose(pipe);
+          command += address;
+          command += " ";
         }
-      } else {
-        printf("    %s\n", symbols[i]);
       }
     }
     free(symbols);
-    //NOLINTEND
+    FILE *pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+      printf("!!! error opening pipe to addr2line\n");
+      return;
+    }
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      printf("    %s", buffer);
+    }
+    pclose(pipe);
+    // NOLINTEND
   }
 
   ~client_exception() override = default;
