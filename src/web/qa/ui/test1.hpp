@@ -56,8 +56,8 @@ public:
   // callbacks
 
   void x_default(uiprinter &x, const std::string &arg) {
-    x.xalert(arg);
-    x.xalert("["s + a.value() + "] ["s + b.value() + "] ["s + c.value() + "]"s);
+    x.xset(d.id(), arg + "\n["s + a.value() + "]\n["s + b.value() + "]\n["s +
+                       c.value() + "]"s);
   }
 
   void x_foo(uiprinter &x, [[maybe_unused]] const std::string &arg) {
@@ -69,7 +69,7 @@ public:
       x.xp(d.id(), i_str + " ");
       x.xtitle(i_str);
       x.flush();
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
   }
 };

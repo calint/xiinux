@@ -223,7 +223,7 @@ curl -s \
     $HTTP/qa/ui/test1 > cmp &&
 diff -q cmp t23.cmp &&
 rm cmp &&
-# build the postback
+# build postback
 echo -ne '- foo x y\r' > pb &&
 echo -ne '--a=1\r' >> pb &&
 echo -ne '--b=2\r' >> pb &&
@@ -233,6 +233,21 @@ curl -s \
     --data-binary @pb \
     $HTTP/qa/ui/test1 > cmp &&
 diff -q cmp t23_1.cmp &&
+# build postback
+echo -ne '-  arg1 arg2\r' > pb &&
+echo -ne '--a=1\r' >> pb &&
+echo -ne '--b=2\r' >> pb &&
+echo -ne '--c=a\nb\nc\r' >> pb &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    --header "Content-Type:text/plain;charset=utf-8" \
+    --data-binary @pb \
+    $HTTP/qa/ui/test1 > cmp &&
+diff -q cmp t23_2.cmp &&
+curl -s \
+    --header "Cookie: i=20230926--2020-abcdef" \
+    $HTTP/qa/ui/test1 > cmp &&
+diff -q cmp t23_3.cmp &&
 rm cmp pb &&
 #--- - - - - ---  - - - - -- - -- - -- - - -- -
 date && echo
