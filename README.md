@@ -16,7 +16,7 @@ supports:
 * ui framework (in progress)
   - focused on back-end development
   - hierarchial structure
-  - simple event model for decoupling parent from child elements
+  - simple event model decouples parent child circular reference
   - ajax updates
 
 howto:
@@ -26,7 +26,7 @@ howto:
 * for displaying metrics run 'xiinux -m'
 * for both benchmarking mode and metrics run 'xiinux -bm'
 
-note. abandoned in favor of [bob](https://github.com/calint/bob)
+see [bob](https://github.com/calint/bob) for a mature java web application server
 
 ```
 
