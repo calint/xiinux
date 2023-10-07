@@ -13,21 +13,6 @@ class test1 final : public uielem {
   uielem e{this, "e"};
 
 public:
-  inline explicit test1() : uielem{nullptr, ""} {}
-
-  void render(uiprinter &x) override {
-    x.p("<pre>hello world from elements\n"sv);
-    const std::string &eid = id();
-    x.input_text(a.id(), a.value(), "S", eid, "").nl();
-    x.input_text(b.id(), b.value(), "S", eid, "foo x y").nl();
-    x.textarea(c.id(), c.value(), "L").nl();
-    x.output(d.id(), "").nl();
-    x.button(eid, "", "arg1 arg2", "attention", "submit").nl();
-    x.button(eid, "fow", "", "attention", "big set").nl();
-    x.elem("span"s, e.id(), e.value(), "").nl();
-    x.script_open().xfocus(a.id()).script_close();
-  }
-
   // note. should be auto-generated
   auto get_child(const std::string &name) -> uielem * override {
     if (name == "a") {
@@ -48,6 +33,21 @@ public:
     return nullptr;
   }
 
+  inline explicit test1() : uielem{nullptr, ""} {}
+
+  void render(uiprinter &x) override {
+    x.p("<pre>hello world from elements\n"sv);
+    const std::string &eid = id();
+    x.input_text(a.id(), a.value(), "S", eid, "").nl();
+    x.input_text(b.id(), b.value(), "S", eid, "foo x y").nl();
+    x.textarea(c.id(), c.value(), "L").nl();
+    x.output(d.id(), "").nl();
+    x.button(eid, "", "arg1 arg2", "attention", "submit").nl();
+    x.button(eid, "fow", "", "attention", "big set").nl();
+    x.elem("span"s, e.id(), e.value(), "").nl();
+    x.script_open().xfocus(a.id()).script_close();
+  }
+
   // note. should be auto-generated
   void on_callback(uiprinter &x, const std::string &func,
                    const std::string &arg) override {
@@ -62,6 +62,7 @@ public:
     }
   }
 
+private:
   // callbacks
 
   void x_default(uiprinter &x, const std::string &arg) {

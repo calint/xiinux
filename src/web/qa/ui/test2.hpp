@@ -7,6 +7,14 @@ class test2 : public uielem {
   menu mn{this, "mn"};
 
 public:
+  // note. should be auto-generated
+  inline auto get_child(const std::string &name) -> uielem * override {
+    if (name == "mn") {
+      return &mn;
+    }
+    return nullptr;
+  }
+
   inline test2() : uielem{nullptr, ""} {}
 
   inline void render(uiprinter &x) override {
@@ -21,14 +29,6 @@ public:
     x.elem_open("div", mn.id(), "");
     mn.render(x);
     x.elem_close("div");
-  }
-
-  // note. should be auto-generated
-  inline auto get_child(const std::string &name) -> uielem * override {
-    if (name == "mn") {
-      return &mn;
-    }
-    return nullptr;
   }
 
   // note. should be auto-generated
