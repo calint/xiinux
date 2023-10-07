@@ -30,16 +30,6 @@ public:
     x.elem_close("div");
   }
 
-  // note. should be auto-generated
-  inline void on_callback(uiprinter &x, const std::string &func,
-                          const std::string &arg) override {
-    if (func == "sel") {
-      x_sel(x, arg);
-    } else {
-      throw client_exception("elements:on_callback: func not found");
-    }
-  }
-
   inline void on_event(uiprinter &x, uielem &from, const std::string &msg,
                        const int num, void *data) override {
     if (&from == &mn) {
@@ -48,15 +38,6 @@ public:
       return;
     }
     uielem::on_event(x, from, msg, num, data);
-  }
-
-private:
-  inline void x_sel(uiprinter &x, const std::string &arg) {
-    mn.selected_ix = std::stoi(arg);
-
-    uijstr z{x, mn.id()};
-    mn.render(z);
-    z.close();
   }
 };
 } // namespace xiinux::web::qa::ui

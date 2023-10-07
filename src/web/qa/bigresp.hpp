@@ -5,11 +5,11 @@
 namespace xiinux::web::qa {
 class bigresp final : public widget {
   void to(reply &x) override {
-    constexpr size_t buf_len = K * K;
+    constexpr size_t buf_len = K * K * K;
     strb<buf_len> sb{};
     int i = 0;
-    while (sb.len() + 128 < buf_len) {
-      sb.p(i++).p(' ');
+    while (sb.len()< buf_len) {
+      sb.p(' ');
     }
     x.http(200, sb.string_view());
   }
