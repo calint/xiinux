@@ -34,11 +34,12 @@ SRC=src/main.cpp
 ETC="-Wfatal-errors -Werror"
 #ETC="$ETC -static"
 SAN=
-#SAN="-fsanitize=memory -fsanitize-memory-track-origins=2"
-#SANE="$SAN -fsanitize-blacklist=memory_sanitizer.txt"
-#SAN="-fsanitize=undefined,address,leak"
 DBG=
 OPT=-O3
+if [ "$1" = "qa2" ]; then
+    SAN="-fsanitize=memory -fsanitize-memory-track-origins=2 -fsanitize-ignorelist=msan_suppressions.txt"
+    DBG=-g
+fi
 if [ "$1" = "qa" ]; then
     ETC="-fprofile-instr-generate -fcoverage-mapping $ETC"
     DBG=-g
