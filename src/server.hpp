@@ -288,7 +288,7 @@ private:
         strnlen(conf::application_name, conf::str_len_max) + 1;
 
     strb<4 * K> sb{};
-    sb.p("HTTP/1.1 200\r\nContent-Length: "sv)
+    sb.p("HTTP/1.1 200\r\nContent-Length: ")
         .p(content_len)
         .p("\r\nContent-Type: text/plain\r\n\r\n")
         .p(conf::application_name)

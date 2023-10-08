@@ -14,37 +14,37 @@ public:
     counter::atomic_counter++;
 
     strb<256> sb{};
-    sb.p("path: "sv).p(r.get_path()).nl();
-    sb.p("query: "sv).p(r.get_query()).nl();
+    sb.p("path: ").p(r.get_path()).nl();
+    sb.p("query: ").p(r.get_query()).nl();
 
     const map_headers &hdrs{r.get_req_headers()};
-    sb.p("cookie: "sv).p(hdrs.at("cookie"sv)).nl();
+    sb.p("cookie: ").p(hdrs.at("cookie")).nl();
 
     map_session *ses = r.get_session();
 
     // auto it = ses->find("x"s);
     // const bool found = it != ses->end();
-    // sb.p("session value: "sv).p(found ? it->second : ""sv).nl();
+    // sb.p("session value: ").p(found ? it->second : "").nl();
     // ses->insert({"x"s, "abc"s});
 
     // note. throws exception if not found
     // const std::string &ses_val = ses->at("x");
-    
+
     // note. inserts empty string if not found
     const std::string &ses_val = (*ses)["x"];
-    sb.p("session value: "sv).p(ses_val).nl();
+    sb.p("session value: ").p(ses_val).nl();
     (*ses)["x"] = "abc";
-    
+
     // note.
     // ses->insert_or_assign("x"s, "abc"s);
 
-    sb.p("counter in this instance: "sv).p(counter_).nl();
-    sb.p("counter in this class: "sv).p(counter::atomic_counter).nl();
+    sb.p("counter in this instance: ").p(counter_).nl();
+    sb.p("counter in this class: ").p(counter::atomic_counter).nl();
 
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast) coverage test
-    sb.p("pointer: "sv).p_ptr(reinterpret_cast<void *>(0x1234abcd)).nl();
+    sb.p("pointer: ").p_ptr(reinterpret_cast<void *>(0x1234abcd)).nl();
 
-    r.http(200, sb.string_view(), "text/plain"sv);
+    r.http(200, sb.string_view(), "text/plain");
   }
 };
 } // namespace xiinux::web::qa

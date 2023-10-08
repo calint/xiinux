@@ -36,20 +36,20 @@ public:
   }
 
   [[nodiscard]] inline auto reply_chunky(
-      const std::string_view &content_type = "text/html;charset=utf-8"sv,
+      const std::string_view &content_type = "text/html;charset=utf-8",
       const int response_code = 200) -> std::unique_ptr<chunky> {
 
     auto rsp{std::make_unique<chunky>(fd_)};
 
-    rsp->p("HTTP/1.1 "sv).p(response_code).p("\r\n"sv);
+    rsp->p("HTTP/1.1 ").p(response_code).p("\r\n");
     if (!set_session_id_.empty()) {
-      rsp->p("Set-Cookie: i="sv)
+      rsp->p("Set-Cookie: i=")
           .p(set_session_id_)
-          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n"sv);
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n");
     }
-    rsp->p("Transfer-Encoding:chunked\r\nContent-Type: "sv)
+    rsp->p("Transfer-Encoding:chunked\r\nContent-Type: ")
         .p(content_type)
-        .p("\r\n\r\n"sv)
+        .p("\r\n\r\n")
         .send_response_header();
 
     return rsp;
@@ -61,26 +61,26 @@ public:
 
   inline auto
   http(const int code, const char *buf, size_t buf_len,
-       const std::string_view &content_type = "text/html;charset=utf-8"sv)
+       const std::string_view &content_type = "text/html;charset=utf-8")
       -> reply & {
 
     strb<conf::sock_request_header_buf_size> sb{};
-    sb.p("HTTP/1.1 "sv)
+    sb.p("HTTP/1.1 ")
         .p(code)
-        .p("\r\nContent-Length: "sv)
+        .p("\r\nContent-Length: ")
         .p(buf_len)
-        .p("\r\nContent-Type: "sv)
+        .p("\r\nContent-Type: ")
         .p(content_type)
-        .p("\r\n"sv);
+        .p("\r\n");
 
     if (!set_session_id_.empty()) {
-      sb.p("Set-Cookie: i="sv)
+      sb.p("Set-Cookie: i=")
           .p(set_session_id_)
-          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n"sv);
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n");
       set_session_id_ = {};
     }
 
-    sb.p("\r\n"sv); // note. no .eos() because sb.string_view() will include it
+    sb.p("\r\n"); // note. no .eos() because sb.string_view() will include it
 
     io_send(fd_, sb.string_view(), buf != nullptr);
     if (buf != nullptr) {
@@ -92,7 +92,7 @@ public:
 
   inline auto
   http(const int code, const std::string_view &content,
-       const std::string_view &content_type = "text/html;charset=utf-8"sv)
+       const std::string_view &content_type = "text/html;charset=utf-8")
       -> reply & {
     return http(code, content.data(), content.size(), content_type);
   }

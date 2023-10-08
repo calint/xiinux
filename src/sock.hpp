@@ -482,9 +482,9 @@ private:
 
   inline void do_serve_upload() {
     // file upload path
-    // note. not '\0'
+    // note. no '\0' at the end of path because of string_view
     strb<conf::upload_path_size> sb{};
-    sb.p("u/"sv).p(session_id_).p('/').p(reqline_.path_.substr(1));
+    sb.p("u/").p(session_id_).p('/').p(reqline_.path_.substr(1));
     namespace fs = std::filesystem;
     const fs::path fs_pth = fs::path(sb.string_view());
     const fs::path fs_pth_dir = fs_pth.parent_path();
@@ -561,7 +561,7 @@ private:
   inline void do_serve_file(reply &x, const std::string_view &path) {
     // check for illegal path containing break-out of root directory
     if (path.find("..") != std::string_view::npos) {
-      x.http(403, "path contains ..\n"sv);
+      x.http(403, "path contains ..\n");
       state_ = next_request;
       return;
     }
@@ -569,7 +569,7 @@ private:
     struct stat fdstat {};
     if (stat(path.data(), &fdstat)) {
       // error or not found
-      x.http(404, "not found\n"sv);
+      x.http(404, "not found\n");
       state_ = next_request;
       return;
     }
@@ -585,7 +585,7 @@ private:
       path_buf.p(path).p('/').p(directory_default_file).eos();
       if (stat(path_buf.buf(), &fdstat)) {
         // error or not found
-        x.http(404, "not found\n"sv);
+        x.http(404, "not found\n");
         state_ = next_request;
         return;
       }
@@ -617,7 +617,7 @@ private:
     // open file
     if (file_.open(path_resolved) == -1) {
       // error
-      x.http(404, "cannot open file\n"sv);
+      x.http(404, "cannot open file\n");
       state_ = next_request;
       return;
     }
@@ -627,9 +627,9 @@ private:
     const std::string_view &range = headers_["range"];
     // format header
     strb<conf::sock_response_header_buffer_size> sb{};
-    sb.p("HTTP/1.1 "sv)
-        .p(range.empty() ? "200"sv : "206"sv)
-        .p("\r\nAccept-Ranges: bytes\r\nLast-Modified: "sv)
+    sb.p("HTTP/1.1 ")
+        .p(range.empty() ? "200" : "206")
+        .p("\r\nAccept-Ranges: bytes\r\nLast-Modified: ")
         .p({lastmod.data(), lastmod_len});
 
     // content-type
@@ -638,11 +638,11 @@ private:
       const std::string_view &suffix = path_resolved.substr(suffix_ix + 1);
       if (suffix == "js") {
         // fixes warning in firefox for javascript files
-        sb.p("\r\nContent-Type: application/javascript"sv);
+        sb.p("\r\nContent-Type: application/javascript");
       }
     }
 
-    sb.p("\r\nContent-Length: "sv);
+    sb.p("\r\nContent-Length: ");
 
     const auto file_len = size_t(fdstat.st_size);
 
@@ -657,7 +657,7 @@ private:
       // create header for ranged reply
       // todo: content-type depending on file suffix
       sb.p(file_len - size_t(offset))
-          .p("\r\nContent-Range: "sv)
+          .p("\r\nContent-Range: ")
           .p(size_t(offset))
           .p('-')
           .p(file_len)
@@ -673,8 +673,8 @@ private:
       // initialize for send full file
       file_.init_for_send(file_len, 0);
     }
-    sb.p("\r\n\r\n"sv); // note. no eos() because it would be included in the
-                        // send
+    sb.p("\r\n\r\n"); // note. no eos() because it would be included in the
+                      // send
     // send reply with buffering of packets
     io_send(fd_, sb.string_view(), true);
     // resume/start sending file
@@ -718,14 +718,15 @@ private:
 
   inline void send_http_response(const int http_code) {
     strb<conf::sock_response_header_buffer_size> sb{};
-    sb.p("HTTP/1.1 "sv).p(http_code).p("\r\n"sv);
+    sb.p("HTTP/1.1 ").p(http_code).p("\r\n");
     if (send_session_id_in_reply_) {
-      sb.p("Set-Cookie: i="sv)
+      sb.p("Set-Cookie: i=")
           .p(session_id_)
-          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 GMT;SameSite=Lax\r\n\r\n"sv);
+          .p(";path=/;expires=Thu, 31-Dec-2099 00:00:00 "
+             "GMT;SameSite=Lax\r\n\r\n");
       send_session_id_in_reply_ = false;
     }
-    sb.p("\r\n"sv).eos();
+    sb.p("\r\n").eos();
     io_send(fd_, sb.string_view());
   }
 

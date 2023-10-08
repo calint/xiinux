@@ -6,9 +6,9 @@ namespace xiinux::web::qa {
 class chunkedbig final : public widget {
 public:
   void to(reply &r) override {
-    auto x = r.reply_chunky("text/plain;charset=utf-8"sv);
+    auto x = r.reply_chunky("text/plain;charset=utf-8");
     for (unsigned i = 0; i < 4 * K; i++) {
-      x->p(" chunked response "sv).p(int(i));
+      x->p(" chunked response ").p(int(i));
     }
   }
 };

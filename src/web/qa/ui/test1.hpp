@@ -36,7 +36,7 @@ public:
   inline explicit test1() : uielem{nullptr, ""} {}
 
   void render(uiprinter &x) override {
-    x.p("<pre>hello world from elements\n"sv);
+    x.p("<pre>hello world from elements\n");
     const std::string &eid = id();
     x.input_text(a.id(), a.value(), "S", eid, "").nl();
     x.input_text(b.id(), b.value(), "S", eid, "foo x y").nl();

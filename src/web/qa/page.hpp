@@ -8,15 +8,15 @@ public:
   void to(reply &x) override {
     strb<32 * K> s{};
     s.p("<!doctype html><script src=/x.js></script><link "
-        "rel=stylesheet href=/x.css>"sv)
-        .p("<title>page</title>"sv)
+        "rel=stylesheet href=/x.css>")
+        .p("<title>page</title>")
         .p("Type JavaScript to execute on client <input id=_btn type=button "
            "value=run onclick=\"this.disabled=true;ajax_post('/qa/"
            "page',$('_txt').value,function(r){console.log(r.responseText);$('_"
-           "btn').disabled=false;eval(r.responseText);})\">\n"sv)
-        .p("<textarea id=_txt class=big>"sv)
+           "btn').disabled=false;eval(r.responseText);})\">\n")
+        .p("<textarea id=_txt class=big>")
         .p(txt)
-        .p("</textarea><script>$('_txt').focus()</script>"sv)
+        .p("</textarea><script>$('_txt').focus()</script>")
         .nl();
 
     x.http(200, s.string_view());
@@ -37,12 +37,12 @@ public:
 
     if (received_len == content_len) { // last call?
       if (!txt.len()) {
-        txt.p("alert('enter javascript code');"sv);
-        x.http(200, txt.string_view(), "text/plain;charset=utf-8"sv);
+        txt.p("alert('enter javascript code');");
+        x.http(200, txt.string_view(), "text/plain;charset=utf-8");
         txt.rst();
         return;
       }
-      x.http(200, txt.string_view(), "text/plain;charset=utf-8"sv);
+      x.http(200, txt.string_view(), "text/plain;charset=utf-8");
     }
   }
 };

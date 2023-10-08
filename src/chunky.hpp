@@ -36,7 +36,7 @@ public:
       throw client_exception{"chunky:already finished"};
     }
     flush();
-    io_send(fd_, "0\r\n\r\n"sv);
+    io_send(fd_, "0\r\n\r\n");
     finished_ = true;
     return *this;
   }
@@ -117,7 +117,7 @@ private:
     // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
     // chunk header
     strb<array_size_nums> hdr{};
-    hdr.p_hex(int(buf_len)).p("\r\n"sv);
+    hdr.p_hex(int(buf_len)).p("\r\n");
     // send chunk header
     io_send(fd_, hdr.string_view(), true);
     // send chunk
@@ -138,7 +138,7 @@ private:
       }
     }
     // terminate the chunk
-    io_send(fd_, "\r\n"sv, true); // 2 is string length
+    io_send(fd_, "\r\n"sv, true);
   }
 
   static constexpr size_t array_size_nums = 32;
