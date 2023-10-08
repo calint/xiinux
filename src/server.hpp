@@ -231,7 +231,7 @@ public:
     }
 
     const size_t nsocks = socks.size();
-    printf(" * disconnecting %lu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
+    printf(" * disconnecting %zu socket%s\n", nsocks, nsocks == 1 ? "" : "s");
     socks.clear();
 
     if (thdwatch_on) {
