@@ -13,10 +13,10 @@ supports:
 * post content using ajax
 * upload files
 * resumable downloads
-* ui framework (in progress)
+* ui framework
   - focused on back-end development
   - hierarchial structure
-  - simple event model decouples parent child circular reference
+  - simple event model
   - ajax updates
 
 howto:
@@ -25,8 +25,6 @@ howto:
 * for benchmarking mode run 'xiinux -b'
 * for displaying metrics run 'xiinux -m'
 * for both benchmarking mode and metrics run 'xiinux -bm'
-
-see [bob](https://github.com/calint/bob) for a similar web application server for java
 
 ```
 
