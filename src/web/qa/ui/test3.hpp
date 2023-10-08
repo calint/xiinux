@@ -37,8 +37,8 @@ public:
     x.elem_close("div");
   }
 
-  inline void on_event(uiprinter &x, uielem &from, const std::string &msg,
-                       const int num, void *data) override {
+  inline void on_event(uiprinter &x, uielem &from, const int num,
+                       const std::string &msg, void *data) override {
     if (&from == &mn) {
       txt.set_value(std::to_string(num));
       x.xset(txt.id(), txt.value());
@@ -47,7 +47,7 @@ public:
       js.close();
       return;
     }
-    uielem::on_event(x, from, msg, num, data);
+    uielem::on_event(x, from, num, msg, data);
   }
 };
 } // namespace xiinux::web::qa::ui

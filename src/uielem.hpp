@@ -61,10 +61,10 @@ public:
     throw client_exception("elem:on_callback: no implementation");
   }
 
-  virtual void on_event(uiprinter &x, uielem &from, const std::string &msg,
-                        const int num, void *data) {
+  virtual void on_event(uiprinter &x, uielem &from, const int num,
+                        const std::string &msg, void *data) {
     if (parent_) {
-      parent_->on_event(x, from, msg, num, data);
+      parent_->on_event(x, from, num, msg, data);
       return;
     }
     printf("!!! unhandled event: from=[%s] msg=[%s] num=[%d]\n",

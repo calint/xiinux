@@ -32,6 +32,7 @@ public:
                          const size_t content_len) override {
     if (buf == nullptr) {
       content_.clear();
+      content_.reserve(content_len);
       return;
     }
 
@@ -72,6 +73,10 @@ public:
       const std::string value = line.substr(ix + 1);
       get_elem_by_id(id)->set_value(value);
     }
+
+    // try to release the allocated buffers
+    content_.clear();
+    content_.shrink_to_fit();
 
     // do callback
     std::unique_ptr<chunky> z = x.reply_chunky();

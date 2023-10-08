@@ -7,8 +7,7 @@ public:
   std::vector<std::string> items{};
 
   inline menu3(uielem *parent, std::string name)
-      : uielem{parent, std::move(name)} {
-  }
+      : uielem{parent, std::move(name)} {}
 
   inline void render(uiprinter &x) override {
     int ix = 0;
@@ -27,7 +26,7 @@ public:
                           const std::string &arg) override {
     if (func == "sel") {
       selected_ix = std::atoi(arg.c_str());
-      uielem::on_event(x, *this, "sel", selected_ix, nullptr);
+      uielem::on_event(x, *this, selected_ix, "sel", nullptr);
       return;
     }
     throw client_exception("unhandled callback");
