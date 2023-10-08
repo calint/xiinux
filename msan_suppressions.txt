@@ -1,0 +1,8 @@
+# Suppress errors related to std::unique_ptr destructor in unique_ptr.h
+fun:_ZNSt10unique_ptrINSt12filesystem12__cxx11_path5_List9_ImplESt14default_deleteIS4_EED1Ev
+src:/usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/unique_ptr.h:395
+
+# Suppress MemorySanitizer errors in std::unique_ptr destructor
+fun:std::unique_ptr::~unique_ptr()
+
+

@@ -40,7 +40,7 @@ SAN=
 DBG=
 OPT=-O3
 if [ "$1" = "qa" ]; then
-    ETC="-fprofile-instr-generate $ETC"
+    ETC="-fprofile-instr-generate -fcoverage-mapping $ETC"
     DBG=-g
 fi
 
@@ -80,12 +80,12 @@ trap '' SIGINT
 
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 # process coverage data
-llvm-profdata merge -sparse default.profraw -o xiinux.profdata
-llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux > lcov.info
+llvm-profdata merge -sparse default.profraw -o xiinux.profdata &&
+llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux > lcov.info &&
 # generate report
-genhtml --quiet lcov.info --output-directory qa/coverage/report/
-echo
-echo coverage report generated in "qa/coverage/report/"
-echo
+genhtml --quiet lcov.info --output-directory qa/coverage/report/ &&
+echo &&
+echo coverage report generated in "qa/coverage/report/" &&
+echo &&
 # clean-up
 rm default.profraw xiinux.profdata lcov.info
