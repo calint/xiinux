@@ -8,7 +8,6 @@ class test3 final : public uielem {
   uielem txt{this, "txt"};
 
 public:
-  // note. should be auto-generated
   inline auto get_child(const std::string &name) -> uielem * override {
     if (name == "mn") {
       return &mn;

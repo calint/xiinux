@@ -13,7 +13,6 @@ class test1 final : public uielem {
   uielem e{this, "e"};
 
 public:
-  // note. should be auto-generated
   auto get_child(const std::string &name) -> uielem * override {
     if (name == "a") {
       return &a;
@@ -48,7 +47,6 @@ public:
     x.script_open().xfocus(a.id()).script_close();
   }
 
-  // note. should be auto-generated
   void on_callback(uiprinter &x, const std::string &func,
                    const std::string &arg) override {
     if (func.empty()) {

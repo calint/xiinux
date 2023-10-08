@@ -7,7 +7,6 @@ class test2 : public uielem {
   menu mn{this, "mn"};
 
 public:
-  // note. should be auto-generated
   inline auto get_child(const std::string &name) -> uielem * override {
     if (name == "mn") {
       return &mn;
@@ -31,7 +30,6 @@ public:
     x.elem_close("div");
   }
 
-  // note. should be auto-generated
   inline void on_callback(uiprinter &x, const std::string &func,
                           const std::string &arg) override {
     if (func == "sel") {

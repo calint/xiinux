@@ -67,8 +67,8 @@ public:
       parent_->on_event(x, from, num, msg, data);
       return;
     }
-    printf("!!! unhandled event: from=[%s] msg=[%s] num=[%d]\n",
-           from.id().c_str(), msg.c_str(), num);
+    printf("!!! unhandled event: from=[%s] num=[%d] msg=[%s]\n",
+           from.id().c_str(), num, msg.c_str());
   }
 };
 } // namespace xiinux

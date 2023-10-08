@@ -13,6 +13,7 @@
 [ ] review perror(...) messages
 [ ] consider using format -> "Type const &" rather than "const Type &"
 [ ] review/refactor args
+[ ] uielem auto-generated on_callback(...) and get_child(...)
 [ ] decode query string on demand
 [ ] websockets
 [ ] metrics: widget '/qa/metrics' displaying metrics with counters and velocity gauges

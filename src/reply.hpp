@@ -80,7 +80,7 @@ public:
       set_session_id_ = {};
     }
 
-    sb.p("\r\n"); // note. no .eos() because sb.string_view() will include it
+    sb.p("\r\n"); // note. no .eos() because sb.string_view() would include it
 
     io_send(fd_, sb.string_view(), buf != nullptr);
     if (buf != nullptr) {

@@ -46,8 +46,7 @@ public:
       // printf("client close %p\n", static_cast<void *>(this));
       return;
     }
-    // note.
-    // epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_, nullptr);
+    // note. epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_, nullptr);
     // not necessary since epoll removes the entry when the file descriptor is
     // closed. (man epoll -> see questions and answers)
     stats.errors++;
@@ -919,7 +918,7 @@ private:
   time_t upload_last_mod_{};
   std::string upload_path_{};
   std::string session_id_{};
-  // note
+  // note.
   // 'widget' lifetime is same as 'session'
   // 'session' lifetime is same as 'sessions'
   // 'sessions' lifetime is same as program > 'sock' lifetime

@@ -27,15 +27,14 @@ public:
     // sb.p("session value: ").p(found ? it->second : "").nl();
     // ses->insert({"x"s, "abc"s});
 
-    // note. throws exception if not found
+    // throws exception if not found
     // const std::string &ses_val = ses->at("x");
 
-    // note. inserts empty string if not found
+    // inserts empty string if not found
     const std::string &ses_val = (*ses)["x"];
     sb.p("session value: ").p(ses_val).nl();
     (*ses)["x"] = "abc";
 
-    // note.
     // ses->insert_or_assign("x"s, "abc"s);
 
     sb.p("counter in this instance: ").p(counter_).nl();
