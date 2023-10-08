@@ -8,6 +8,6 @@ class doc final {
 
 public:
   inline explicit doc(std::string str) : str_{std::move(str)} {}
-  inline void to(reply &x) const { x.send(str_); }
+  inline void to(const reply &x) const { x.send(str_); }
 };
 } // namespace xiinux

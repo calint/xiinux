@@ -8,6 +8,8 @@ class session final {
   map_widgets widgets_{};
 
 public:
+  // clang-tidy recommends pass by value and move
+  // cppcheck-suppress passedByValue
   inline explicit session(std::string id) noexcept : id_{std::move(id)} {
     stats.sessions++;
   }
