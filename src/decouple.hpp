@@ -19,9 +19,6 @@
 
 namespace xiinux {
 
-using namespace std::string_view_literals;
-using namespace std::string_literals;
-
 class doc;
 class widget;
 
@@ -33,7 +30,7 @@ using widget_factory_func_ptr = widget *(*)();
 static int epoll_fd{};
 static std::unique_ptr<doc> homepage{};
 
-static inline auto io_send(const int fd, const char *buf, size_t buf_len,
+static inline auto io_send(const int fd, const void *buf, size_t buf_len,
                            const bool buffer_send = false,
                            const bool throw_if_send_not_complete = true)
     -> size_t {

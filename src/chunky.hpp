@@ -138,7 +138,7 @@ private:
       }
     }
     // terminate the chunk
-    io_send(fd_, "\r\n"sv, true);
+    io_send(fd_, std::string_view{"\r\n"}, true);
   }
 
   static constexpr size_t array_size_nums = 32;

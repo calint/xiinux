@@ -44,7 +44,7 @@ public:
     x.output(d.id(), "").nl();
     x.button(eid, "", "arg1 arg2", "attention", "submit").nl();
     x.button(eid, "fow", "", "attention", "big set").nl();
-    x.elem("span"s, e.id(), e.value(), "").nl();
+    x.elem("span", e.id(), e.value(), "").nl();
     x.script_open().xfocus(a.id()).script_close();
   }
 
@@ -66,8 +66,8 @@ private:
   // callbacks
 
   void x_default(uiprinter &x, const std::string &arg) {
-    x.xset(d.id(), arg + "\n["s + a.value() + "]\n["s + b.value() + "]\n["s +
-                       c.value() + "]"s);
+    x.xset(d.id(), arg + "\n[" + a.value() + "]\n[" + b.value() + "]\n[" +
+                       c.value() + "]");
   }
 
   void x_foo(uiprinter &x, [[maybe_unused]] const std::string &arg) {
