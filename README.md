@@ -2,8 +2,10 @@
 
 experimental high performance web application server for linux in c++
 
-intended use:
-* compact web application
+intention:
+* compact web application server
+* backend for browser based application
+* deployed as server 
 * runs on one thread
 
 supports:
@@ -21,7 +23,7 @@ supports:
 
 howto:
 * to build run 'make.sh'
-* for normal mode run 'xiinux'
+* for normal mode run 'xiinux'>
 * for benchmarking mode run 'xiinux -b'
 * for displaying metrics run 'xiinux -m'
 * for both benchmarking mode and metrics run 'xiinux -bm'
