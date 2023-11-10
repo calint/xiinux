@@ -23,7 +23,7 @@ supports:
 
 howto:
 * to build run 'make.sh'
-* for normal mode run 'xiinux'>
+* for normal mode run 'xiinux'
 * for benchmarking mode run 'xiinux -b'
 * for displaying metrics run 'xiinux -m'
 * for both benchmarking mode and metrics run 'xiinux -bm'
