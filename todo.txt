@@ -1,3 +1,4 @@
+[ ] the use of std::array where it does not need to be initialized
 [ ] ltgt_stream: escapes < and > (see bob class b.osltgt)
 [ ] ui::root_widget: on_content: don't allocate string for full content
     handle partial id and partial value
