@@ -29,13 +29,13 @@ WARNINGS="-Weverything \
 #          -Wsign-promo -Wstrict-null-sentinel -Wswitch-default -Wundef -Wfloat-equal \
 #          -Wnoexcept -Wno-stringop-truncation"
 
-BIN=xiinux
-SRC=src/main.cpp
+BIN="xiinux"
+SRC="src/main.cpp"
 ETC="-Wfatal-errors -Werror"
 #ETC="$ETC -static"
 SAN=
 DBG=
-OPT=-O3
+OPT="-O3"
 if [ "$1" = "qa2" ]; then
     SAN="-fsanitize=memory,undefined -fsanitize-memory-track-origins=2 -fsanitize-ignorelist=msan_suppressions.txt"
     DBG=-g
