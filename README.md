@@ -4,7 +4,7 @@ experimental high performance web application server for linux in c++
 
 intention:
 * compact web application server
-* backend for browser based application
+* back-end for browser based application
 * deployed as server 
 * runs on one thread
 
