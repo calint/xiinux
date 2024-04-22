@@ -18,7 +18,7 @@
 CC="clang++ -std=c++20"
 WARNINGS="-Weverything \
           -Wno-c++98-compat -Wno-weak-vtables -Wno-padded \
-          -Wno-global-constructors -Wno-exit-time-destructors"
+          -Wno-global-constructors -Wno-exit-time-destructors -Wno-unsafe-buffer-usage"
 
 #CC="g++ -std=c++23"
 #WARNINGS="-Wall -Wextra -Wpedantic \
@@ -37,7 +37,7 @@ SAN=
 DBG=
 OPT="-O3"
 if [ "$1" = "qa2" ]; then
-    SAN="-fsanitize=memory,undefined -fsanitize-memory-track-origins=2 -fsanitize-ignorelist=msan_suppressions.txt"
+    SAN="-fsanitize=memory,undefined -fsanitize-memory-track-origins=2 -fsanitize-ignorelist=qa/msan_suppressions.txt"
     DBG=-g
 elif [ "$1" = "qa" ]; then
     ETC="-fprofile-instr-generate -fcoverage-mapping $ETC"
