@@ -4,8 +4,9 @@ experimental high performance web application server for linux in c++
 
 intention:
 * compact web application server
+* intuitive component based development of web applications
 * backend for browser-based application
-* deployed as server 
+* deployed as server
 * runs on one thread
 
 supports:
@@ -16,7 +17,7 @@ supports:
 * upload files
 * resumable downloads
 * ui framework
-  - focused on back-end development
+  - focused on backend development
   - hierarchial structure
   - simple event model
   - ajax updates
