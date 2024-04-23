@@ -45,7 +45,7 @@ public:
     std::string callback_id{};
     std::string callback_func{};
     std::string callback_arg{};
-    std::string line;
+    std::string line{};
     std::istringstream iss_content{content_};
     std::getline(iss_content, line, '\r');
     const std::size_t ix_first_space = line.find(' ');
