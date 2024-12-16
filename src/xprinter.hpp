@@ -5,6 +5,7 @@ namespace xiinux {
 
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions,hicpp-special-member-functions)
 class xprinter {
+
 public:
   virtual ~xprinter() = default;
 

@@ -2,6 +2,7 @@
 #pragma once
 
 namespace xiinux::conf {
+
 static constexpr const char *application_name = "xiinux web server";
 static constexpr bool server_reuse_addr_and_port = true;
 static constexpr int server_listen_backlog_size = 128;
@@ -23,4 +24,5 @@ static constexpr unsigned path_to_widget_lut_size = 16;
 static constexpr size_t str_len_max = K * M;
 static constexpr bool print_traffic = false;
 static constexpr int print_traffic_fd = 1; // stdout
+
 } // namespace xiinux::conf

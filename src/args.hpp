@@ -2,6 +2,7 @@
 
 // todo: review messy but simple code
 namespace xiinux {
+
 class args final {
   const int argc_;
   const char **argv_;
@@ -40,8 +41,8 @@ public:
   }
 
   // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-  inline auto get_option_value(const char short_name, const char *default_value)
-      -> const char * {
+  inline auto get_option_value(const char short_name,
+                               const char *default_value) -> const char * {
     int argc = argc_ - 1;
     if (argc == 0) {
       return default_value;
@@ -98,4 +99,5 @@ public:
     }
   }
 };
+
 } // namespace xiinux

@@ -15,7 +15,7 @@
 #  * ( '^C' to stop server )
 #  * generate coverage report to 'qa/coverage/report/'
 
-CC="clang++ -std=c++20"
+CC="clang++ -std=c++23"
 WARNINGS="-Weverything \
           -Wno-c++98-compat -Wno-weak-vtables -Wno-padded \
           -Wno-global-constructors -Wno-exit-time-destructors -Wno-unsafe-buffer-usage"

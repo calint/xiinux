@@ -3,6 +3,7 @@
 #include <vector>
 
 namespace xiinux {
+
 class uielem {
   uielem *parent_{};
   std::string name_{};
@@ -71,4 +72,5 @@ public:
            from.id().c_str(), num, msg.c_str());
   }
 };
+
 } // namespace xiinux

@@ -7,6 +7,7 @@
 #include <cstring>
 
 namespace xiinux {
+
 class chunky final : public xprinter {
   std::array<char, conf::chunky_buf_size> buf_{};
   size_t len_{};
@@ -143,4 +144,5 @@ private:
 
   static constexpr size_t array_size_nums = 32;
 };
+
 } // namespace xiinux

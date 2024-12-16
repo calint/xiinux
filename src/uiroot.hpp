@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace xiinux {
+
 class uiroot final : public widget {
   std::unique_ptr<uielem> elem_{};
   std::string content_{};
@@ -104,8 +105,8 @@ private:
   }
 
   // todo: move to a util
-  static auto split_string(const std::string &input, char delimiter)
-      -> std::vector<std::string> {
+  static auto split_string(const std::string &input,
+                           char delimiter) -> std::vector<std::string> {
     std::vector<std::string> result;
     std::size_t startPos = 0;
     std::size_t endPos = input.find(delimiter);
@@ -123,4 +124,5 @@ private:
     return result;
   }
 };
+
 } // namespace xiinux

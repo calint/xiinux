@@ -3,6 +3,7 @@
 #include <cstdio>
 
 namespace xiinux {
+
 class stats final {
 public:
   size_t ms = 0;
@@ -36,4 +37,5 @@ public:
     (void)fflush(f);
   }
 } static stats;
+
 } // namespace xiinux

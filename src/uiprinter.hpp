@@ -53,8 +53,8 @@ public:
     return p(">").p(txt).p("</button>");
   }
 
-  inline auto output(const std::string &id, const std::string &html)
-      -> uiprinter & {
+  inline auto output(const std::string &id,
+                     const std::string &html) -> uiprinter & {
     return p("<output id=")
         .p(id)
         .p(" name=")
@@ -65,8 +65,8 @@ public:
   }
 
   inline auto elem(const std::string &tag, const std::string &id,
-                   const std::string &innerHTML, const std::string &cls)
-      -> uiprinter & {
+                   const std::string &innerHTML,
+                   const std::string &cls) -> uiprinter & {
     elem_open(tag, id, cls).p(innerHTML).elem_close(tag);
     return *this;
   }
@@ -101,14 +101,14 @@ public:
     return *this;
   }
 
-  inline auto xset(const std::string &id, const std::string &value)
-      -> uiprinter & {
+  inline auto xset(const std::string &id,
+                   const std::string &value) -> uiprinter & {
     p("$sv('").p(id).p("','").p_js_str(value).p("');").nl();
     return *this;
   }
 
-  inline auto xp(const std::string &id, const std::string &value)
-      -> uiprinter & {
+  inline auto xp(const std::string &id,
+                 const std::string &value) -> uiprinter & {
     p("$p('").p(id).p("','").p_js_str(value).p("');").nl();
     return *this;
   }
@@ -153,9 +153,9 @@ private:
     return replace_char_with_string(s3, '\'', "\\'");
   }
 
-  static auto replace_char_with_string(const std::string &str, char ch,
-                                       const std::string &replacement)
-      -> std::string {
+  static auto
+  replace_char_with_string(const std::string &str, char ch,
+                           const std::string &replacement) -> std::string {
     std::string res = str;
     size_t pos = res.find(ch);
     while (pos != std::string::npos) {
@@ -165,4 +165,5 @@ private:
     return res;
   }
 };
+
 } // namespace xiinux

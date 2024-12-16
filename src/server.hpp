@@ -9,11 +9,12 @@
 #include <thread>
 
 namespace xiinux {
+
 class server final {
 public:
   // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-  [[nodiscard]] inline static auto start(const int argc, const char **argv)
-      -> int {
+  [[nodiscard]] inline static auto start(const int argc,
+                                         const char **argv) -> int {
     args a(argc, argv);
     thdwatch_on = a.has_option('m');
     thdwatch_stats_to_file = a.has_option('f');
@@ -334,4 +335,5 @@ private:
   inline static int server_fd{};
   inline static std::unordered_map<int, std::unique_ptr<sock>> socks{};
 };
+
 } // namespace xiinux

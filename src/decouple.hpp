@@ -19,7 +19,6 @@
 
 namespace xiinux {
 
-class doc;
 class widget;
 
 using map_headers = std::unordered_map<std::string_view, std::string_view>;
@@ -28,12 +27,11 @@ using map_widgets = std::unordered_map<std::string, std::unique_ptr<widget>>;
 using widget_factory_func_ptr = widget *(*)();
 
 static int epoll_fd{};
-static std::unique_ptr<doc> homepage{};
 
-static inline auto io_send(const int fd, const void *buf, size_t buf_len,
-                           const bool buffer_send = false,
-                           const bool throw_if_send_not_complete = true)
-    -> size_t {
+static inline auto
+io_send(const int fd, const void *buf, size_t buf_len,
+        const bool buffer_send = false,
+        const bool throw_if_send_not_complete = true) -> size_t {
   stats.writes++;
   const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
   const ssize_t n = send(fd, buf, buf_len, flags);
@@ -63,16 +61,16 @@ static inline auto io_send(const int fd, const void *buf, size_t buf_len,
   return nbytes_sent;
 }
 
-static inline auto io_send(const int fd, const std::string_view &sv,
-                           const bool buffer_send = false,
-                           const bool throw_if_send_not_complete = true)
-    -> size_t {
+static inline auto
+io_send(const int fd, const std::string_view &sv,
+        const bool buffer_send = false,
+        const bool throw_if_send_not_complete = true) -> size_t {
   return io_send(fd, sv.data(), sv.size(), buffer_send,
                  throw_if_send_not_complete);
 }
 
-inline static auto current_time_to_str(std::array<char, 26> &time_str_buf)
-    -> const char * {
+inline static auto
+current_time_to_str(std::array<char, 26> &time_str_buf) -> const char * {
   const auto chrono_now = std::chrono::system_clock::now();
   const auto time_now = std::chrono::system_clock::to_time_t(chrono_now);
   if (!std::strftime(time_str_buf.data(), time_str_buf.size(), "%F %T",

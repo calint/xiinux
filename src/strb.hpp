@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 namespace xiinux {
+
 template <unsigned SIZE = 1024> class strb final : public xprinter {
   std::array<char, SIZE> buf_{};
   size_t len_ = 0;
@@ -62,4 +63,5 @@ public:
 
   // end of xprinter implementation
 };
+
 } // namespace xiinux

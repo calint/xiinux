@@ -2,6 +2,7 @@
 #include "uiprinter.hpp"
 
 namespace xiinux {
+
 class uijstr final : public uiprinter {
   const std::string &eid_;
   bool closed_{};
@@ -87,4 +88,5 @@ public:
     return *this;
   }
 };
+
 } // namespace xiinux

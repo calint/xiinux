@@ -802,8 +802,8 @@ private:
 
   public:
     inline void rst() { pos_ = len_ = 0; }
-    [[nodiscard]] inline auto buf() const
-        -> const std::array<char, conf::sock_content_buf_size> & {
+    [[nodiscard]] inline auto
+    buf() const -> const std::array<char, conf::sock_content_buf_size> & {
       return *buf_;
     }
     [[nodiscard]] inline auto pos() const -> size_t { return pos_; }
