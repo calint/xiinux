@@ -1,12 +1,11 @@
 #!/bin/bash
-
 # tools:
-#           g++: 12.3.0
-#       clang++: 15.0.7
-#      valgrind: 3.19.0
+#           g++: 14.2.1
+#       clang++: 18.1.8
+#      valgrind: 3.24.0
 # llvm-profdata: 
-#      llvm-cov: 15.0.7
-#       genhtml: 1.16
+#      llvm-cov: 18.1.8
+#       genhtml: 2.2-1
 # 
 # builds 'xiinux' binary
 # if first argument is 'qa' then:
@@ -14,6 +13,9 @@
 #  * run 'xiinux' with valgrind
 #  * ( '^C' to stop server )
 #  * generate coverage report to 'qa/coverage/report/'
+
+set -e
+cd $(dirname "$0")
 
 CC="clang++ -std=c++23"
 WARNINGS="-Weverything \

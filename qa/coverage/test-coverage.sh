@@ -1,4 +1,9 @@
 #!/bin/bash
+# tools:
+#      nc: 0.7.1 (GNU)
+#    curl: 8.11.1
+# timeout: 9.5
+
 set -e
 cd $(dirname "$0")
 
