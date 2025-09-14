@@ -16,15 +16,18 @@ inline void xiinux::session::put_widget(std::string path,
 }
 
 auto main(const int argc, const char** argv) -> int {
-    // catch all signals
-    // for (int i = 1; i < NSIG; i++) {
-    //   signal(i, sigint);
-    // }
-    (void)signal(SIGINT, sigint);  // close at '^C'
-    (void)signal(SIGTERM, sigint); // 'killall' and 'kill' commands
-    (void)signal(SIGPIPE,
-                 SIG_IGN);     // 'sendfile' raises signal when 'Broken pipe'
-    (void)signal(28, SIG_IGN); // 'Window changed'
+    // close at '^C'
+    (void)signal(SIGINT, sigint);
+
+    // 'killall' and 'kill' commands
+    (void)signal(SIGTERM, sigint);
+
+    // 'sendfile' raises signal when 'Broken pipe', ignore
+    (void)signal(SIGPIPE, SIG_IGN);
+
+    // 'Window changed', ignore
+    (void)signal(28, SIG_IGN);
+
     try {
         return xiinux::server::start(argc, argv);
     } catch (const std::exception& e) {
