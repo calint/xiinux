@@ -4,49 +4,49 @@
 
 namespace xiinux::web::qa::ui {
 class test3 final : public uielem {
-  menu3 mn{this, "mn"};
-  uielem txt{this, "txt"};
+    menu3 mn{this, "mn"};
+    uielem txt{this, "txt"};
 
-public:
-  inline auto get_child(const std::string &name) -> uielem * override {
-    if (name == "mn") {
-      return &mn;
+  public:
+    inline auto get_child(const std::string& name) -> uielem* override {
+        if (name == "mn") {
+            return &mn;
+        }
+        if (name == "txt") {
+            return &txt;
+        }
+        return nullptr;
     }
-    if (name == "txt") {
-      return &txt;
+
+    inline test3() : uielem{nullptr, ""} {
+        mn.items.emplace_back("item 1");
+        mn.items.emplace_back("item 2");
+        mn.items.emplace_back("item 3");
+        mn.items.emplace_back("item 4");
     }
-    return nullptr;
-  }
 
-  inline test3() : uielem{nullptr, ""} {
-    mn.items.emplace_back("item 1");
-    mn.items.emplace_back("item 2");
-    mn.items.emplace_back("item 3");
-    mn.items.emplace_back("item 4");
-  }
-
-  inline void render(uiprinter &x) override {
-    x.p("<pre>").nl();
-    x.elem_open("div", mn.id(), "");
-    mn.render(x);
-    x.elem_close("div");
-    x.nl();
-    x.elem_open("div", txt.id(), "");
-    txt.render(x);
-    x.elem_close("div");
-  }
-
-  inline void on_event(uiprinter &x, uielem &from, const int num,
-                       const std::string &msg, void *data) override {
-    if (&from == &mn) {
-      txt.set_value(std::to_string(num));
-      x.xset(txt.id(), txt.value());
-      uijstr js{x, mn.id()};
-      mn.render(js);
-      js.close();
-      return;
+    inline void render(uiprinter& x) override {
+        x.p("<pre>").nl();
+        x.elem_open("div", mn.id(), "");
+        mn.render(x);
+        x.elem_close("div");
+        x.nl();
+        x.elem_open("div", txt.id(), "");
+        txt.render(x);
+        x.elem_close("div");
     }
-    uielem::on_event(x, from, num, msg, data);
-  }
+
+    inline void on_event(uiprinter& x, uielem& from, const int num,
+                         const std::string& msg, void* data) override {
+        if (&from == &mn) {
+            txt.set_value(std::to_string(num));
+            x.xset(txt.id(), txt.value());
+            uijstr js{x, mn.id()};
+            mn.render(js);
+            js.close();
+            return;
+        }
+        uielem::on_event(x, from, num, msg, data);
+    }
 };
 } // namespace xiinux::web::qa::ui

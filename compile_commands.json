@@ -1,0 +1,26 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-c",
+      "-std=c++23",
+      "-O3",
+      "-Wfatal-errors",
+      "-Werror",
+      "-Weverything",
+      "-Wno-c++98-compat",
+      "-Wno-weak-vtables",
+      "-Wno-padded",
+      "-Wno-global-constructors",
+      "-Wno-exit-time-destructors",
+      "-Wno-unsafe-buffer-usage",
+      "-Wno-undefined-inline",
+      "-o",
+      "xiinux",
+      "src/main.cpp"
+    ],
+    "directory": "/home/c/w/xiinux",
+    "file": "/home/c/w/xiinux/src/main.cpp",
+    "output": "/home/c/w/xiinux/xiinux"
+  }
+]

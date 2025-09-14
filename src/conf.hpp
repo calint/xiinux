@@ -1,9 +1,11 @@
 // reviewed: 2023-09-27
 #pragma once
+#include "defines.hpp"
+#include <cstddef>
 
 namespace xiinux::conf {
 
-static constexpr const char *application_name = "xiinux web server";
+static constexpr const char* application_name = "xiinux web server";
 static constexpr bool server_reuse_addr_and_port = true;
 static constexpr int server_listen_backlog_size = 128;
 static constexpr int server_tcp_fast_open_size = 128;

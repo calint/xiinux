@@ -6,7 +6,7 @@
 # llvm-profdata: 18.1.8
 #      llvm-cov: 18.1.8
 #       genhtml: 2.2-1
-# 
+#
 # builds 'xiinux' binary
 # if first argument is 'qa' then:
 #  * build with debug info and coverage support
@@ -20,7 +20,8 @@ cd $(dirname "$0")
 CC="clang++ -std=c++23"
 WARNINGS="-Weverything \
           -Wno-c++98-compat -Wno-weak-vtables -Wno-padded \
-          -Wno-global-constructors -Wno-exit-time-destructors -Wno-unsafe-buffer-usage"
+          -Wno-global-constructors -Wno-exit-time-destructors -Wno-unsafe-buffer-usage \
+          -Wno-undefined-inline"
 
 #CC="g++ -std=c++23"
 #WARNINGS="-Wall -Wextra -Wpedantic \
@@ -39,11 +40,11 @@ SAN=
 DBG=
 OPT="-O3"
 if [ "$1" = "qa2" ]; then
-    SAN="-fsanitize=memory,undefined -fsanitize-memory-track-origins=2 -fsanitize-ignorelist=qa/msan_suppressions.txt"
-    DBG=-g
+  SAN="-fsanitize=memory,undefined -fsanitize-memory-track-origins=2 -fsanitize-ignorelist=qa/msan_suppressions.txt"
+  DBG=-g
 elif [ "$1" = "qa" ]; then
-    ETC="-fprofile-instr-generate -fcoverage-mapping $ETC"
-    DBG=-g
+  ETC="-fprofile-instr-generate -fcoverage-mapping $ETC"
+  DBG=-g
 fi
 
 echo
@@ -54,16 +55,16 @@ $CMD
 [[ $? != "0" ]] && exit $?
 
 # stats on source code
-echo > all.src &&
+echo >all.src &&
 
-# find all files, concatinate into a file
-#  exclude empty lines, comment lines, lines containing only '}'
-#   and lines starting with '#'
-find src -type f -exec cat {} + | \
-    grep -vE '^\s*//|^\s*$|^\s*}\s*$|^#.*$' >> all.src
+  # find all files, concatinate into a file
+  #  exclude empty lines, comment lines, lines containing only '}'
+  #   and lines starting with '#'
+  find src -type f -exec cat {} + |
+  grep -vE '^\s*//|^\s*$|^\s*}\s*$|^#.*$' >>all.src
 
 echo
-echo    "            lines   words   chars"
+echo "            lines   words   chars"
 echo -n "   source:"
 cat all.src | wc
 echo -n "  gzipped:"
@@ -83,11 +84,11 @@ trap '' SIGINT
 valgrind --leak-check=full --show-leak-kinds=all -s ./$BIN
 # process coverage data
 llvm-profdata merge -sparse default.profraw -o xiinux.profdata &&
-llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux > lcov.info &&
-# generate report
-genhtml --quiet lcov.info --output-directory qa/coverage/report/ &&
-echo &&
-echo coverage report generated in "qa/coverage/report/" &&
-echo &&
-# clean-up
-rm default.profraw xiinux.profdata lcov.info
+  llvm-cov export --format=lcov --instr-profile xiinux.profdata --object xiinux >lcov.info &&
+  # generate report
+  genhtml --quiet lcov.info --output-directory qa/coverage/report/ &&
+  echo &&
+  echo coverage report generated in "qa/coverage/report/" &&
+  echo &&
+  # clean-up
+  rm default.profraw xiinux.profdata lcov.info
