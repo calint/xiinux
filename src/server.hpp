@@ -15,7 +15,7 @@ class server final {
     // NOLINTNEXTLINE(readability-function-cognitive-complexity)
     [[nodiscard]] inline static auto start(const int argc, const char** argv)
         -> int {
-        args a(argc, argv);
+        args a{argc, argv};
         thdwatch_on = a.has_option('m');
         thdwatch_stats_to_file = a.has_option('f');
         const int port = atoi(a.get_option_value('p', "8088"));
@@ -114,7 +114,7 @@ class server final {
         web::widget_init_path_to_factory_map();
 
         if (thdwatch_on) {
-            thdwatch = std::jthread(thdwatch_run);
+            thdwatch = std::jthread{thdwatch_run};
         }
 
         std::array<struct epoll_event, conf::server_listen_backlog_size>
