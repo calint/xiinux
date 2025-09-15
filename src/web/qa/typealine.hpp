@@ -5,7 +5,7 @@
 // used in qa/test-coverage.sh
 namespace xiinux::web::qa {
 class typealine final : public widget {
-
+  public:
     auto to(reply& x) -> void override {
         x.http(403, "forbidden. intended for post only.");
     }

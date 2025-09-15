@@ -5,6 +5,7 @@
 
 namespace xiinux::web::qa {
 class bigresp final : public widget {
+  public:
     auto to(reply& x) -> void override {
         constexpr size_t buf_len = K * K * K;
         strb<buf_len> sb{};

@@ -4,6 +4,7 @@
 
 namespace xiinux::web::qa {
 class hello final : public widget {
+  public:
     auto to(reply& x) -> void override { x.http(200, "hello world"); }
 };
 } // namespace xiinux::web::qa
