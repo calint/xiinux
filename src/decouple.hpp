@@ -95,7 +95,7 @@ inline static auto ip_addr_to_str(std::array<char, INET_ADDRSTRLEN>& dst,
 
 namespace xiinux::web {
 
-static inline void widget_init_path_to_factory_map();
+static inline auto widget_init_path_to_factory_map() -> void;
 
 static inline auto widget_factory_for_path(const std::string_view& path)
     -> widget_factory_func_ptr;

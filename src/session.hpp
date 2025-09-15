@@ -42,7 +42,8 @@ class session final {
     //   kvp_[key] = std::move(str);
     // }
 
-    inline void put_widget(std::string path, std::unique_ptr<widget> wgt);
+    inline auto put_widget(std::string path, std::unique_ptr<widget> wgt)
+        -> void;
 };
 
 } // namespace xiinux

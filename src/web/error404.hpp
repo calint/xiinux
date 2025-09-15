@@ -4,7 +4,7 @@
 
 namespace xiinux::web {
 class error404 final : public widget {
-    void to(reply& x) override {
+    auto to(reply& x) -> void override {
         // 10 is string length
         x.http(404, {"not found\n", 10});
     }

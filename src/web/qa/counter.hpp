@@ -10,7 +10,7 @@ class counter final : public widget {
     int counter_ = 0;
 
   public:
-    void to(reply& r) override {
+    auto to(reply& r) -> void override {
         counter_++;
         counter::atomic_counter++;
 

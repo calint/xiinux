@@ -229,7 +229,7 @@ class server final {
         }
     }
 
-    inline static void stop() {
+    inline static auto stop() -> void {
         printf("\n\nstopping xiinux\n");
 
         if (close(epoll_fd)) {
@@ -253,7 +253,7 @@ class server final {
 
   private:
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    inline static void run_client(sock* client) {
+    inline static auto run_client(sock* client) -> void {
         try {
             client->run();
         } catch (const client_closed_exception&) {
@@ -272,8 +272,8 @@ class server final {
         }
     }
 
-    inline static void print_client_exception(const sock* client,
-                                              const char* msg) {
+    inline static auto print_client_exception(const sock* client,
+                                              const char* msg) -> void {
         // client session id
         const std::string& ses_id = client->get_session_id();
 
@@ -312,7 +312,7 @@ class server final {
     inline static std::jthread thdwatch{};
     inline static bool thdwatch_on = false;
     inline static bool thdwatch_stats_to_file = false;
-    inline static void thdwatch_run(const std::stop_token& stoken) {
+    inline static auto thdwatch_run(const std::stop_token& stoken) -> void {
         stats::print_headers(stdout);
         constexpr int sleep_us = 100'000;
         constexpr int dt_ms = sleep_us / 1'000;

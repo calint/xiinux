@@ -25,7 +25,7 @@ class test3 final : public uielem {
         mn.items.emplace_back("item 4");
     }
 
-    inline void render(uiprinter& x) override {
+    inline auto render(uiprinter& x) -> void override {
         x.p("<pre>").nl();
         x.elem_open("div", mn.id(), "");
         mn.render(x);
@@ -36,8 +36,8 @@ class test3 final : public uielem {
         x.elem_close("div");
     }
 
-    inline void on_event(uiprinter& x, uielem& from, const int num,
-                         const std::string& msg, void* data) override {
+    inline auto on_event(uiprinter& x, uielem& from, const int num,
+                         const std::string& msg, void* data) -> void override {
         if (&from == &mn) {
             txt.set_value(std::to_string(num));
             x.xset(txt.id(), txt.value());

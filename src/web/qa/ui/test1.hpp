@@ -35,7 +35,7 @@ class test1 final : public uielem {
 
     inline explicit test1() : uielem{nullptr, ""} {}
 
-    void render(uiprinter& x) override {
+    auto render(uiprinter& x) -> void override {
         x.p("<pre>hello world from elements\n");
         const std::string& eid = id();
         x.input_text(a.id(), a.value(), "S", eid, "").nl();
@@ -48,8 +48,8 @@ class test1 final : public uielem {
         x.script_open().xfocus(a.id()).script_close();
     }
 
-    void on_callback(uiprinter& x, const std::string& func,
-                     const std::string& arg) override {
+    auto on_callback(uiprinter& x, const std::string& func,
+                     const std::string& arg) -> void override {
         if (func.empty()) {
             x_default(x, arg);
         } else if (func == "foo") {
@@ -64,12 +64,12 @@ class test1 final : public uielem {
   private:
     // callbacks
 
-    void x_default(uiprinter& x, const std::string& arg) {
+    auto x_default(uiprinter& x, const std::string& arg) -> void {
         x.xset(d.id(), arg + "\n[" + a.value() + "]\n[" + b.value() + "]\n[" +
                            c.value() + "]");
     }
 
-    void x_foo(uiprinter& x, [[maybe_unused]] const std::string& arg) {
+    auto x_foo(uiprinter& x, [[maybe_unused]] const std::string& arg) -> void {
         x.xset(d.id(),
                std::to_string(std::stoi(a.value()) + std::stoi(b.value())));
         x.xp(d.id(), std::string{"\n"} + arg);
@@ -83,7 +83,7 @@ class test1 final : public uielem {
         }
     }
 
-    void x_fow(uiprinter& z, [[maybe_unused]] const std::string& arg) {
+    auto x_fow(uiprinter& z, [[maybe_unused]] const std::string& arg) -> void {
         uijstr x{z, e.id()};
         for (size_t i = 0; i < 100; i++) {
             x.p('\'').p(i).p('\'').p(" public domain server '#2'\r\n\0");

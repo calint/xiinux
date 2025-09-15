@@ -25,7 +25,7 @@ class sessions final {
         return sessions_[std::string{id}].get();
     }
 
-    inline void put(std::unique_ptr<session> ses) {
+    inline auto put(std::unique_ptr<session> ses) -> void {
         sessions_[std::string{ses->get_id()}] = std::move(ses);
     }
 

@@ -56,8 +56,8 @@ class reply final {
         return rsp;
     }
 
-    inline void
-    send_session_id_at_next_opportunity(const std::string_view& id) {
+    inline auto send_session_id_at_next_opportunity(const std::string_view& id)
+        -> void {
         set_session_id_ = id;
     }
 

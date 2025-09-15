@@ -6,13 +6,13 @@
 namespace xiinux::web::qa {
 class typealine final : public widget {
 
-    void to(reply& x) override {
+    auto to(reply& x) -> void override {
         x.http(403, "forbidden. intended for post only.");
     }
 
-    void on_content(reply& x, /*scan*/ const char* buf, const size_t buf_len,
-                    const size_t received_len,
-                    const size_t content_len) override {
+    auto on_content(reply& x, /*scan*/ const char* buf, const size_t buf_len,
+                    const size_t received_len, const size_t content_len)
+        -> void override {
 
         if (!buf) { // begin content receive
             strb<128> sb{};

@@ -6,7 +6,7 @@ class page final : public widget {
     strb<8 * K> txt{};
 
   public:
-    void to(reply& x) override {
+    auto to(reply& x) -> void override {
         strb<32 * K> s{};
         s.p("<!doctype html><script src=/x.js></script><link "
             "rel=stylesheet href=/x.css>")
@@ -25,9 +25,9 @@ class page final : public widget {
         x.http(200, s.string_view());
     }
 
-    void on_content(reply& x, /*temporary*/ const char* buf,
+    auto on_content(reply& x, /*temporary*/ const char* buf,
                     const size_t buf_len, const size_t received_len,
-                    const size_t content_len) override {
+                    const size_t content_len) -> void override {
 
         if (buf == nullptr) { // begin content receive
             // non-empty content is being sent

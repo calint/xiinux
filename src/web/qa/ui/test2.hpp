@@ -16,7 +16,7 @@ class test2 : public uielem {
 
     inline test2() : uielem{nullptr, ""} {}
 
-    inline void render(uiprinter& x) override {
+    inline auto render(uiprinter& x) -> void override {
         x.p("<pre>").nl();
         const std::string& eid = id();
         x.button(eid, "sel", "0", "", "select 1");
@@ -30,8 +30,8 @@ class test2 : public uielem {
         x.elem_close("div");
     }
 
-    inline void on_callback(uiprinter& x, const std::string& func,
-                            const std::string& arg) override {
+    inline auto on_callback(uiprinter& x, const std::string& func,
+                            const std::string& arg) -> void override {
         if (func == "sel") {
             x_sel(x, arg);
         } else {
@@ -40,7 +40,7 @@ class test2 : public uielem {
     }
 
   private:
-    inline void x_sel(uiprinter& x, const std::string& arg) {
+    inline auto x_sel(uiprinter& x, const std::string& arg) -> void {
         mn.selected_ix = unsigned(std::stoi(arg));
 
         uijstr z{x, mn.id()};

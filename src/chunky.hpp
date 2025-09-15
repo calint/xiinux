@@ -116,7 +116,8 @@ class chunky final : public xprinter {
     // end of xprinter implementation
 
   private:
-    inline void send_chunk(const char* buf, const size_t buf_len) const {
+    inline auto send_chunk(const char* buf, const size_t buf_len) const
+        -> void {
         // https://en.wikipedia.org/wiki/Chunked_transfer_encoding
         // chunk header
         strb<array_size_nums> hdr{};

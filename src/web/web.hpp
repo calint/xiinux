@@ -60,7 +60,7 @@ static inline auto widget_create_ui_test2() -> widget* {
 static inline auto widget_create_ui_test3() -> widget* {
     return new xiinux::uiroot(std::make_unique<qa::ui::test3>());
 }
-static inline void widget_init_path_to_factory_map() {
+static inline auto widget_init_path_to_factory_map() -> void {
     path_to_widget_map["/qa/typealine"] = widget_create_typealine;
     path_to_widget_map["/qa/bigresp"] = widget_create_bigresp;
     path_to_widget_map["/qa/hello"] = widget_create_hello;

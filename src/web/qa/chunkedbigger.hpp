@@ -6,7 +6,7 @@
 namespace xiinux::web::qa {
 class chunkedbigger final : public widget {
   public:
-    void to(reply& r) override {
+    auto to(reply& r) -> void override {
         auto x = r.reply_chunky("text/plain;charset=utf-8");
         constexpr size_t buf_len = K * K;
         strb<buf_len> sb{};

@@ -54,7 +54,7 @@ class sock final {
     }
 
     // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-    inline void run() {
+    inline auto run() -> void {
         while (true) {
             if (state_ == resume_send_file) {
                 const ssize_t n = file_.resume_send_to(fd_);
@@ -294,7 +294,7 @@ class sock final {
     }
 
   private:
-    inline void do_after_headers() {
+    inline auto do_after_headers() -> void {
 
         retrieve_session_id_from_cookie();
 
@@ -358,7 +358,7 @@ class sock final {
         do_serve_file(x, path);
     }
 
-    void do_serve_widget(widget_factory_func_ptr factory) {
+    auto do_serve_widget(widget_factory_func_ptr factory) -> void {
         stats.widgets++;
 
         retrieve_or_create_session();
@@ -429,7 +429,7 @@ class sock final {
         state_ = receiving_content;
     }
 
-    inline void retrieve_session_id_from_cookie() {
+    inline auto retrieve_session_id_from_cookie() -> void {
         // get session id from cookie or create new
         const std::string_view& cookie = headers_["cookie"];
         if (cookie.starts_with("i=")) {
@@ -438,7 +438,7 @@ class sock final {
         }
     }
 
-    inline void retrieve_or_create_session() {
+    inline auto retrieve_or_create_session() -> void {
         // check if session id is in cookie
         if (session_id_.empty()) {
             // no session id, create session id with format e.g.
@@ -480,7 +480,7 @@ class sock final {
         sessions.put(std::move(up));
     }
 
-    inline void do_serve_upload() {
+    inline auto do_serve_upload() -> void {
         // file upload path
         // note. no '\0' at the end of path because of string_view
         strb<conf::upload_path_size> sb{};
@@ -556,7 +556,7 @@ class sock final {
         state_ = receiving_upload;
     }
 
-    inline void do_serve_file(reply& x, const std::string_view& path) {
+    inline auto do_serve_file(reply& x, const std::string_view& path) -> void {
         // check for illegal path containing break-out of root directory
         if (path.find("..") != std::string_view::npos) {
             x.http(403, "path contains ..\n");
@@ -698,7 +698,7 @@ class sock final {
         state_ = next_request;
     }
 
-    inline void io_request_read() {
+    inline auto io_request_read() -> void {
         struct epoll_event ev{};
         ev.data.ptr = this;
         ev.events = EPOLLIN | EPOLLRDHUP;
@@ -707,7 +707,7 @@ class sock final {
         }
     }
 
-    inline void io_request_write() {
+    inline auto io_request_write() -> void {
         struct epoll_event ev{};
         ev.data.ptr = this;
         ev.events = EPOLLOUT | EPOLLRDHUP;
@@ -716,7 +716,7 @@ class sock final {
         }
     }
 
-    inline void send_http_response(const int http_code) {
+    inline auto send_http_response(const int http_code) -> void {
         strb<conf::sock_response_header_buffer_size> sb{};
         sb.p("HTTP/1.1 ").p(http_code).p("\r\n");
         if (send_session_id_in_reply_) {
@@ -736,7 +736,7 @@ class sock final {
         int fd_{};
 
       public:
-        inline void close() const {
+        inline auto close() const -> void {
             if (::close(fd_)) {
                 perror("closefile");
             }
@@ -759,8 +759,8 @@ class sock final {
             stats.output += size_t(n);
             return n;
         }
-        inline void init_for_send(const size_t size_in_bytes,
-                                  const off_t seek_pos) {
+        inline auto init_for_send(const size_t size_in_bytes,
+                                  const off_t seek_pos) -> void {
             offset_ = seek_pos;
             count_ = size_in_bytes;
         }
@@ -772,7 +772,7 @@ class sock final {
             fd_ = ::open(path.data(), O_RDONLY | O_CLOEXEC);
             return fd_;
         }
-        inline void rst() {
+        inline auto rst() -> void {
             fd_ = 0;
             offset_ = 0;
             count_ = 0;
@@ -782,7 +782,7 @@ class sock final {
     struct reqline {
         std::string_view path_{};
         std::string_view query_{};
-        inline void rst() {
+        inline auto rst() -> void {
             path_ = {};
             query_ = {};
         }
@@ -791,7 +791,7 @@ class sock final {
     struct header {
         std::string_view name_{};
         std::string_view value_{};
-        inline void rst() {
+        inline auto rst() -> void {
             name_ = {};
             value_ = {};
         }
@@ -803,7 +803,7 @@ class sock final {
         std::unique_ptr<std::array<char, conf::sock_content_buf_size>> buf_{};
 
       public:
-        inline void rst() { pos_ = len_ = 0; }
+        inline auto rst() -> void { pos_ = len_ = 0; }
         [[nodiscard]] inline auto buf() const
             -> const std::array<char, conf::sock_content_buf_size>& {
             return *buf_;
@@ -812,11 +812,11 @@ class sock final {
         [[nodiscard]] inline auto remaining() const -> size_t {
             return len_ - pos_;
         }
-        inline void unsafe_skip(const size_t n) { pos_ += n; }
+        inline auto unsafe_skip(const size_t n) -> void { pos_ += n; }
         [[nodiscard]] inline auto content_len() const -> size_t { return len_; }
 
-        inline void
-        init_for_receive(const std::string_view& content_length_str) {
+        inline auto init_for_receive(const std::string_view& content_length_str)
+            -> void {
             pos_ = 0;
             len_ = size_t(atoll(content_length_str.data()));
             // todo: abuse len
@@ -858,7 +858,7 @@ class sock final {
         char* e_{buf_.data()};
 
       public:
-        inline void rst() { p_ = e_ = buf_.data(); }
+        inline auto rst() -> void { p_ = e_ = buf_.data(); }
         [[nodiscard]] inline auto ptr() const -> char* { return p_; }
         inline void set_mark() { mark_ = p_; }
         [[nodiscard]] inline auto get_mark() const -> char* { return mark_; }
@@ -868,7 +868,7 @@ class sock final {
         }
         // inline void unsafe_skip(const size_t n) { p_ += n; }
         inline auto unsafe_next_char() -> char { return *p_++; }
-        inline void set_eos() { *(p_ - 1) = '\0'; }
+        inline auto set_eos() -> void { *(p_ - 1) = '\0'; }
         inline auto string_view_from_mark() -> std::string_view {
             char* m = mark_;
             mark_ = p_;
@@ -950,7 +950,7 @@ class sock final {
         return {left, size_t(std::distance(left, right) + 1)};
     }
 
-    inline static void strlwr(char* p) {
+    inline static auto strlwr(char* p) -> void {
         while (*p) {
             *p = char(tolower(*p));
             p++;

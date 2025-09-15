@@ -30,7 +30,7 @@ class uielem {
         return value_;
     }
 
-    inline void set_value(const std::string& value) { value_ = value; }
+    inline auto set_value(const std::string& value) -> void { value_ = value; }
 
     [[nodiscard]] inline auto id() const -> std::string {
         std::vector<const uielem*> elems{};
@@ -50,21 +50,21 @@ class uielem {
 
     // virtuals
 
-    virtual void render(uiprinter& x) { x.p(value_); }
+    virtual auto render(uiprinter& x) -> void { x.p(value_); }
 
     virtual auto get_child([[maybe_unused]] const std::string& name)
         -> uielem& {
         throw client_exception{"elem:get_child"};
     }
 
-    virtual void on_callback([[maybe_unused]] uiprinter& x,
+    virtual auto on_callback([[maybe_unused]] uiprinter& x,
                              [[maybe_unused]] const std::string& func,
-                             [[maybe_unused]] const std::string& arg) {
+                             [[maybe_unused]] const std::string& arg) -> void {
         throw client_exception{"elem:on_callback: no implementation"};
     }
 
-    virtual void on_event(uiprinter& x, uielem& from, const int num,
-                          const std::string& msg, void* data) {
+    virtual auto on_event(uiprinter& x, uielem& from, const int num,
+                          const std::string& msg, void* data) -> void {
         if (parent_) {
             parent_->on_event(x, from, num, msg, data);
             return;

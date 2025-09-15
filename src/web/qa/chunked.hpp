@@ -6,7 +6,7 @@
 namespace xiinux::web::qa {
 class chunked final : public widget {
   public:
-    void to(reply& r) override {
+    auto to(reply& r) -> void override {
         auto x = r.reply_chunky("text/plain;charset=utf-8");
         x->p("chunked response").nl();
         x->p(1)

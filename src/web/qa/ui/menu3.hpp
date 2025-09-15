@@ -10,7 +10,7 @@ class menu3 : public uielem {
     inline menu3(uielem* parent, std::string name)
         : uielem{parent, std::move(name)} {}
 
-    inline void render(uiprinter& x) override {
+    inline auto render(uiprinter& x) -> void override {
         int ix = 0;
         const std::string& eid = id();
         for (const auto& itm : items) {
@@ -23,8 +23,8 @@ class menu3 : public uielem {
         }
     }
 
-    inline void on_callback(uiprinter& x, const std::string& func,
-                            const std::string& arg) override {
+    inline auto on_callback(uiprinter& x, const std::string& func,
+                            const std::string& arg) -> void override {
         if (func == "sel") {
             selected_ix = std::atoi(arg.c_str());
             uielem::on_event(x, *this, selected_ix, "sel", nullptr);

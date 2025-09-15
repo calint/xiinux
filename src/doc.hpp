@@ -9,7 +9,7 @@ class doc final {
 
   public:
     inline explicit doc(std::string str) : str_{std::move(str)} {}
-    inline void to(const reply& x) const { x.send(str_); }
+    inline auto to(const reply& x) const -> void { x.send(str_); }
 };
 
 static std::unique_ptr<doc> homepage{};

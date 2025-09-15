@@ -19,7 +19,7 @@ class uijstr final : public uiprinter {
         uiprinter::p("','");
     }
 
-    inline void close() {
+    inline auto close() -> void {
         uiprinter::p("');\n");
         closed_ = true;
     }

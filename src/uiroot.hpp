@@ -19,7 +19,7 @@ class uiroot final : public widget {
 
     ~uiroot() override = default;
 
-    inline void to(reply& r) override {
+    inline auto to(reply& r) -> void override {
         std::unique_ptr<chunky> z = r.reply_chunky();
         uiprinter out{*z};
         out.p(
@@ -27,9 +27,9 @@ class uiroot final : public widget {
         elem_->render(out);
     }
 
-    inline void on_content(reply& x, const char* buf, const size_t buf_len,
-                           const size_t received_len,
-                           const size_t content_len) override {
+    inline auto on_content(reply& x, const char* buf, const size_t buf_len,
+                           const size_t received_len, const size_t content_len)
+        -> void override {
         if (buf == nullptr) {
             content_.clear();
             content_.reserve(content_len);

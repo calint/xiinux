@@ -21,7 +21,7 @@ class stats final {
     size_t errors = 0;
     size_t brkp = 0;
 
-    static void print_headers(FILE* f) {
+    static auto print_headers(FILE* f) -> void {
         (void)fprintf(
             f, "%12s%14s%14s%9s%10s%8s%8s%12s%12s%12s%12s%12s%8s%8s\n", "ms",
             "input", "output", "socks", "reqs", "sesns", "accepts", "reads",
@@ -29,7 +29,7 @@ class stats final {
         (void)fflush(f);
     }
 
-    void print_stats(FILE* f) const {
+    auto print_stats(FILE* f) const -> void {
         (void)fprintf(
             f,
             "%12zu%14zu%14zu%9zu%10zu%8zu%8zu%12zu%12zu%12zu%12zu%12zu%8zu%8zu",

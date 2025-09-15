@@ -8,7 +8,7 @@ inline void xiinux::session::put_widget(std::string path,
     widgets_[std::move(path)] = std::move(wgt);
 }
 
-[[noreturn]] static void sigint(int signum) {
+[[noreturn]] static auto sigint(int signum) -> void {
     printf("\n!!! caught signal %d: %s\n!!! exiting\n", signum,
            strsignal(signum)); // NOLINT(concurrency-mt-unsafe)
     xiinux::server::stop();

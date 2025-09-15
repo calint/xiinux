@@ -15,7 +15,7 @@ class menu : public uielem {
         items.emplace_back("item 4");
     }
 
-    inline void render(uiprinter& x) override {
+    inline auto render(uiprinter& x) -> void override {
         unsigned ix = 0;
         for (const auto& itm : items) {
             if (ix++ == selected_ix) {
