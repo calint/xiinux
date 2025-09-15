@@ -8,14 +8,14 @@ class test3 final : public uielem {
     uielem txt{this, "txt"};
 
   public:
-    inline auto get_child(const std::string& name) -> uielem* override {
+    inline auto get_child(const std::string& name) -> uielem& override {
         if (name == "mn") {
-            return &mn;
+            return mn;
         }
         if (name == "txt") {
-            return &txt;
+            return txt;
         }
-        return nullptr;
+        throw client_exception{"child not found"};
     }
 
     inline test3() : uielem{nullptr, ""} {

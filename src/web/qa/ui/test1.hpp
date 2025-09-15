@@ -14,23 +14,23 @@ class test1 final : public uielem {
     uielem e{this, "e"};
 
   public:
-    auto get_child(const std::string& name) -> uielem* override {
+    auto get_child(const std::string& name) -> uielem& override {
         if (name == "a") {
-            return &a;
+            return a;
         }
         if (name == "b") {
-            return &b;
+            return b;
         }
         if (name == "c") {
-            return &c;
+            return c;
         }
         if (name == "d") {
-            return &d;
+            return d;
         }
         if (name == "e") {
-            return &e;
+            return e;
         }
-        return nullptr;
+        throw client_exception{"child not found"};
     }
 
     inline explicit test1() : uielem{nullptr, ""} {}

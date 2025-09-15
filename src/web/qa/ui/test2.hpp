@@ -7,11 +7,11 @@ class test2 : public uielem {
     menu mn{this, "mn"};
 
   public:
-    inline auto get_child(const std::string& name) -> uielem* override {
+    inline auto get_child(const std::string& name) -> uielem& override {
         if (name == "mn") {
-            return &mn;
+            return mn;
         }
-        return nullptr;
+        throw client_exception{"child not found"};
     }
 
     inline test2() : uielem{nullptr, ""} {}

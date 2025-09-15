@@ -72,7 +72,7 @@ class uiroot final : public widget {
             }
             const std::string id = line.substr(0, ix);
             const std::string value = line.substr(ix + 1);
-            get_elem_by_id(id)->set_value(value);
+            get_elem_by_id(id).set_value(value);
         }
 
         // try to release the allocated buffers
@@ -83,11 +83,11 @@ class uiroot final : public widget {
         std::unique_ptr<chunky> z = x.reply_chunky();
         uiprinter out{*z};
         get_elem_by_id(callback_id)
-            ->on_callback(out, callback_func, callback_arg);
+            .on_callback(out, callback_func, callback_arg);
     }
 
   private:
-    inline auto get_elem_by_id(const std::string& id) -> uielem* {
+    inline auto get_elem_by_id(const std::string& id) -> uielem& {
         const std::vector<std::string> id_split_vec = split_string(id, '-');
         uielem* el = elem_.get();
 
@@ -97,12 +97,9 @@ class uiroot final : public widget {
             if (ix++ < 2) { // skip the first 2 elements to start from root
                 continue;
             }
-            el = el->get_child(eid);
-            if (!el) {
-                throw client_exception{"uiroot:on_content"};
-            }
+            el = &el->get_child(eid);
         }
-        return el;
+        return *el;
     }
 
     // todo: move to a util

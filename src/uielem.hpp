@@ -53,7 +53,7 @@ class uielem {
     virtual void render(uiprinter& x) { x.p(value_); }
 
     virtual auto get_child([[maybe_unused]] const std::string& name)
-        -> uielem* {
+        -> uielem& {
         throw client_exception{"elem:get_child"};
     }
 
