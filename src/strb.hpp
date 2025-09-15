@@ -3,7 +3,7 @@
 #include "xprinter.hpp"
 #include <array>
 #include <cstdio>
-#include <string.h>
+#include <cstring>
 #include <sys/types.h>
 
 namespace xiinux {
