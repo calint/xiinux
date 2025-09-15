@@ -49,7 +49,7 @@ class uijstr final : public uiprinter {
                     uiprinter::p('0');
                     break;
                 default:
-                    throw client_exception("unexpected char");
+                    throw client_exception{"unexpected char"};
                 }
                 mark = ix + 1;
             }
@@ -75,7 +75,7 @@ class uijstr final : public uiprinter {
                 uiprinter::p('0');
                 break;
             default:
-                throw client_exception("unexpected char");
+                throw client_exception{"unexpected char"};
             }
             return *this;
         }

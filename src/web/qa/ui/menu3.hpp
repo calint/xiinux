@@ -30,7 +30,7 @@ class menu3 : public uielem {
             uielem::on_event(x, *this, selected_ix, "sel", nullptr);
             return;
         }
-        throw client_exception("unhandled callback");
+        throw client_exception{"unhandled callback"};
     }
 };
 } // namespace xiinux::web::qa::ui

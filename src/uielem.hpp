@@ -54,13 +54,13 @@ class uielem {
 
     virtual auto get_child([[maybe_unused]] const std::string& name)
         -> uielem* {
-        throw client_exception("elem:get_child");
+        throw client_exception{"elem:get_child"};
     }
 
     virtual void on_callback([[maybe_unused]] uiprinter& x,
                              [[maybe_unused]] const std::string& func,
                              [[maybe_unused]] const std::string& arg) {
-        throw client_exception("elem:on_callback: no implementation");
+        throw client_exception{"elem:on_callback: no implementation"};
     }
 
     virtual void on_event(uiprinter& x, uielem& from, const int num,

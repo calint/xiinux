@@ -67,8 +67,8 @@ class uiroot final : public widget {
         while (std::getline(iss_content, line, '\r')) {
             const std::size_t ix = line.find('=');
             if (ix == std::string::npos) {
-                throw client_exception(
-                    "uiroot:on_content: postback malformed 2");
+                throw client_exception{
+                    "uiroot:on_content: postback malformed 2"};
             }
             const std::string id = line.substr(0, ix);
             const std::string value = line.substr(ix + 1);
@@ -99,7 +99,7 @@ class uiroot final : public widget {
             }
             el = el->get_child(eid);
             if (!el) {
-                throw client_exception("uiroot:on_content");
+                throw client_exception{"uiroot:on_content"};
             }
         }
         return el;

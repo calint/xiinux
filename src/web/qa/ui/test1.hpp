@@ -57,7 +57,7 @@ class test1 final : public uielem {
         } else if (func == "fow") {
             x_fow(x, arg);
         } else {
-            throw client_exception("elements:on_callback: func not found");
+            throw client_exception{"elements:on_callback: func not found"};
         }
     }
 

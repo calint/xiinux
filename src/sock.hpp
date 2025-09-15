@@ -138,8 +138,8 @@ class sock final {
                 // set last modified
                 const struct utimbuf tm{upload_last_mod_, upload_last_mod_};
                 if (utime(upload_path_.c_str(), &tm)) {
-                    throw client_exception("sock:run:receiving_content could "
-                                           "not set file modified time");
+                    throw client_exception{"sock:run:receiving_content could "
+                                           "not set file modified time"};
                 }
                 send_http_response(204);
                 state_ = next_request;
@@ -491,12 +491,12 @@ class sock final {
         // create directory if it does not exist
         if (!fs::exists(fs_pth_dir)) {
             if (!fs::create_directories(fs_pth_dir)) {
-                throw client_exception("sock:do_server_upload:1");
+                throw client_exception{"sock:do_server_upload:1"};
             }
         }
         //  else { //? this check might be un-necessary since 'open' will fail
         //   if (!fs::is_directory(fs_pth_dir)) {
-        //     throw client_exception("sock:do_server_upload:2");
+        //     throw client_exception{"sock:do_server_upload:2"};
         //   }
         // }
 
@@ -531,12 +531,12 @@ class sock final {
             // close file
             if (close(upload_fd_)) {
                 perror("sock:do_server_upload 3");
-                throw client_exception("sock:do_server_upload: 3");
+                throw client_exception{"sock:do_server_upload: 3"};
             }
             // set last modified
             const struct utimbuf tm{upload_last_mod_, upload_last_mod_};
             if (utime(upload_path_.data(), &tm)) {
-                throw client_exception("sock:do_server_upload: 4");
+                throw client_exception{"sock:do_server_upload: 4"};
             }
             // acknowledge request complete
             send_http_response(204);
