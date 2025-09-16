@@ -1,5 +1,6 @@
 [ ] sock: abuse of content length check
 [ ] review/refactor args
+[ ] consider using format -> "Type const &" rather than "const Type &"
 [ ] the use of std::array where it does not need to be initialized
 [ ] ltgt_stream: escapes < and > (see bob class b.osltgt)
 [ ] ui::root_widget: on_content: don't allocate string for full content
@@ -13,7 +14,6 @@
 [ ] server: print_client_exception thread safe "localtime(...)"
 [ ] review throws messages
 [ ] review perror(...) messages
-[ ] consider using format -> "Type const &" rather than "const Type &"
 [ ] uielem auto-generated on_callback(...) and get_child(...)
 [ ] decode query string on demand
 [ ] websockets
