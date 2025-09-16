@@ -26,7 +26,7 @@ class xprinter {
     inline auto p(const int i) -> xprinter& {
         std::array<char, array_size_nums> str{};
         const int len = snprintf(str.data(), str.size(), "%d", i);
-        if (len < 0 or size_t(len) >= str.size()) {
+        if (len < 0 || size_t(len) >= str.size()) {
             throw client_exception{"xprinter:2"};
         }
         return p({str.data(), size_t(len)});
@@ -35,7 +35,7 @@ class xprinter {
     inline auto p(const size_t sz) -> xprinter& {
         std::array<char, array_size_nums> str{};
         const int len = snprintf(str.data(), str.size(), "%zu", sz);
-        if (len < 0 or size_t(len) >= str.size()) {
+        if (len < 0 || size_t(len) >= str.size()) {
             throw client_exception{"xprinter:3"};
         }
         return p({str.data(), size_t(len)});
@@ -44,7 +44,7 @@ class xprinter {
     inline auto p_ptr(const void* ptr) -> xprinter& {
         std::array<char, array_size_nums> str{};
         const int len = snprintf(str.data(), str.size(), "%p", ptr);
-        if (len < 0 or size_t(len) >= str.size()) {
+        if (len < 0 || size_t(len) >= str.size()) {
             throw client_exception{"xprinter:4"};
         }
         return p({str.data(), size_t(len)});
@@ -53,7 +53,7 @@ class xprinter {
     inline auto p_hex(const int i) -> xprinter& {
         std::array<char, array_size_nums> str{};
         const int len = snprintf(str.data(), str.size(), "%x", unsigned(i));
-        if (len < 0 or size_t(len) >= str.size()) {
+        if (len < 0 || size_t(len) >= str.size()) {
             throw client_exception{"xprinter:5"};
         }
         return p({str.data(), size_t(len)});

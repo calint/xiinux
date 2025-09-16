@@ -63,7 +63,7 @@ class sock final {
                         io_request_write();
                         return;
                     }
-                    if (errno == EPIPE or errno == ECONNRESET) {
+                    if (errno == EPIPE || errno == ECONNRESET) {
                         throw client_closed_exception{};
                     }
                     stats.errors++;
@@ -120,7 +120,7 @@ class sock final {
                     upload_rem > nbytes_read ? nbytes_read : upload_rem;
                 const ssize_t m =
                     write(upload_fd_, content_.buf().data(), nbytes_to_write);
-                if (m == -1 or size_t(m) != nbytes_to_write) {
+                if (m == -1 || size_t(m) != nbytes_to_write) {
                     stats.errors++;
                     perror("sock:run:upload");
                     throw client_exception{"sock:writing upload to file 1"};
@@ -524,7 +524,7 @@ class sock final {
         if (remaining >= content_len) {
             // the whole file is in 'reqbuf'
             const ssize_t n = write(upload_fd_, reqbuf_.ptr(), content_len);
-            if (n == -1 or size_t(n) != content_len) {
+            if (n == -1 || size_t(n) != content_len) {
                 perror("sock:do_server_upload 2");
                 throw client_exception{"sock:err4"};
             }
@@ -547,7 +547,7 @@ class sock final {
         // be received in 'content'
         // write bytes remaining in 'reqbuf'
         const ssize_t n = write(upload_fd_, reqbuf_.ptr(), remaining);
-        if (n == -1 or size_t(n) != remaining) {
+        if (n == -1 || size_t(n) != remaining) {
             perror("sock:do_server_upload 5");
             throw client_exception{"sock:err6"};
         }
@@ -680,7 +680,7 @@ class sock final {
         // resume/start sending file
         const ssize_t n = file_.resume_send_to(fd_);
         if (n == -1) {
-            if (errno == EPIPE or errno == ECONNRESET) {
+            if (errno == EPIPE || errno == ECONNRESET) {
                 throw client_closed_exception{};
             }
             stats.errors++;
@@ -752,7 +752,7 @@ class sock final {
             //   printf("sock:file:resume_send_to sent %zd of %zu\n", n,
             //   count_);
             // }
-            if (n == 0 and count != 0) { // file truncated
+            if (n == 0 && count != 0) { // file truncated
                 stats.errors++;
                 throw client_exception{"sock:file:resume_send_to sendfile 0"};
             }
@@ -843,7 +843,7 @@ class sock final {
             if constexpr (conf::print_traffic) {
                 const ssize_t m =
                     write(conf::print_traffic_fd, buf_.get(), size_t(n));
-                if (m == -1 or m != n) {
+                if (m == -1 || m != n) {
                     perror("reply:io_send");
                 }
             }
@@ -895,7 +895,7 @@ class sock final {
             e_ = p_ + n;
             if constexpr (conf::print_traffic) {
                 const ssize_t m = write(conf::print_traffic_fd, p_, size_t(n));
-                if (m == -1 or m != n) {
+                if (m == -1 || m != n) {
                     perror("incomplete or failed write");
                 }
             }
@@ -967,7 +967,7 @@ class sock final {
             }
             char a = p[1]; // +1 might be '\0'
             char b = a == '\0' ? '\0' : p[2];
-            if (*p == '%' and a and b and isxdigit(a) and isxdigit(b)) {
+            if (*p == '%' && a && b && isxdigit(a) && isxdigit(b)) {
                 if (a >= 'a') {
                     a -= 'a' - 'A';
                 }

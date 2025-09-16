@@ -45,7 +45,7 @@ static inline auto io_send(const int fd, const void* buf, size_t buf_len,
     const int flags = buffer_send ? MSG_NOSIGNAL | MSG_MORE : MSG_NOSIGNAL;
     const ssize_t n = send(fd, buf, buf_len, flags);
     if (n == -1) {
-        if (errno == EPIPE or errno == ECONNRESET) {
+        if (errno == EPIPE || errno == ECONNRESET) {
             throw client_closed_exception{};
         }
         if (throw_if_send_not_complete) {
@@ -58,12 +58,12 @@ static inline auto io_send(const int fd, const void* buf, size_t buf_len,
 
     if (conf::print_traffic) {
         const ssize_t m = write(conf::print_traffic_fd, buf, nbytes_sent);
-        if (m == -1 or m != n) {
+        if (m == -1 || m != n) {
             perror("io_send:2");
         }
     }
 
-    if (throw_if_send_not_complete and nbytes_sent != buf_len) {
+    if (throw_if_send_not_complete && nbytes_sent != buf_len) {
         throw client_exception{"io_send:3"};
     }
 

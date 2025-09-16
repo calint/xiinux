@@ -324,7 +324,7 @@ class server final {
                 stats.print_stats(stdout);
                 printf(thdwatch_stats_to_file ? "\n" : "\r");
             }
-            if (!thdwatch_stats_to_file and metrics_print_new_line) {
+            if (!thdwatch_stats_to_file && metrics_print_new_line) {
                 (void)fprintf(stdout, "\n");
             }
         }
