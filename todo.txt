@@ -1,9 +1,9 @@
+[ ] sock: abuse of content length check
 [ ] the use of std::array where it does not need to be initialized
 [ ] ltgt_stream: escapes < and > (see bob class b.osltgt)
 [ ] ui::root_widget: on_content: don't allocate string for full content
     handle partial id and partial value
 [ ] map doc widget to path '/'
-[ ] sock: abuse of content length check
 [ ] sock: consolidate recv(...) in content and buf
 [ ] consolidate printing with xiinux::print_start_of_log_line(ip,session_id)
 [ ] load save and sessions at xiinux start and stop
