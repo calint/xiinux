@@ -29,7 +29,7 @@ class page final : public widget {
                     const size_t buf_len, const size_t received_len,
                     const size_t content_len) -> void override {
 
-        if (buf == nullptr) { // begin content receive
+        if (!buf) { // begin content receive
             // non-empty content is being sent
             txt.rst();
             return;
