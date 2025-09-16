@@ -26,7 +26,7 @@
 [ ] xprinter for sockets with buffered sends
 [ ] generate web/web.hpp
 [ ] thdwatch and <threads> increases the binary by 15K. can be implemented without thread.
---------------------------------------------------------------------------------..
+--------------------------------------------------------------------------------
 [x] clang++ -fsanitize=memory -fsanitize-memory-track-origins=2
     => make.sh qa2
 [x] string literal "xyz"sv when passing arguments to a function compiles to
