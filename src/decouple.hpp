@@ -29,6 +29,14 @@ using widget_factory_func_ptr = widget* (*)();
 
 static int epoll_fd{};
 
+// Sends buffer.
+// fd: file descriptor
+// buf: the buffer
+// buf_len: buffer length
+// buffer_send: if true then the send is buffered until function is called with
+// buffer_send = false
+// throw_if_send_not_complete: throw exception if buffer not fully sent
+// returns number of bytes sent
 static inline auto io_send(const int fd, const void* buf, size_t buf_len,
                            const bool buffer_send = false,
                            const bool throw_if_send_not_complete = true)
