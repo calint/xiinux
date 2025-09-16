@@ -103,7 +103,6 @@ close(timer_fd);
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-
 Retrieve the lastModified value from the File object, which represents the number of milliseconds since January 1, 1970 (Unix timestamp).
 
 #include <iostream>
