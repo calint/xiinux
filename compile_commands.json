@@ -2,9 +2,7 @@
   {
     "arguments": [
       "/usr/bin/clang++",
-      "-c",
       "-std=c++23",
-      "-O3",
       "-Wfatal-errors",
       "-Werror",
       "-Weverything",
@@ -15,12 +13,8 @@
       "-Wno-exit-time-destructors",
       "-Wno-unsafe-buffer-usage",
       "-Wno-undefined-inline",
-      "-o",
-      "xiinux",
-      "src/main.cpp"
     ],
     "directory": "/home/c/w/xiinux",
-    "file": "/home/c/w/xiinux/src/main.cpp",
-    "output": "/home/c/w/xiinux/xiinux"
+    "file": "src/main.cpp",
   }
 ]
