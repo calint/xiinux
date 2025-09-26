@@ -12,9 +12,9 @@
       "-Wno-global-constructors",
       "-Wno-exit-time-destructors",
       "-Wno-unsafe-buffer-usage",
-      "-Wno-undefined-inline",
+      "-Wno-undefined-inline"
     ],
     "directory": "/home/c/w/xiinux",
-    "file": "src/main.cpp",
+    "file": "src/main.cpp"
   }
 ]
